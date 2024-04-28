@@ -1,9 +1,11 @@
 NAME = minishell
 
-CFLAGS = -Wall -Werror -Wextra -fsanitize=address
+CFLAGS = -Wall -Werror -Wextra -g #-fsanitize=address
 
-SRC = main.c\
+SRC = main.c environment.c\
 	libft/ft_strlen.c libft/ft_substr.c libft/ft_strchr.c libft/ft_strncmp.c\
+	libft/ft_strdup.c\
+	builtin/cd.c builtin/pwd.c\
 
 OBJ = ${SRC:.c=.o}
 
