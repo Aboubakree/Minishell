@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/04/28 17:36:55 by akrid            ###   ########.fr       */
+/*   Updated: 2024/04/29 18:58:03 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ t_environment *env_get_bykey(t_environment *env, char *key);
 // builtin
 void    cd(char *path, t_environment *env);
 void    pwd(t_environment *env);
+void    envi(t_environment *env);
 
 
 #endif
