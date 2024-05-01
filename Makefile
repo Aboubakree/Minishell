@@ -2,7 +2,7 @@ NAME = minishell
 
 CFLAGS = -Wall -Werror -Wextra -g #-fsanitize=address
 
-SRC = main.c environment.c\
+SRC = main.c minishell.c environment.c env_variable.c\
 	libft/ft_strlen.c libft/ft_substr.c libft/ft_strchr.c libft/ft_strncmp.c\
 	libft/ft_strdup.c libft/ft_split.c libft/ft_strjoin.c\
 	builtin/cd.c builtin/pwd.c builtin/env.c\

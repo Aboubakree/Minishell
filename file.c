@@ -4,8 +4,8 @@
 
 int main()
 {
-    char *path;
-    char *cmd = "ls -1";
+    char *t[] = {"cat" , "-e",  "Makefile" , ">" ,"tt", NULL};
 
-    path = 
+    execve("/bin/cat", t, NULL);
+    printf("error : %s\n", strerror(errno));
 }
