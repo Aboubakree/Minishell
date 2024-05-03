@@ -6,11 +6,26 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/03 15:38:43 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/03 20:14:33 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+void free_token(t_token **lst)
+{
+    t_token *temp;
+
+    temp = *lst;
+    while (*lst)
+    {
+        temp = *lst;
+        *lst = (*lst)->next;
+        free(temp->str);
+        free(temp);
+    }
+    *lst = NULL;
+}
 
 t_token *token_node(char *str)
 {
@@ -20,6 +35,7 @@ t_token *token_node(char *str)
     if (new == NULL)
         return (NULL);
     new->str = str;
+    new->next = NULL;
     return (new);
 }
 void token_push(t_token **lst, t_token *node)
@@ -31,7 +47,7 @@ void token_push(t_token **lst, t_token *node)
         *lst = node;
     else
     {
-        while (temp->next != NULL)
+        while (temp->next)
             temp = temp->next;
         temp->next = node;
     }
@@ -75,11 +91,12 @@ void lexing(t_token **tokens, char *input)
             {
                 token_push(tokens, token_node(ft_substr(last_pipe, 0, pipe - last_pipe)));
                 last_pipe = pipe;
-                pipe += 1;
             }
+            pipe ++;
         }
+        if (last_pipe != input && pipe)
+            last_pipe ++;
     }
-        // printf("4444455\n");
     token_push(tokens, token_node(ft_substr(last_pipe, 0, pipe - last_pipe)));
 }
 
@@ -88,7 +105,7 @@ int main(int argc, char **argv, char **base_env)
 {
     t_environment *env;
     t_token       *tokens;
-    // t_token       *temp;
+    t_token       *temp;
     
     (void)argv;
     env = NULL;
@@ -103,12 +120,13 @@ int main(int argc, char **argv, char **base_env)
         if (str == NULL)
             break;
         lexing(&tokens, str);
-        // temp = tokens;
-        // while (tokens)
-        // {
-        //     printf("%s\n", temp->str);
-        //     temp = temp->next;
-        // }
+        temp = tokens;
+        while (temp)
+        {
+            printf("%s\n", temp->str);
+            temp = temp->next;
+        }
+        free_token( &tokens);
         free(str);
     }
     return (0);
