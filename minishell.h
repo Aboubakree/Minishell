@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/01 12:28:50 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/03 15:11:56 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,12 @@ typedef struct s_environment
 } t_environment;
 
 
+typedef struct s_token
+{
+    char    *str;
+    struct s_token *next;
+} t_token;
+
 //environment
 t_environment *env_node(char *key, char *value);
 void    env_add_back(t_environment **env, t_environment *node);
@@ -40,6 +46,7 @@ t_environment *env_get_bykey(t_environment *env, char *key);
 void    cd(char *path, t_environment *env);
 void    pwd(t_environment *env);
 void    envi(t_environment *env);
+void    fake_exit(char *arg);
 
 
 #endif
