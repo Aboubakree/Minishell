@@ -112,7 +112,36 @@ int check_misplaced_operators(const char *str)
             expect_operator = 0;
         i++;
     }
-    return (printf("Syntax error : Misplaced Operator\n"), expect_operator);
+    if (expect_operator == 1)
+        return(printf("Syntax error : Misplaced Operator at end of line\n"), 1);
+    else
+        return (0);
+}
+
+int check_invalid_redirection(const char *str)
+{
+    int i;
+    int nb_quote_single;
+    int nb_quote_double;
+    
+    i = 0;
+    nb_quote_single = 0;
+    nb_quote_double = 0;
+    while(str[i])
+    {
+        update_nb_quote(str[i], &nb_quote_single, &nb_quote_double);
+        if ((str[i] == '>' || str[i] == '<') && nb_quote_single % 2 == 0 && nb_quote_double % 2 == 0)
+        {
+            if ((str[i] == '>' && str[i + 1] == '>') || (str[i] == '<' && str[i + 1] == '<'))
+                i++;
+            if (str[i + 1] == '\0')
+                return (printf("Syntax error : Invalid redirection\n"), 1);
+            else if (str[i + 1] == '>' || str[i + 1] == '<')
+                return (printf("Syntax error : Misplaced Operator\n"), 1);
+        }
+        i++;
+    }
+    return (0);
 }
 
 int check_syntax_error(const char *str)
@@ -122,6 +151,8 @@ int check_syntax_error(const char *str)
     if (check_misplaced_operators(str) == 1)
         return (1);
     if (check_logical_operators(str) == 1)
+        return (1);
+    if (check_invalid_redirection(str) == 1)
         return (1);
     return (0);
 }
