@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
+#    makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/11/15 21:37:56 by rtamouss          #+#    #+#              #
-#    Updated: 2023/11/17 15:36:58 by rtamouss         ###   ########.fr        #
+#    Updated: 2024/05/05 16:28:50 by rtamouss         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,23 +27,23 @@ all: $(NAME)
 
 
 $(NAME) : $(OBJS)
-	ar rcs $@ $^
+	@ar rcs $@ $^
 
 bonus: $(OBJS) ${BOBJS}
 
 $(OBJS) : $(SRCS)
-	$(CC) $(CFLAGS) -c $^
+	@$(CC) $(CFLAGS) -c $^
 
 $(BOBJS) : $(BSRCS)
-	$(CC) $(CFLAGS) -c $^
-	ar rcs $(NAME) $(BOBJS)
+	@$(CC) $(CFLAGS) -c $^
+	@ar rcs $(NAME) $(BOBJS)
 
 clean:
-	rm -rf $(OBJS)
-	rm -rf $(BOBJS)
+	@rm -rf $(OBJS)
+	@rm -rf $(BOBJS)
 
 fclean : clean
-	rm -rf $(NAME)
+	@rm -rf $(NAME)
 
 re: fclean all
 
