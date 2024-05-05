@@ -3,112 +3,113 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/03 15:38:43 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/05 14:55:11 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-t_token *token_node(char *str)
-{
-    t_token *new;
-
-    new = malloc(sizeof(t_token));
-    if (new == NULL)
-        return (NULL);
-    new->str = str;
-    return (new);
-}
-void token_push(t_token **lst, t_token *node)
-{
-    t_token *temp;
-
-    temp = *lst;
-    if (*lst == NULL)
-        *lst = node;
-    else
-    {
-        while (temp->next != NULL)
-            temp = temp->next;
-        temp->next = node;
-    }
-}
-
-int fetch_quots(char *str, char c)
+// syntax error checking
+int count_char_occurence(char *str, int c)
 {
     int i;
     int count;
-
+    
     i = 0;
     count = 0;
-    while (str && str[i])
+    while (str[i])
     {
         if (str[i] == c)
-            count ++;
-        i ++;
+            count++;
+        i++;
     }
-    if (str)
-        free(str);
     return (count);
 }
 
-void lexing(t_token **tokens, char *input)
+int check_unclosed_quotes(const char *str)
 {
-    char *pipe;
-    char *last_pipe;
-    int s_quots;
-    int d_quots;
+    int i;
+    int in_single_quotes;
+    int in_double_quotes;
 
-    pipe = input;
-    last_pipe = input;
-    while (pipe != NULL)
+    i = 0;
+    in_single_quotes = 0;
+    in_double_quotes = 0;
+    while(str[i])
     {
-        pipe = ft_strchr(pipe, '|');
-        if (pipe != NULL)
-        {
-            s_quots = fetch_quots(ft_substr(last_pipe, 0, pipe - last_pipe), '\'');
-            d_quots = fetch_quots(ft_substr(last_pipe, 0, pipe - last_pipe), '"');
-            if (s_quots % 2 == 0 && d_quots % 2 == 0)
-            {
-                token_push(tokens, token_node(ft_substr(last_pipe, 0, pipe - last_pipe)));
-                last_pipe = pipe;
-                pipe += 1;
-            }
-        }
+        if (str[i] == '\'' && in_double_quotes == 0)
+            in_single_quotes = !in_single_quotes;
+        if (str[i] == '\"' && in_single_quotes == 0)
+            in_double_quotes = !in_double_quotes;
+        i++;
     }
-        // printf("4444455\n");
-    token_push(tokens, token_node(ft_substr(last_pipe, 0, pipe - last_pipe)));
+    return (in_single_quotes || in_double_quotes);
 }
 
+int is_whitespace(char c)
+{
+    return (c == ' ' || c == '\t' || c == '\n' || c == '\v' || c == '\f' || c == '\r');
+}
+
+int check_misplaced_operators(const char *str)
+{
+    int i;
+    char *pipe;
+    
+    i = 0;
+    while(str[i])
+    {
+        while(is_whitespace(str[i]))
+            i++;
+        if (str[i] == '|')
+            return (printf("Syntax error : Misplaced pipe\n"), 1);
+        pipe = ft_strrchr(str, '|');
+        while(is_whitespace(*pipe))
+            pipe++;
+        if (*pipe == '\0')
+            return (printf("Syntax error : Misplaced pipe\n"), 1);
+        i++;
+    }
+    return (0); 
+}
+
+int check_syntax_error(const char *str)
+{
+    if (check_unclosed_quotes(str) == 1)
+        return (printf("Syntax error : Unclosed quote\n"), 1);
+    // if (check_misplaced_operators(str) == 1)
+    //     return (1);
+    return (0);
+}
+
+// syntax error check
 
 int main(int argc, char **argv, char **base_env)
 {
     t_environment *env;
-    t_token       *tokens;
     // t_token       *temp;
     
     (void)argv;
     env = NULL;
-    tokens = NULL;
     if (argc > 1)
         return (1);
     get_environment(&env, base_env);
     char *str;
+    printf("Welcome to minishell\n");
     while (1)
     {
-        str = readline("minishell-->$");
+        str = readline("minishell$ ");
         if (str == NULL)
             break;
-        lexing(&tokens, str);
-        // temp = tokens;
-        // while (tokens)
-        // {
-        //     printf("%s\n", temp->str);
-        //     temp = temp->next;
-        // }
+        if (check_syntax_error(str) == 1)
+        {
+            free(str);
+            continue;
+        }
+        printf("%s\n", str);
         free(str);
     }
     return (0);

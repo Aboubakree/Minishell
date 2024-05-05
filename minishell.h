@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/03 15:11:56 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/05 14:46:38 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 #include <readline/readline.h>
 #include <string.h>
 #include <errno.h>
-#include "libft/libft.h"
+#include "lib/libft/libft.h"
 
 typedef struct s_environment
 {
@@ -28,13 +28,32 @@ typedef struct s_environment
     struct s_environment *next;
 } t_environment;
 
+// --------------------------------------------------- parsing ---------------------------------------------------
+
+typedef enum e_type_of_token
+{
+    T_WORD,
+    T_PIPE,
+    T_RIDRECTION_IN,
+    T_RIDRECTION_OUT,
+    T_RIDRECTION_APPEND,
+    T_REDIRECTION_ERR,
+    T_ENV_VARIABLE
+} t_type_of_token;
 
 typedef struct s_token
 {
-    char    *str;
+    t_type_of_token type;
+    char *value;
     struct s_token *next;
 } t_token;
 
+
+
+
+
+
+// --------------------------------------------------- parsing ---------------------------------------------------
 //environment
 t_environment *env_node(char *key, char *value);
 void    env_add_back(t_environment **env, t_environment *node);
