@@ -1,11 +1,11 @@
-#include "minishell.h"
-
+// #include "minishell.h"
+#include "libft/libft.h"
 
 
 int main()
 {
-    char *t[] = {"cat" , "-e",  "Makefile" , ">" ,"tt", NULL};
+    char **str = ft_split("   ", ' ');
+    printf("%p\n", str);
 
-    execve("/bin/cat", t, NULL);
-    printf("error : %s\n", strerror(errno));
+    return (0);
 }

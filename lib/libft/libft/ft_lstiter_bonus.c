@@ -1,26 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   env.c                                              :+:      :+:    :+:   */
+/*   ft_lstiter.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/29 18:48:43 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/02 09:04:16 by akrid            ###   ########.fr       */
+/*   Created: 2023/11/14 01:43:40 by rtamouss          #+#    #+#             */
+/*   Updated: 2023/11/14 01:45:45 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../minishell.h"
+#include "libft.h"
 
-void    envi(t_environment *env)
+void	ft_lstiter(t_list *lst, void (*f)(void *))
 {
-    t_environment *temp;
-
-    temp = env;
-    while (temp)
-    {
-        if (temp->value != NULL)
-            printf("%s=%s\n", temp->key, temp->value);
-        temp = temp->next;
-    }
+	if (lst && f)
+	{
+		while (lst)
+		{
+			f(lst -> content);
+			lst = lst -> next;
+		}
+	}
 }

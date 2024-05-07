@@ -1,26 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   env.c                                              :+:      :+:    :+:   */
+/*   ft_lstnew_bonus.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/29 18:48:43 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/02 09:04:16 by akrid            ###   ########.fr       */
+/*   Created: 2023/11/13 16:06:56 by rtamouss          #+#    #+#             */
+/*   Updated: 2023/11/17 17:09:05 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../minishell.h"
+#include "libft.h"
 
-void    envi(t_environment *env)
+t_list	*ft_lstnew(void *content)
 {
-    t_environment *temp;
+	t_list	*head;
 
-    temp = env;
-    while (temp)
-    {
-        if (temp->value != NULL)
-            printf("%s=%s\n", temp->key, temp->value);
-        temp = temp->next;
-    }
+	head = (t_list *)malloc(sizeof(t_list));
+	if (!head)
+		return (NULL);
+	head->content = content;
+	head->next = NULL;
+	return (head);
 }

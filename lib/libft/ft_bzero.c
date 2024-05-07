@@ -1,26 +1,21 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   env.c                                              :+:      :+:    :+:   */
+/*   ft_bzero.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/29 18:48:43 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/02 09:04:16 by akrid            ###   ########.fr       */
+/*   Created: 2023/11/04 20:59:51 by rtamouss          #+#    #+#             */
+/*   Updated: 2023/11/14 23:19:08 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../minishell.h"
+#include "libft.h"
 
-void    envi(t_environment *env)
+void	ft_bzero(void *s, size_t n)
 {
-    t_environment *temp;
+	int	c;
 
-    temp = env;
-    while (temp)
-    {
-        if (temp->value != NULL)
-            printf("%s=%s\n", temp->key, temp->value);
-        temp = temp->next;
-    }
+	c = 0;
+	ft_memset(s, c, n);
 }

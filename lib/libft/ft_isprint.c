@@ -1,26 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   env.c                                              :+:      :+:    :+:   */
+/*   ft_isprint.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/29 18:48:43 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/02 09:04:16 by akrid            ###   ########.fr       */
+/*   Created: 2023/11/01 18:11:19 by rtamouss          #+#    #+#             */
+/*   Updated: 2023/11/06 18:10:44 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../minishell.h"
+#include "libft.h"
 
-void    envi(t_environment *env)
+int	ft_isprint(int c)
 {
-    t_environment *temp;
-
-    temp = env;
-    while (temp)
-    {
-        if (temp->value != NULL)
-            printf("%s=%s\n", temp->key, temp->value);
-        temp = temp->next;
-    }
+	return (c >= 32 && c <= 126);
 }
