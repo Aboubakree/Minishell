@@ -49,7 +49,13 @@ typedef struct s_token
     struct s_token *next;
 } t_token;
 
-
+typedef struct s_ast_node
+{
+    t_type_of_token type;
+    char *args;
+    struct s_ast_node *left;
+    struct s_as_node *right;
+} t_ast_node;
 
 
 

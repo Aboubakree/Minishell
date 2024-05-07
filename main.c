@@ -48,20 +48,19 @@ int check_logical_operators(const char *str)
     int i;
 
     i = 0;
-    while(str[i])
-    {
-        while(str[i] && is_whitespace(str[i]))
-            i++;
-        if (str[i] == '&')
-            return (printf("Syntax error : Misplaced Operator at first of line\n"), 1);
-        while (str[i] && str[i] != '&')
-            i++;
-        if (str[i] == '&')
-        {
-            if (str[i + 1] == '&')
-                return (printf("Error: Logical operators '&&' and '||' are not supported YET.\n"), 1);
-        }
+    if(!str)
+        return (0);
+
+    while(str[i] && is_whitespace(str[i]))
         i++;
+    if (str[i] == '&')
+        return (printf("Syntax error : Misplaced Operator at first of line\n"), 1);
+    while (str[i] && str[i] != '&')
+        i++;
+    if (str[i] == '&')
+    {
+        if (str[i + 1] == '&')
+            return (printf("Error: Logical operators '&&' and '||' are not supported YET.\n"), 1);
     }
     return (0);
 }
@@ -369,6 +368,7 @@ void handle_ctrl_c(int signal)
 {
     if (signal == SIGINT)
     {
+        printf(" will be freed \n");
         free_tokens(tokens);
         exit(1);
     }
@@ -376,13 +376,13 @@ void handle_ctrl_c(int signal)
 int main(int argc, char **argv, char **base_env)
 {
     t_environment *env;
+    char *str;
     
     (void)argv;
     env = NULL;
     if (argc > 1)
         return (1);
     get_environment(&env, base_env);
-    char *str;
     printf("Welcome to minishell\n");
     while (1)
     {
@@ -396,7 +396,6 @@ int main(int argc, char **argv, char **base_env)
         tokens = tokenize_input(str);
         print_tokens(tokens);
 
-        // free(str);
         if (check_syntax_error(str) == 1)
         {
             free(str);
