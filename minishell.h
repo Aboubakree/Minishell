@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/05 14:46:38 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/05/07 09:37:43 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <readline/readline.h>
 #include <string.h>
+#include <signal.h>
 #include <errno.h>
 #include "lib/libft/libft.h"
 
@@ -34,10 +35,10 @@ typedef enum e_type_of_token
 {
     T_WORD,
     T_PIPE,
-    T_RIDRECTION_IN,
-    T_RIDRECTION_OUT,
-    T_RIDRECTION_APPEND,
-    T_REDIRECTION_ERR,
+    T_REDIRECTION_IN,
+    T_REDIRECTION_OUT,
+    T_REDIRECTION_APPEND,
+    T_HERDOC,
     T_ENV_VARIABLE
 } t_type_of_token;
 
