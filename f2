@@ -1,0 +1,16 @@
+Makefile
+builtin
+c09
+environment.c
+f1
+f2
+f3
+file
+file.c
+lib
+libft
+main 2.o
+main.c
+minishell 2
+minishell.c
+minishell.h
