@@ -13,6 +13,7 @@
 #include "minishell.h"
 
 // syntax error checking
+
 int count_char_occurence(char *str, int c)
 {
     int i;
@@ -77,8 +78,11 @@ int check_misplaced_operators(const char *str)
     nb_quote_single = 0;
     nb_quote_double = 0;
     expect_operator = 0;
+    while(str[i] && is_whitespace(str[i]))
+        i++;
     if (str[i] == '|')
         return (printf("Syntax error : Misplaced Operator at first of line\n"), 1);
+    i = 0;
     while(str[i])
     {
         update_nb_quote(str[i], &nb_quote_single, &nb_quote_double);
@@ -195,6 +199,21 @@ int is_word(char c)
 {
     return (!is_operator(c) && !is_quote(c) && !is_whitespace(c) && !is_env_variable(c));
 }
+int s_minishell_size(t_minishell *minishell)
+{
+    int size;
+
+    size = 0;
+    if (!minishell)
+        return (0);
+    while(minishell)
+    {
+        size++;
+        minishell = minishell->next;
+    }
+    return (size);
+}
+
 
 int tokens_size(t_token *tokens)
 {
@@ -210,6 +229,30 @@ int tokens_size(t_token *tokens)
     }
     return (size);
 }
+t_token get_last_token(t_token *tokens)
+{
+    t_token *temp;
+
+    temp = tokens;
+    if (!temp)
+        return (t_token){0, NULL, NULL};
+    while(temp->next)
+        temp = temp->next;
+    return (*temp);
+}
+t_file *new_file(int fd, char *filename)
+{
+    t_file *file;
+
+    file = (t_file *)malloc(sizeof(t_file));
+    if(!file)
+        return (NULL);
+    file->fd = fd;
+    file->filename = filename;
+    file->next = NULL;
+    return (file);
+}
+
 
 t_token *new_token(t_type_of_token type, char *value)
 {
@@ -337,7 +380,7 @@ t_token *tokenize_input(const char *str)
     i = 0;
     while(str[i])
     {
-        if(ft_strchr(" \t\n\v\f\r", str[i]))
+        while(ft_strchr(" \t\n\v\f\r", str[i]))
             i++;
         if (ft_strchr("<>|", str[i]))
             handle_operator(&head, str, &i);
@@ -362,20 +405,190 @@ void free_tokens(t_token *tokens)
         free(temp);
     }
 }
+int check_syntax_error_tokens(t_token *tokens)
+{
+    t_token *temp;
+
+    temp = tokens;
+    if (!temp)
+        return (0);
+    while(temp)
+    {
+        if (temp->type == T_HERDOC && temp->next->type != T_WORD)
+            return (printf("Syntax error : Expected a limiter after '<<'\n"), 1);
+        if (temp->type == T_REDIRECTION_IN && temp->next->type != T_WORD)
+            return (printf("Syntax error : Expected a file after '<'\n"), 1);
+        if (temp->type == T_REDIRECTION_OUT && temp->next->type != T_WORD)
+            return (printf("Syntax error : Expected a file after '>'\n"), 1);
+        if (temp->type == T_REDIRECTION_APPEND && temp->next->type != T_WORD)
+            return (printf("Syntax error : Expected a file after '>>'\n"), 1);
+        if (temp->type == T_PIPE && !temp->next)
+            return (printf("Syntax error : Expected a command after '|'\n"), 1);
+        if (temp->type == T_PIPE && temp->next->type == T_PIPE)
+            return (printf("Error: Logical operators '&&' and '||' are not supported YET.\n"), 1);
+        if (temp->type == T_PIPE && temp->next->next == NULL)
+            return (printf("Syntax error : Expected a command after '|'\n"), 1);
+        if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_IN)
+            return (printf("Syntax error : Expected a command after '|'\n"), 1);
+        if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_OUT)
+            return (printf("Syntax error : Expected a command after '|'\n"), 1);
+        if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_APPEND)
+            return (printf("Syntax error : Expected a command after '|'\n"), 1);
+       
+        temp = temp->next;
+    }
+    return (0);
+}
+t_minishell *new_minishell(char *command, char **args, char *delimiter, int number, t_file *in, t_file *out)
+{
+    t_minishell *minishell;
+
+    minishell = (t_minishell *)malloc(sizeof(t_minishell));
+    if (!minishell)
+        return (NULL);
+    minishell->command = command;
+    minishell->args = args;
+    minishell->delimiter = delimiter;
+    minishell->command_number = number;
+    minishell->in = in;
+    minishell->out = out;
+    minishell->next = NULL;
+    return (minishell);
+}
+void add_minishell_back(t_minishell **head, t_minishell *new_minishell)
+{
+    t_minishell *temp;
+
+    if (!*head)
+        *head = new_minishell;
+    else
+    {
+        temp = *head;
+        while(temp->next)
+            temp = temp->next;
+        temp->next = new_minishell;
+    }
+}
+
+t_minishell *token_to_minishell(t_token *tokens)
+{
+    t_minishell *minishell = NULL;
+    char *command = NULL;
+    char *args[50];
+    int a = 0;
+    char *delimiter = NULL;
+    t_file *in = NULL;
+    t_file *out = NULL;
+    int new_command = 1;
+    int i = 0;
+
+    t_token *temp = tokens;
+    while(temp)
+    {
+        if (temp->type == T_PIPE)
+        {
+            args[a] = NULL;
+            add_minishell_back(&minishell, new_minishell(command, args, delimiter, i, in, out));
+            command = NULL;
+            a = 0;
+            while(args[a])
+            {
+                free(args[a]);
+                args[a] = NULL;
+            }
+            in = NULL;
+            out = NULL;
+            temp = temp->next;
+            i++;
+            new_command = 1;
+            continue;
+        }
+        if (temp->type == T_WORD)
+        {
+            if (new_command == 1)
+            {
+                command = ft_strdup(temp->value);
+                new_command = 0;
+            }
+            else
+            {
+                args[a++] = ft_strdup(temp->value);
+            }
+        }
+        else if (temp->type == T_REDIRECTION_IN)
+        {
+            temp = temp->next;
+            in = new_file(0, ft_strdup(temp->value));
+        }
+        else if (temp->type == T_REDIRECTION_OUT)
+        {
+            temp = temp->next;
+            out = new_file(1, ft_strdup(temp->value));
+        }
+        else if (temp->type == T_REDIRECTION_APPEND)
+        {
+            temp = temp->next;
+            out = new_file(1, ft_strdup(temp->value));
+        }
+        else if (temp->type == T_HERDOC)
+        {
+            temp = temp->next;
+            delimiter = ft_strdup(temp->value);
+        }
+        temp = temp->next;
+    }
+    args[a] = NULL;
+    add_minishell_back(&minishell, new_minishell(command, args, delimiter, i, in, out));
+    return minishell;
+}
+void print_minishell(t_minishell *minishell)
+{
+    int i;
+    t_minishell *temp;
+    t_file *file;
+
+    i = 0;
+    temp = minishell;
+    if (!temp)
+        return ;
+    while(temp)
+    {
+        printf("--------------------\n");
+        printf("command[%d]: %s\n",temp->command_number, temp->command);
+        printf("args: ");
+        i = 0;
+        while(temp->args && temp->args[i])
+        {
+            printf("%s ", temp->args[i]);
+            i++;
+        }
+        printf("\n");
+        printf("delimiter: %s\n", temp->delimiter);
+        file = temp->in;
+        if (file)
+            printf("in: %s\n", file->filename);
+        file = temp->out;
+        if (file)
+            printf("out: %s\n", file->filename);
+        printf("--------------------\n");
+        temp = temp->next;
+    }
+}
 // end tokenization
-t_token *tokens;
 void handle_ctrl_c(int signal)
 {
     if (signal == SIGINT)
     {
         printf(" will be freed \n");
-        free_tokens(tokens);
         exit(1);
     }
 }
+
+
 int main(int argc, char **argv, char **base_env)
 {
     t_environment *env;
+    t_token *tokens;
     char *str;
     
     (void)argv;
@@ -395,12 +608,14 @@ int main(int argc, char **argv, char **base_env)
             break;
         tokens = tokenize_input(str);
         print_tokens(tokens);
-
-        if (check_syntax_error(str) == 1)
+        if (check_syntax_error(str) == 1 || check_syntax_error_tokens(tokens) == 1)
         {
             free(str);
             continue;
         }
+        token_to_minishell(tokens);
+        print_minishell(token_to_minishell(tokens));
+        printf("last token is : %s\n", get_last_token(tokens).value);
         printf("%s\n", str);
     }
     return (0);

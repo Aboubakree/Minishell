@@ -177,7 +177,19 @@ void free_ast(t_ast_node *root)
         free(root);
     }
 }
+void print_ast(t_ast_node *root, char* parent_side) {
+    if (!root)
+        return;
 
+    if (parent_side == NULL) {
+        printf("Root: \"%d\"\n", root->value);
+    } else {
+        printf("%s Child: \"%d\"\n", parent_side, root->value);
+    }
+
+    print_ast(root->left, "Left");
+    print_ast(root->right, "Right");
+}
 int evaluate_ast(t_ast_node *root)
 {
     if (!root)
@@ -209,7 +221,8 @@ int main()
     // print_tokens(head); // Uncomment this line if you want to see the tokens
 
     t_ast_node *root = parse_expression(&head);
-    printf("Result: %d\n", evaluate_ast(root));
+    print_ast(root, NULL);
+    // printf("Result: %d\n", evaluate_ast(root));
 
     free_ast(root);
     free(input);
