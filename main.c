@@ -426,8 +426,6 @@ int check_syntax_error_tokens(t_token *tokens)
             return (printf("Syntax error : Expected a command after '|'\n"), 1);
         if (temp->type == T_PIPE && temp->next->type == T_PIPE)
             return (printf("Error: Logical operators '&&' and '||' are not supported YET.\n"), 1);
-        if (temp->type == T_PIPE && temp->next->next == NULL)
-            return (printf("Syntax error : Expected a command after '|'\n"), 1);
         if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_IN)
             return (printf("Syntax error : Expected a command after '|'\n"), 1);
         if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_OUT)
@@ -439,7 +437,7 @@ int check_syntax_error_tokens(t_token *tokens)
     }
     return (0);
 }
-t_minishell *new_minishell(char *command, char **args, char *delimiter, int number, t_file *in, t_file *out)
+t_minishell *new_minishell(char *command, t_args *args, char *delimiter, int number, t_file *in, t_file *out)
 {
     t_minishell *minishell;
 
@@ -470,106 +468,121 @@ void add_minishell_back(t_minishell **head, t_minishell *new_minishell)
     }
 }
 
+
+void *new_arg(char *arg)
+{
+    t_args *args;
+
+    args = (t_args *)malloc(sizeof(t_args));
+    if (!args)
+        return (NULL);
+    args->args = arg;
+    args->next = NULL;
+    return (args);
+}
+void add_arg_back(t_args **head, t_args *new_arg)
+{
+    t_args *temp;
+
+    if (!*head)
+        *head = new_arg;
+    else
+    {
+        temp = *head;
+        while(temp->next)
+            temp = temp->next;
+        temp->next = new_arg;
+    }
+}
 t_minishell *token_to_minishell(t_token *tokens)
 {
-    t_minishell *minishell = NULL;
+    t_minishell *minishell;
     char *command = NULL;
-    char *args[50];
-    int a = 0;
+    // char *args[50];
+    t_args *args = NULL;
+    // int a = 0;
     char *delimiter = NULL;
     t_file *in = NULL;
     t_file *out = NULL;
     int new_command = 1;
-    int i = 0;
 
+    minishell = NULL;
+    int i = 0;
     t_token *temp = tokens;
     while(temp)
     {
-        if (temp->type == T_PIPE)
-        {
-            args[a] = NULL;
-            add_minishell_back(&minishell, new_minishell(command, args, delimiter, i, in, out));
-            command = NULL;
-            a = 0;
-            while(args[a])
+        // while(temp && temp->type != T_PIPE)
+        // {
+            if (temp->type == T_PIPE)
             {
-                free(args[a]);
-                args[a] = NULL;
+                add_minishell_back(&minishell, new_minishell(command, args, delimiter, i, in, out));
+                command = NULL;
+                temp = temp->next;
+                i++;
+                new_command = 1;
+                continue;
             }
-            in = NULL;
-            out = NULL;
-            temp = temp->next;
-            i++;
-            new_command = 1;
-            continue;
-        }
-        if (temp->type == T_WORD)
-        {
-            if (new_command == 1)
+            if (temp->type == T_WORD)
             {
-                command = ft_strdup(temp->value);
-                new_command = 0;
+                if (new_command == 1)
+                {
+                    command = ft_strdup(temp->value);
+                    new_command = 0;
+                }
+                else
+                    add_arg_back(&args, new_arg(ft_strdup(temp->value)));
+                    // args[a++] = ft_strdup(temp->value);
             }
-            else
+            else if (temp->type == T_REDIRECTION_IN)
             {
-                args[a++] = ft_strdup(temp->value);
+                temp = temp->next;
+                in = new_file(0, ft_strdup(temp->value));
             }
-        }
-        else if (temp->type == T_REDIRECTION_IN)
-        {
+            else if (temp->type == T_REDIRECTION_OUT)
+            {
+                temp = temp->next;
+                out = new_file(1, ft_strdup(temp->value));
+            }
+            else if (temp->type == T_REDIRECTION_APPEND)
+            {
+                temp = temp->next;
+                out = new_file(1, ft_strdup(temp->value));
+            }
+            else if (temp->type == T_HERDOC)
+            {
+                temp = temp->next;
+                delimiter = ft_strdup(temp->value);
+            }
             temp = temp->next;
-            in = new_file(0, ft_strdup(temp->value));
-        }
-        else if (temp->type == T_REDIRECTION_OUT)
-        {
-            temp = temp->next;
-            out = new_file(1, ft_strdup(temp->value));
-        }
-        else if (temp->type == T_REDIRECTION_APPEND)
-        {
-            temp = temp->next;
-            out = new_file(1, ft_strdup(temp->value));
-        }
-        else if (temp->type == T_HERDOC)
-        {
-            temp = temp->next;
-            delimiter = ft_strdup(temp->value);
-        }
-        temp = temp->next;
+        // }
+        // temp = temp->next;
     }
-    args[a] = NULL;
-    add_minishell_back(&minishell, new_minishell(command, args, delimiter, i, in, out));
-    return minishell;
+    add_minishell_back(&minishell, new_minishell(command, args, delimiter,i,  in, out));
+    return (minishell);
 }
 void print_minishell(t_minishell *minishell)
 {
-    int i;
     t_minishell *temp;
-    t_file *file;
+    t_args *temp_args;
 
-    i = 0;
     temp = minishell;
-    if (!temp)
-        return ;
     while(temp)
     {
         printf("--------------------\n");
-        printf("command[%d]: %s\n",temp->command_number, temp->command);
-        printf("args: ");
-        i = 0;
-        while(temp->args && temp->args[i])
+        printf("command: %s\n", temp->command);
+        temp_args = temp->args;
+        printf("args :");
+        while(temp_args)
         {
-            printf("%s ", temp->args[i]);
-            i++;
+            printf(" %s ", temp_args->args);
+            temp_args = temp_args->next;
         }
         printf("\n");
-        printf("delimiter: %s\n", temp->delimiter);
-        file = temp->in;
-        if (file)
-            printf("in: %s\n", file->filename);
-        file = temp->out;
-        if (file)
-            printf("out: %s\n", file->filename);
+        printf("command_number: %d\n", temp->command_number);
+        if (temp->in)
+            printf("in: %s\n", temp->in->filename);
+        if (temp->out)
+            printf("out: %s\n", temp->out->filename);
         printf("--------------------\n");
         temp = temp->next;
     }
