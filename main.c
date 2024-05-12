@@ -554,7 +554,6 @@ t_minishell *token_to_minishell(t_token *tokens)
                 temp = temp->next;
                 delimiter = ft_strdup(temp->value);
                 delimiter = ft_strjoin("<<", delimiter);
-                printf("we are on dilimeter %s\n", delimiter);
             }
             temp = temp->next;
         // }
