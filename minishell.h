@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/12 15:51:14 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/05/12 16:33:54 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,6 @@ typedef struct s_minishell
     char *command;
     // char **args;
     t_args *args;
-    int command_number;
     char *delimiter;
     char *path;
     t_file *in;

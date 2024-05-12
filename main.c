@@ -437,7 +437,7 @@ int check_syntax_error_tokens(t_token *tokens)
     }
     return (0);
 }
-t_minishell *new_minishell(char *command, t_args *args, char *delimiter, int number, t_file *in, t_file *out)
+t_minishell *new_minishell(char *command, t_args *args, char *delimiter, t_file *in, t_file *out)
 {
     t_minishell *minishell;
 
@@ -447,7 +447,6 @@ t_minishell *new_minishell(char *command, t_args *args, char *delimiter, int num
     minishell->command = command;
     minishell->args = args;
     minishell->delimiter = delimiter;
-    minishell->command_number = number;
     minishell->in = in;
     minishell->out = out;
     minishell->next = NULL;
@@ -507,7 +506,6 @@ t_minishell *token_to_minishell(t_token *tokens)
     int new_command = 1;
 
     minishell = NULL;
-    int i = 0;
     t_token *temp = tokens;
     while(temp)
     {
@@ -515,10 +513,13 @@ t_minishell *token_to_minishell(t_token *tokens)
         // {
             if (temp->type == T_PIPE)
             {
-                add_minishell_back(&minishell, new_minishell(command, args, delimiter, i, in, out));
+                add_minishell_back(&minishell, new_minishell(command, args, delimiter,in, out));
                 command = NULL;
+                args = NULL;
+                delimiter = NULL;
+                in = NULL;
+                out = NULL;
                 temp = temp->next;
-                i++;
                 new_command = 1;
                 continue;
             }
@@ -536,28 +537,30 @@ t_minishell *token_to_minishell(t_token *tokens)
             else if (temp->type == T_REDIRECTION_IN)
             {
                 temp = temp->next;
-                in = new_file(0, ft_strdup(temp->value));
+                in = new_file(0, ft_strjoin("<",ft_strdup(temp->value)));
             }
             else if (temp->type == T_REDIRECTION_OUT)
             {
                 temp = temp->next;
-                out = new_file(1, ft_strdup(temp->value));
+                out = new_file(1, ft_strjoin(">", ft_strdup(temp->value)));
             }
             else if (temp->type == T_REDIRECTION_APPEND)
             {
                 temp = temp->next;
-                out = new_file(1, ft_strdup(temp->value));
+                out = new_file(1, ft_strjoin(">>",ft_strdup(temp->value)));
             }
             else if (temp->type == T_HERDOC)
             {
                 temp = temp->next;
                 delimiter = ft_strdup(temp->value);
+                delimiter = ft_strjoin("<<", delimiter);
+                printf("we are on dilimeter %s\n", delimiter);
             }
             temp = temp->next;
         // }
         // temp = temp->next;
     }
-    add_minishell_back(&minishell, new_minishell(command, args, delimiter,i,  in, out));
+    add_minishell_back(&minishell, new_minishell(command, args, delimiter,in, out));
     return (minishell);
 }
 void print_minishell(t_minishell *minishell)
@@ -566,10 +569,11 @@ void print_minishell(t_minishell *minishell)
     t_args *temp_args;
 
     temp = minishell;
+    int i = 0;
     while(temp)
     {
         printf("--------------------\n");
-        printf("command: %s\n", temp->command);
+        printf("command [%d]: %s\n",i,  temp->command);
         temp_args = temp->args;
         printf("args :");
         while(temp_args)
@@ -578,13 +582,15 @@ void print_minishell(t_minishell *minishell)
             temp_args = temp_args->next;
         }
         printf("\n");
-        printf("command_number: %d\n", temp->command_number);
         if (temp->in)
             printf("in: %s\n", temp->in->filename);
         if (temp->out)
             printf("out: %s\n", temp->out->filename);
+        if (temp->delimiter)
+            printf("delimiter: %s\n", temp->delimiter);
         printf("--------------------\n");
         temp = temp->next;
+        i++;
     }
 }
 // end tokenization
@@ -620,7 +626,7 @@ int main(int argc, char **argv, char **base_env)
         if (str == NULL)
             break;
         tokens = tokenize_input(str);
-        print_tokens(tokens);
+        // print_tokens(tokens);
         if (check_syntax_error(str) == 1 || check_syntax_error_tokens(tokens) == 1)
         {
             free(str);
