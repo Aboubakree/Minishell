@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 10:47:20 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/01 10:51:46 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/13 10:31:11 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,5 +44,16 @@ char	*get_cmd_path(char *cmd, t_environment *env)
 	}
 	if (all_paths)
 		free_split(all_paths);
+	printf("%s: command not found\n", cmd);
+	// ? = 127;
 	return (NULL);
+}
+
+void path(t_minishell *mini, t_environment *env)
+{
+	while (mini)
+	{
+		mini->path = get_cmd_path(mini->command, env);
+		mini = mini->next;
+	}
 }
