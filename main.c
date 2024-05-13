@@ -564,20 +564,6 @@ static char	**do_it2(char **res, char const *s, char c, int i)
             ft_strlcpy(res[j], &s[start], end - start + 1);
             j++;
         }
-		// while (s[i] && s[i] == c)
-		// 	i++;
-		// start = i;
-		// while (s[i] && s[i] != c)
-		// 	i++;
-		// end = i;
-		// if (end > start)
-		// {
-		// 	res[j] = (char *)malloc((end - start + 1) * sizeof(char));
-		// 	if (!res[j])
-		// 		return (ft_free(res));
-		// 	ft_strlcpy(res[j], &s[start], end - start + 1);
-		// 	j++;
-		// }
 	}
 	res[j] = NULL;
 	return (res);
@@ -596,12 +582,72 @@ char	**ft_split2(char const *s, char c)
 		return (NULL);
 	return (do_it2(res, s, c, i));
 }
+t_token *expand(t_token *tokens, t_environment *env)
+{
+    t_token *temp = tokens;
+    int in_single_quotes;
+    int in_double_quotes;
+    int i;
+
+    in_single_quotes = 0;
+    in_double_quotes = 0;
+    i = 0;
+    while(temp)
+    {
+        if (temp->type == T_WORD)
+        {
+            printf("value: %s\n", temp->value);
+            if (ft_strchr(temp->value, '$') == NULL)
+            {
+                temp = temp->next;
+                continue;
+            }
+            i = 0;
+            while(temp->value[i])
+            {
+                // if (temp->value[i] == '\'' && in_single_quotes == 0)
+                //     in_single_quotes = 1;
+                // else if (temp->value[i] == '\'' && in_single_quotes == 1)
+                //     in_single_quotes = 0;
+                if (temp->value[i] == '\'' && in_single_quotes == 0 && in_double_quotes == 0)
+                    in_single_quotes = 1;
+                else if (temp->value[i] == '\'' && in_single_quotes == 1)
+                    in_single_quotes = 0;
+                else if (temp->value[i] == '\"' && in_double_quotes == 0 && in_single_quotes == 0)
+                    in_double_quotes = 1;
+                else if (temp->value[i] == '\"' && in_double_quotes == 1)
+                    in_double_quotes = 0;
+                if (temp->value[i] == '$' && in_single_quotes == 0)
+                {
+                    int index = i;
+                    index++;
+                    while(temp->value[index] && is_word(temp->value[index]))
+                        index++;
+                    char *env_variable = ft_substr(temp->value, i + 1, index - i - 1);
+                    t_environment *get_env = env_get_bykey(env, env_variable);
+                    char *value;
+                    if(get_env == NULL)
+                        value = ft_strdup("");
+                    else
+                        value = get_env->value;
+                    char *first = ft_substr(temp->value, 0, i);
+                    char *last = ft_strdup(&temp->value[index]);
+                    char *new_value = ft_strjoin(first, value);
+                    new_value = ft_strjoin(new_value, last);
+                    temp->value = new_value;
+                }
+                i++;
+            }
+        }
+        temp = temp->next;
+    }
+    return (tokens);
+}
 t_minishell *token_to_minishell(t_token *tokens)
 {
     t_minishell *minishell;
     char *command = NULL;
     char *args1 = NULL;
-    // t_args *args = NULL;
     char **args = NULL;
     t_file_redirection *files = NULL;
     int new_command = 1;
@@ -629,7 +675,6 @@ t_minishell *token_to_minishell(t_token *tokens)
                 args1 = ft_strjoin(args1, temp->value);
                 args1 = ft_strjoin(args1, " ");
                 args = ft_split2(args1, ' ');
-                // add_arg_back(&args, new_arg(ft_strdup(temp->value)));
                 new_command = 0;
             }
             else
@@ -638,31 +683,26 @@ t_minishell *token_to_minishell(t_token *tokens)
                 args1 = ft_strjoin(args1, " ");
                 args = ft_split2(args1, ' ');
             }
-                // add_arg_back(&args, new_arg(ft_strdup(temp->value)));
         }
         else if (temp->type == T_REDIRECTION_IN)
         {
             temp = temp->next;
             add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_IN));
-            // files = new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_IN);
         }
         else if (temp->type == T_REDIRECTION_OUT)
         {
             temp = temp->next;
             add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_OUT));
-            // files = new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_OUT);
         }
         else if (temp->type == T_REDIRECTION_APPEND)
         {
             temp = temp->next;
             add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_APPEND));
-            // files = new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_APPEND);
         }
         else if (temp->type == T_HERDOC)
         {
             temp = temp->next;
             add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_HERDOC));
-            // files = new_file_redirection(ft_strdup(temp->value), T_HERDOC);
         }
         temp = temp->next;
     }
@@ -680,19 +720,16 @@ void print_minishell(t_minishell *minishell)
     {
         printf("--------------------\n");
         printf("command [%d]: %s\n",i,  temp->command);
-        // temp_args = temp->args;
         printf("args: ");
-        int i = 0;
-        while(temp->args[i])
+        int j = 0;
+        if (temp->args)
         {
-            printf(" %s ", temp->args[i]);
-            i++;
+            while(temp->args[j])
+            {
+                printf(" %s ", temp->args[j]);
+                j++;
+            }
         }
-        // while(temp_args)
-        // {
-        //     printf(" %s ", temp_args->args);
-        //     temp_args = temp_args->next;
-        // }
         printf("\n");
         if (temp->files)
         {
@@ -706,7 +743,6 @@ void print_minishell(t_minishell *minishell)
             }
             printf("\n");
         }
-        // printf("file: %s\n type: %s\n", temp->files->filename, get_type_token(temp->files->type));
         printf("--------------------\n");
         temp = temp->next;
         i++;
@@ -744,18 +780,14 @@ int main(int argc, char **argv, char **base_env)
         str = readline("minishell$ ");
         if (str == NULL)
             break;
-        if (ft_strlen(str) == 0)
+        if (check_syntax_error(str) == 1 || check_syntax_error_tokens(tokens) == 1 || ft_strlen(str) == 0)
         {
             free(str);
             continue;
         }
         tokens = tokenize_input(str);
+        tokens = expand(tokens, env);
         // print_tokens(tokens);
-        if (check_syntax_error(str) == 1 || check_syntax_error_tokens(tokens) == 1)
-        {
-            free(str);
-            continue;
-        }
         token_to_minishell(tokens);
         print_minishell(token_to_minishell(tokens));
         printf("%s\n", str);
