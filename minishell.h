@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/13 07:04:30 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/05/13 07:20:41 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,13 +72,10 @@ typedef struct s_args
 typedef struct s_minishell
 {
     char *command;
-    // char **args;
-    t_args *args;
-    // char *delimiter;
+    char **args;
+    // t_args *args;
     char *path;
     t_file_redirection *files; 
-    // t_file *in;
-    // t_file *out;
     struct s_minishell *next;
 } t_minishell;
 

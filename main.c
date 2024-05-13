@@ -449,7 +449,7 @@ int check_syntax_error_tokens(t_token *tokens)
     }
     return (0);
 }
-t_minishell *new_minishell(char *command, t_args *args, t_file_redirection *files)
+t_minishell *new_minishell(char *command, char **args, t_file_redirection *files)
 {
     t_minishell *minishell;
 
@@ -504,11 +504,105 @@ void add_arg_back(t_args **head, t_args *new_arg)
         temp->next = new_arg;
     }
 }
+
+static int	ft_count_words(char const *str, char sep)
+{
+	int	count;
+	int	i;
+
+	count = 0;
+	i = 0;
+	while (str[i])
+	{
+		while (str[i] && (str[i] == sep))
+			i++;
+		if (str[i] && !(str[i] == sep))
+		{
+			count++;
+			while (str[i] && !(str[i] == sep))
+				i++;
+		}
+	}
+	return (count);
+}
+
+static char	**ft_free(char **strs)
+{
+	int	i;
+
+	i = 0;
+	while (strs[i])
+		free(strs[i++]);
+	free(strs);
+	return (0);
+}
+static char	**do_it2(char **res, char const *s, char c, int i)
+{
+	int	start;
+	int	end;
+    char quote;
+    int in_quote;
+	int	j;
+
+	j = 0;
+    quote = '\0';
+    in_quote = 0;
+	while (s[i])
+	{
+        update_quote_state(&in_quote, &quote, s[i]);
+        if (in_quote == 0 && s[i] == c)
+            i++;
+        start = i;
+        while (s[i] && (s[i] != c || in_quote == 1))
+            i++;
+        end = i;
+        if (end > start)
+        {
+            res[j] = (char *)malloc((end - start + 1) * sizeof(char));
+            if (!res[j])
+                return (ft_free(res));
+            ft_strlcpy(res[j], &s[start], end - start + 1);
+            j++;
+        }
+		// while (s[i] && s[i] == c)
+		// 	i++;
+		// start = i;
+		// while (s[i] && s[i] != c)
+		// 	i++;
+		// end = i;
+		// if (end > start)
+		// {
+		// 	res[j] = (char *)malloc((end - start + 1) * sizeof(char));
+		// 	if (!res[j])
+		// 		return (ft_free(res));
+		// 	ft_strlcpy(res[j], &s[start], end - start + 1);
+		// 	j++;
+		// }
+	}
+	res[j] = NULL;
+	return (res);
+}
+
+char	**ft_split2(char const *s, char c)
+{
+	char	**res;
+	int		i;
+
+	i = 0;
+	if (!s)
+		return (NULL);
+	res = (char **)malloc((ft_count_words(s, c) + 1) * sizeof(char *));
+	if (!res)
+		return (NULL);
+	return (do_it2(res, s, c, i));
+}
 t_minishell *token_to_minishell(t_token *tokens)
 {
     t_minishell *minishell;
     char *command = NULL;
-    t_args *args = NULL;
+    char *args1 = NULL;
+    // t_args *args = NULL;
+    char **args = NULL;
     t_file_redirection *files = NULL;
     int new_command = 1;
 
@@ -521,6 +615,7 @@ t_minishell *token_to_minishell(t_token *tokens)
             add_minishell_back(&minishell, new_minishell(command, args, files));
             command = NULL;
             args = NULL;
+            args1 = NULL;
             files = NULL;
             temp = temp->next;
             new_command = 1;
@@ -531,11 +626,19 @@ t_minishell *token_to_minishell(t_token *tokens)
             if (new_command == 1)
             {
                 command = ft_strdup(temp->value);
-                add_arg_back(&args, new_arg(ft_strdup(temp->value)));
+                args1 = ft_strjoin(args1, temp->value);
+                args1 = ft_strjoin(args1, " ");
+                args = ft_split2(args1, ' ');
+                // add_arg_back(&args, new_arg(ft_strdup(temp->value)));
                 new_command = 0;
             }
             else
-                add_arg_back(&args, new_arg(ft_strdup(temp->value)));
+            {
+                args1 = ft_strjoin(args1, temp->value);
+                args1 = ft_strjoin(args1, " ");
+                args = ft_split2(args1, ' ');
+            }
+                // add_arg_back(&args, new_arg(ft_strdup(temp->value)));
         }
         else if (temp->type == T_REDIRECTION_IN)
         {
@@ -569,7 +672,7 @@ t_minishell *token_to_minishell(t_token *tokens)
 void print_minishell(t_minishell *minishell)
 {
     t_minishell *temp;
-    t_args *temp_args;
+    // t_args *temp_args;
 
     temp = minishell;
     int i = 0;
@@ -577,13 +680,19 @@ void print_minishell(t_minishell *minishell)
     {
         printf("--------------------\n");
         printf("command [%d]: %s\n",i,  temp->command);
-        temp_args = temp->args;
-        printf("args :");
-        while(temp_args)
+        // temp_args = temp->args;
+        printf("args: ");
+        int i = 0;
+        while(temp->args[i])
         {
-            printf(" %s ", temp_args->args);
-            temp_args = temp_args->next;
+            printf(" %s ", temp->args[i]);
+            i++;
         }
+        // while(temp_args)
+        // {
+        //     printf(" %s ", temp_args->args);
+        //     temp_args = temp_args->next;
+        // }
         printf("\n");
         if (temp->files)
         {
@@ -635,6 +744,11 @@ int main(int argc, char **argv, char **base_env)
         str = readline("minishell$ ");
         if (str == NULL)
             break;
+        if (ft_strlen(str) == 0)
+        {
+            free(str);
+            continue;
+        }
         tokens = tokenize_input(str);
         // print_tokens(tokens);
         if (check_syntax_error(str) == 1 || check_syntax_error_tokens(tokens) == 1)
@@ -644,7 +758,6 @@ int main(int argc, char **argv, char **base_env)
         }
         token_to_minishell(tokens);
         print_minishell(token_to_minishell(tokens));
-        printf("last token is : %s\n", get_last_token(tokens).value);
         printf("%s\n", str);
     }
     return (0);
