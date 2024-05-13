@@ -66,7 +66,6 @@ int check_logical_operators(const char *str)
     return (0);
 }
 
-
 int check_misplaced_operators(const char *str)
 {
     int i;
@@ -240,19 +239,32 @@ t_token get_last_token(t_token *tokens)
         temp = temp->next;
     return (*temp);
 }
-t_file *new_file(int fd, char *filename)
+t_file_redirection *new_file_redirection(char *filename, t_type_of_token type)
 {
-    t_file *file;
+    t_file_redirection *file;
 
-    file = (t_file *)malloc(sizeof(t_file));
+    file = (t_file_redirection *)malloc(sizeof(t_file_redirection));
     if(!file)
         return (NULL);
-    file->fd = fd;
     file->filename = filename;
+    file->type = type;
     file->next = NULL;
     return (file);
 }
+void add_file_redirection_back(t_file_redirection **head, t_file_redirection *new_file)
+{
+    t_file_redirection *temp;
 
+    if (!*head)
+        *head = new_file;
+    else
+    {
+        temp = *head;
+        while(temp->next)
+            temp = temp->next;
+        temp->next = new_file;
+    }
+}
 
 t_token *new_token(t_type_of_token type, char *value)
 {
@@ -437,7 +449,7 @@ int check_syntax_error_tokens(t_token *tokens)
     }
     return (0);
 }
-t_minishell *new_minishell(char *command, t_args *args, char *delimiter, t_file *in, t_file *out)
+t_minishell *new_minishell(char *command, t_args *args, t_file_redirection *files)
 {
     t_minishell *minishell;
 
@@ -446,9 +458,8 @@ t_minishell *new_minishell(char *command, t_args *args, char *delimiter, t_file 
         return (NULL);
     minishell->command = command;
     minishell->args = args;
-    minishell->delimiter = delimiter;
-    minishell->in = in;
-    minishell->out = out;
+    // minishell->delimiter = delimiter;
+    minishell->files = files;
     minishell->next = NULL;
     return (minishell);
 }
@@ -497,69 +508,62 @@ t_minishell *token_to_minishell(t_token *tokens)
 {
     t_minishell *minishell;
     char *command = NULL;
-    // char *args[50];
     t_args *args = NULL;
-    // int a = 0;
-    char *delimiter = NULL;
-    t_file *in = NULL;
-    t_file *out = NULL;
+    t_file_redirection *files = NULL;
     int new_command = 1;
 
     minishell = NULL;
     t_token *temp = tokens;
     while(temp)
     {
-        // while(temp && temp->type != T_PIPE)
-        // {
-            if (temp->type == T_PIPE)
-            {
-                add_minishell_back(&minishell, new_minishell(command, args, delimiter,in, out));
-                command = NULL;
-                args = NULL;
-                delimiter = NULL;
-                in = NULL;
-                out = NULL;
-                temp = temp->next;
-                new_command = 1;
-                continue;
-            }
-            if (temp->type == T_WORD)
-            {
-                if (new_command == 1)
-                {
-                    command = ft_strdup(temp->value);
-                    new_command = 0;
-                }
-                else
-                    add_arg_back(&args, new_arg(ft_strdup(temp->value)));
-                    // args[a++] = ft_strdup(temp->value);
-            }
-            else if (temp->type == T_REDIRECTION_IN)
-            {
-                temp = temp->next;
-                in = new_file(0, ft_strjoin("<",ft_strdup(temp->value)));
-            }
-            else if (temp->type == T_REDIRECTION_OUT)
-            {
-                temp = temp->next;
-                out = new_file(1, ft_strjoin(">", ft_strdup(temp->value)));
-            }
-            else if (temp->type == T_REDIRECTION_APPEND)
-            {
-                temp = temp->next;
-                out = new_file(1, ft_strjoin(">>",ft_strdup(temp->value)));
-            }
-            else if (temp->type == T_HERDOC)
-            {
-                temp = temp->next;
-                delimiter = ft_strdup(temp->value);
-                delimiter = ft_strjoin("<<", delimiter);
-            }
+        if (temp->type == T_PIPE)
+        {
+            add_minishell_back(&minishell, new_minishell(command, args, files));
+            command = NULL;
+            args = NULL;
+            files = NULL;
             temp = temp->next;
-        // }
-        // temp = temp->next;
+            new_command = 1;
+            continue;
+        }
+        if (temp->type == T_WORD)
+        {
+            if (new_command == 1)
+            {
+                command = ft_strdup(temp->value);
+                add_arg_back(&args, new_arg(ft_strdup(temp->value)));
+                new_command = 0;
+            }
+            else
+                add_arg_back(&args, new_arg(ft_strdup(temp->value)));
+        }
+        else if (temp->type == T_REDIRECTION_IN)
+        {
+            temp = temp->next;
+            add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_IN));
+            // files = new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_IN);
+        }
+        else if (temp->type == T_REDIRECTION_OUT)
+        {
+            temp = temp->next;
+            add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_OUT));
+            // files = new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_OUT);
+        }
+        else if (temp->type == T_REDIRECTION_APPEND)
+        {
+            temp = temp->next;
+            add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_APPEND));
+            // files = new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_APPEND);
+        }
+        else if (temp->type == T_HERDOC)
+        {
+            temp = temp->next;
+            add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_HERDOC));
+            // files = new_file_redirection(ft_strdup(temp->value), T_HERDOC);
+        }
+        temp = temp->next;
     }
-    add_minishell_back(&minishell, new_minishell(command, args, delimiter,in, out));
+    add_minishell_back(&minishell, new_minishell(command, args, files));
     return (minishell);
 }
 void print_minishell(t_minishell *minishell)
@@ -581,12 +585,19 @@ void print_minishell(t_minishell *minishell)
             temp_args = temp_args->next;
         }
         printf("\n");
-        if (temp->in)
-            printf("in: %s\n", temp->in->filename);
-        if (temp->out)
-            printf("out: %s\n", temp->out->filename);
-        if (temp->delimiter)
-            printf("delimiter: %s\n", temp->delimiter);
+        if (temp->files)
+        {
+            t_file_redirection *temp_files = temp->files;
+            printf("files :\n");
+            while(temp_files)
+            {
+                printf(" file: %s \n", temp_files->filename);
+                printf("  type: %s \n", get_type_token(temp_files->type));
+                temp_files = temp_files->next;
+            }
+            printf("\n");
+        }
+        // printf("file: %s\n type: %s\n", temp->files->filename, get_type_token(temp->files->type));
         printf("--------------------\n");
         temp = temp->next;
         i++;

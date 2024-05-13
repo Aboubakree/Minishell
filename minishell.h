@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/12 16:33:54 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/05/13 07:04:30 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,12 +56,12 @@ typedef struct s_token
 //     struct s_ast_node *left;
 //     struct s_as_node *right;
 // } t_ast_node;
-typedef struct s_file
+typedef struct s_files_redirection
 {
-    int fd;
     char *filename;
-    struct s_files *next;
-} t_file;
+    t_type_of_token type;
+    struct s_files_redirection *next;
+} t_file_redirection;
 
 typedef struct s_args
 {
@@ -74,15 +74,13 @@ typedef struct s_minishell
     char *command;
     // char **args;
     t_args *args;
-    char *delimiter;
+    // char *delimiter;
     char *path;
-    t_file *in;
-    t_file *out;
+    t_file_redirection *files; 
+    // t_file *in;
+    // t_file *out;
     struct s_minishell *next;
 } t_minishell;
-
-
-
 
 // --------------------------------------------------- parsing ---------------------------------------------------
 //environment
