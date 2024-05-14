@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/13 17:42:43 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/05/14 07:06:05 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,13 +57,6 @@ typedef struct s_token
     struct s_token *next;
 } t_token;
 
-// typedef struct s_ast_node
-// {
-//     t_type_of_token type;
-//     char *args;
-//     struct s_ast_node *left;
-//     struct s_as_node *right;
-// } t_ast_node;
 typedef struct s_files_redirection
 {
     char *filename;

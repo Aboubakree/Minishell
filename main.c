@@ -554,7 +554,10 @@ static char	**do_it2(char **res, char const *s, char c, int i)
             i++;
         start = i;
         while (s[i] && (s[i] != c || in_quote == 1))
+        {
+            update_quote_state(&in_quote, &quote, s[i]);
             i++;
+        }
         end = i;
         if (end > start)
         {
@@ -605,10 +608,6 @@ t_token *expand(t_token *tokens, t_environment *env)
             i = 0;
             while(temp->value[i])
             {
-                // if (temp->value[i] == '\'' && in_single_quotes == 0)
-                //     in_single_quotes = 1;
-                // else if (temp->value[i] == '\'' && in_single_quotes == 1)
-                //     in_single_quotes = 0;
                 if (temp->value[i] == '\'' && in_single_quotes == 0 && in_double_quotes == 0)
                     in_single_quotes = 1;
                 else if (temp->value[i] == '\'' && in_single_quotes == 1)
@@ -619,6 +618,11 @@ t_token *expand(t_token *tokens, t_environment *env)
                     in_double_quotes = 0;
                 if (temp->value[i] == '$' && in_single_quotes == 0)
                 {
+                    if (is_whitespace(temp->value[i + 1]) || temp->value[i + 1] == '\0')
+                    {
+                        i++;
+                        continue;
+                    }
                     int index = i;
                     index++;
                     while(temp->value[index] && is_word(temp->value[index]))
@@ -642,6 +646,47 @@ t_token *expand(t_token *tokens, t_environment *env)
         temp = temp->next;
     }
     return (tokens);
+}
+
+t_minishell *delete_quotes(t_minishell *minishell)
+{
+    t_minishell *temp;
+    int i;
+    int j;
+    int in_double_quotes;
+
+    temp = minishell;
+    in_double_quotes = 0;
+    i = 0;
+    while(temp)
+    {
+        j = 0;
+        while(temp->args[j])
+        {
+            i = 0;
+            while(temp->args[j][i])
+            {
+                // printf("temp->args[%d][%d]: %c\n", j, i, temp->args[j][i]);
+                // sleep(2);
+                if (temp->args[j][i] == '\"' && in_double_quotes == 0)
+                    in_double_quotes = 1;
+                else if (temp->args[j][i] == '\"' && in_double_quotes == 1)
+                    in_double_quotes = 0;
+                if (temp->args[j][i] == '\"' && in_double_quotes == 1)
+                {
+                    char *first = ft_substr(temp->args[j], 0, i);
+                    char *last = ft_substr(temp->args[j], temp->args[j][i + 1], ft_strlen(temp->args[j] - 1));
+                    // char *last = ft_strdup(&temp->args[j][i + 1]);
+                    char *new_value = ft_strjoin(first, last);
+                    temp->args[j] = new_value;
+                }
+                i++;
+            }
+            j++;
+        }
+        temp = temp->next;
+    }
+    return (minishell);
 }
 t_minishell *token_to_minishell(t_token *tokens)
 {
@@ -726,7 +771,7 @@ void print_minishell(t_minishell *minishell)
         {
             while(temp->args[j])
             {
-                printf(" %s ", temp->args[j]);
+                printf("[%s]", temp->args[j]);
                 j++;
             }
         }
@@ -763,6 +808,7 @@ int main(int argc, char **argv, char **base_env)
 {
     t_environment *env;
     t_token *tokens;
+    t_minishell *minishell;
     char *str;
     
     (void)argv;
@@ -788,8 +834,13 @@ int main(int argc, char **argv, char **base_env)
         tokens = tokenize_input(str);
         tokens = expand(tokens, env);
         // print_tokens(tokens);
+        // printf("minishell before deletng quotes\n");
         token_to_minishell(tokens);
-        print_minishell(token_to_minishell(tokens));
+        minishell = token_to_minishell(tokens);
+        print_minishell(minishell);
+        // printf("minishell after deletng quotes\n");
+        // minishell = delete_quotes(token_to_minishell(tokens));
+        // print_minishell(minishell);
         printf("%s\n", str);
     }
     return (0);
