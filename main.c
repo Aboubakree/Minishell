@@ -730,36 +730,42 @@ void handle_ctrl_c(int signal)
 
 ////////////////////// My Part "Aboubakr" /////////////////////////////////////
 
-
-void final_execution(t_minishell *singl_mini, t_environment *env)
+void    check_builtin(t_minishell *singl_mini, t_environment **env)
 {
-    (void)env;
-    execve(singl_mini->path, singl_mini->args, NULL);
-    perror("execve");
-    exit(0);
+    if (ft_strncmp("cd", singl_mini->command, 2) == 0)
+        cd(singl_mini, *env);
+    // if (ft_strncmp("echo ", singl_mini->command, 4) == 0)
+    //     echo(singl_mini, *env);
+    if (ft_strncmp("env", singl_mini->command, 3) == 0)
+        envi(*env);
+    if (ft_strncmp("pwd", singl_mini->command, 3) == 0 )
+        pwd(*env);
+    // if (ft_strncmp("export", singl_mini->command, 6) == 0)
+    //     export(singl_mini, *env);
+    // if (ft_strncmp("unset", singl_mini->command, 5) == 0)
+    //     unset(singl_mini, env);
+    if (strncmp())
 }
 
 
-void execute(t_minishell *mini, t_environment *env, int num_cmd)
+void final_execution(t_minishell *singl_mini, t_environment **env)
 {
-    pid_t       pid[num_cmd];
-    t_minishell *temp;
-    int         i;
-    int status;
-    
+    check_builtin(singl_mini, env);
+    singl_mini->path = get_cmd_path(singl_mini->command, *env);
+    printf("cmd : %s\npath : %s\n", singl_mini->command, singl_mini->path);
+    if (singl_mini->path == NULL)
+        exit(127);
+    execve(singl_mini->path, singl_mini->args, NULL);
+    perror("execve");
+    exit(errno);
+}
 
-    path(mini, env);
-    temp = mini;
-    i = 0;
-    while (temp)
-    {
-        printf("cmd : %s\npath : %s\n", temp->command, temp->path);
-        pid[i] = fork();
-        if (pid[i] == 0)
-            final_execution(temp, env);
-        temp = temp->next;
-    }
-    // close(mini->pipe);
+
+void wait_childs(int num_cmd)
+{
+    int i;
+    int status;
+
     i = 0;
     while (i < num_cmd)
     {
@@ -767,6 +773,7 @@ void execute(t_minishell *mini, t_environment *env, int num_cmd)
         {
             status = status >> 8;
             //? = status
+            printf("exit_stat : %d\n", status);
             i ++;
         }
         else
@@ -775,6 +782,50 @@ void execute(t_minishell *mini, t_environment *env, int num_cmd)
             i ++;
         }
     }
+}
+
+void    pipe_init(t_minishell *mini)
+{
+    int *pip;
+    t_minishell *temp;
+
+    pip = malloc(sizeof(int) * 2);
+    if (pipe(pip))
+    {
+        perror("pipe");
+        //free_minishell
+        exit(1);
+    }
+    else
+    {
+        temp = mini;
+        while (temp)
+        {
+            temp->pipe = pip;
+            temp = temp->next;
+        }
+    }
+}
+
+void execute(t_minishell *mini, t_environment **env, int num_cmd)
+{
+    pid_t       pid[num_cmd];
+    t_minishell *temp;
+    int         i;
+    
+    temp = mini;
+    i = 0;
+    pipe_init(mini);
+    while (temp)
+    {
+        pid[i] = fork();
+        if (pid[i] == 0)
+            final_execution(temp, env);
+        temp = temp->next;
+    }
+    // close(mini->pipe[0]);
+    // close(mini->pipe[1]);
+    wait_childs(num_cmd);
 }
 
 int cmd_count(t_minishell *mini)
@@ -828,8 +879,8 @@ int main(int argc, char **argv, char **base_env)
             continue;
         }
         mini = token_to_minishell(tokens);
-        print_minishell(mini);
-        execute(mini, env, cmd_count(mini));
+        // print_minishell(mini);
+        execute(mini, &env, cmd_count(mini));
         if (str[0] != '\0')
             add_history(str);
         free(str);
