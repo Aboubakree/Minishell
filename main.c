@@ -547,6 +547,7 @@ static char	**do_it2(char **res, char const *s, char c, int i)
 	j = 0;
     quote = '\0';
     in_quote = 0;
+    update_quote_state(&in_quote, &quote, s[i]);
 	while (s[i])
 	{
         update_quote_state(&in_quote, &quote, s[i]);
@@ -647,47 +648,98 @@ t_token *expand(t_token *tokens, t_environment *env)
     }
     return (tokens);
 }
+int ft_remove_char(char *str, int index)
+{
+    int i;
+    int j;
 
+    i = 0;
+    j = 0;
+    while(str[i])
+    {
+        if (i == index)
+            i++;
+        str[j] = str[i];
+        i++;
+        j++;
+    }
+    str[j] = '\0';
+    return (1);
+}
 t_minishell *delete_quotes(t_minishell *minishell)
 {
     t_minishell *temp;
-    int i;
-    int j;
-    int in_double_quotes;
 
     temp = minishell;
-    in_double_quotes = 0;
-    i = 0;
     while(temp)
     {
-        j = 0;
-        while(temp->args[j])
+        int i = 0;
+        while(temp->args[i])
         {
-            i = 0;
-            while(temp->args[j][i])
+            int j = 0;
+            while(temp->args[i][j])
             {
-                // printf("temp->args[%d][%d]: %c\n", j, i, temp->args[j][i]);
-                // sleep(2);
-                if (temp->args[j][i] == '\"' && in_double_quotes == 0)
-                    in_double_quotes = 1;
-                else if (temp->args[j][i] == '\"' && in_double_quotes == 1)
-                    in_double_quotes = 0;
-                if (temp->args[j][i] == '\"' && in_double_quotes == 1)
+                if (temp->args[i][j] == '\"')
                 {
-                    char *first = ft_substr(temp->args[j], 0, i);
-                    char *last = ft_substr(temp->args[j], temp->args[j][i + 1], ft_strlen(temp->args[j] - 1));
-                    // char *last = ft_strdup(&temp->args[j][i + 1]);
-                    char *new_value = ft_strjoin(first, last);
-                    temp->args[j] = new_value;
+                    j++;
+                    int start = j;
+                    while(temp->args[i][j] && temp->args[i][j] != '\"')
+                    {
+                        j++;
+                    }
+                    int end = j;
+                    ft_remove_char(temp->args[i], start - 1);
+                    ft_remove_char(temp->args[i], end - 1);
+                    // char *first = ft_substr(temp->args[i], start, end - start);
+                    // char *last = ft_strdup(&temp->args[i][end + 1]);
+                    // free(temp->args[i]);
+                    // temp->args[i] = ft_strjoin(first, last);
+                    j++;
+                    
                 }
-                i++;
+                j++;
             }
-            j++;
+            i++;
         }
         temp = temp->next;
     }
     return (minishell);
 }
+// t_minishell *delete_quotes(t_minishell *minishell)
+// {
+//     t_minishell *temp;
+//     int i;
+//     int j;
+//     char quote;
+//     int in_quote;
+
+//     temp = minishell;
+
+//     i = 0;
+//     quote = '\0';
+//     in_quote = 0;
+//     while(temp)
+//     {
+//         j = 0;
+//         while(temp->args[j])
+//         {
+//             i = 0;
+//             update_quote_state(&in_quote, &quote, temp->args[j][i]);
+//             while(temp->args[j][i])
+//             {
+//                 update_quote_state(&in_quote, &quote, temp->args[j][i]);
+                
+//                 i++;
+//             }
+//             j++;
+//         }
+//         temp = temp->next;
+//     }
+//     return (minishell);
+// }
+
+
+
 t_minishell *token_to_minishell(t_token *tokens)
 {
     t_minishell *minishell;
@@ -802,8 +854,6 @@ void handle_ctrl_c(int signal)
         exit(1);
     }
 }
-
-
 int main(int argc, char **argv, char **base_env)
 {
     t_environment *env;
@@ -823,7 +873,7 @@ int main(int argc, char **argv, char **base_env)
             perror("signal");
             exit(1);
         }
-        str = readline("minishell$ ");
+        str = readline("\033[0;32mminishell$ \033[0m");
         if (str == NULL)
             break;
         if (check_syntax_error(str) == 1 || check_syntax_error_tokens(tokens) == 1 || ft_strlen(str) == 0)
@@ -838,9 +888,9 @@ int main(int argc, char **argv, char **base_env)
         token_to_minishell(tokens);
         minishell = token_to_minishell(tokens);
         print_minishell(minishell);
-        // printf("minishell after deletng quotes\n");
-        // minishell = delete_quotes(token_to_minishell(tokens));
-        // print_minishell(minishell);
+        printf("minishell after deletng quotes\n");
+        minishell = delete_quotes(token_to_minishell(tokens));
+        print_minishell(minishell);
         printf("%s\n", str);
     }
     return (0);
