@@ -666,45 +666,88 @@ int ft_remove_char(char *str, int index)
     str[j] = '\0';
     return (1);
 }
+
 t_minishell *delete_quotes(t_minishell *minishell)
 {
     t_minishell *temp;
+    int in_single_quote, in_double_quote;
+    int i, j, k;
 
     temp = minishell;
-    while(temp)
+    while (temp)
     {
-        int i = 0;
-        while(temp->args[i])
+        i = 0;
+        while (temp->args[i])
         {
-            int j = 0;
-            while(temp->args[i][j])
+            in_single_quote = 0;
+            in_double_quote = 0;
+            j = 0;
+            k = 0;
+            while (temp->args[i][j])
             {
-                if (temp->args[i][j] == '\"')
+                if (temp->args[i][j] == '\'' && !in_double_quote)
+                    in_single_quote = !in_single_quote;
+                else if (temp->args[i][j] == '\"' && !in_single_quote)
+                    in_double_quote = !in_double_quote;
+                else
                 {
-                    j++;
-                    int start = j;
-                    while(temp->args[i][j] && temp->args[i][j] != '\"')
-                    {
-                        j++;
-                    }
-                    int end = j;
-                    ft_remove_char(temp->args[i], start - 1);
-                    ft_remove_char(temp->args[i], end - 1);
-                    // char *first = ft_substr(temp->args[i], start, end - start);
-                    // char *last = ft_strdup(&temp->args[i][end + 1]);
-                    // free(temp->args[i]);
-                    // temp->args[i] = ft_strjoin(first, last);
-                    j++;
-                    
+                    temp->args[i][k] = temp->args[i][j];
+                    k++;
                 }
                 j++;
             }
+            temp->args[i][k] = '\0';
             i++;
         }
         temp = temp->next;
     }
     return (minishell);
 }
+
+// t_minishell *delete_quotes(t_minishell *minishell)
+// {
+//     t_minishell *temp;
+//     int in_single_quote, in_double_quote;
+//     int i, j, len;
+//     char *new_arg;
+
+//     temp = minishell;
+//     while (temp)
+//     {
+//         i = 0;
+//         while (temp->args[i])
+//         {
+//             in_single_quote = 0;
+//             in_double_quote = 0;
+//             j = 0;
+//             len = 0;
+//             new_arg = malloc(sizeof(char));
+//             new_arg[0] = '\0';
+//             while (temp->args[i][j])
+//             {
+//                 if (temp->args[i][j] == '\'' && !in_double_quote)
+//                     in_single_quote = !in_single_quote;
+//                 else if (temp->args[i][j] == '\"' && !in_single_quote)
+//                     in_double_quote = !in_double_quote;
+//                 else
+//                 {
+//                     len++;
+//                     new_arg = realloc(new_arg, len + 1);
+//                     new_arg[len - 1] = temp->args[i][j];
+//                     new_arg[len] = '\0';
+//                 }
+//                 j++;
+//             }
+//             free(temp->args[i]);
+//             temp->args[i] = new_arg;
+//             i++;
+//         }
+//         temp = temp->next;
+//     }
+//     return (minishell);
+// }
+
+
 // t_minishell *delete_quotes(t_minishell *minishell)
 // {
 //     t_minishell *temp;
@@ -850,8 +893,9 @@ void handle_ctrl_c(int signal)
 {
     if (signal == SIGINT)
     {
-        printf(" will be freed \n");
-        exit(1);
+        printf("^C\n");
+        return ;
+        // exit(1);
     }
 }
 int main(int argc, char **argv, char **base_env)
