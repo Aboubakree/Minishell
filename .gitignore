@@ -5,6 +5,7 @@ config.json
 
 # Binaries for programs and plugins
 *.exe
+*.o
 *.exe~
 *.dll
 *.so
