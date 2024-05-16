@@ -889,15 +889,26 @@ void print_minishell(t_minishell *minishell)
     }
 }
 // end tokenization
+#include <readline/readline.h>
+#include <readline/history.h>
 void handle_ctrl_c(int signal)
 {
     if (signal == SIGINT)
     {
-        printf("^C\n");
-        return ;
-        // exit(1);
+        write(1, "\nminishell$ ", 13);
+        return;
     }
 }
+void handle_sigquit(int signal)
+{
+    if (signal == SIGQUIT)
+    {
+        // ignore signal
+        return;
+    }
+}
+
+
 int main(int argc, char **argv, char **base_env)
 {
     t_environment *env;
@@ -915,7 +926,11 @@ int main(int argc, char **argv, char **base_env)
     {
         if (signal(SIGINT, handle_ctrl_c) == SIG_ERR) {
             perror("signal");
-            exit(1);
+            return 1;
+        }
+        else if (signal(SIGQUIT, SIG_IGN) == SIG_ERR) {
+            perror("signal");
+            return 1;
         }
         str = readline("\033[0;32mminishell$ \033[0m");
         if (str == NULL)
@@ -927,8 +942,6 @@ int main(int argc, char **argv, char **base_env)
         }
         tokens = tokenize_input(str);
         tokens = expand(tokens, env);
-        // print_tokens(tokens);
-        // printf("minishell before deletng quotes\n");
         token_to_minishell(tokens);
         minishell = token_to_minishell(tokens);
         print_minishell(minishell);
