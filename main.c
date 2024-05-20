@@ -601,6 +601,9 @@ t_token *expand(t_token *tokens, t_environment *env)
     t_token *temp = tokens;
     int in_single_quotes;
     int in_double_quotes;
+    char *value;
+    char *first;
+    char *last;
     int i;
 
     in_single_quotes = 0;
@@ -640,22 +643,18 @@ t_token *expand(t_token *tokens, t_environment *env)
                         index++;
                     char *env_variable = ft_substr(temp->value, i + 1, index - i - 1);
                     t_environment *get_env = env_get_bykey(env, env_variable);
-                    char *value;
                     if(get_env == NULL)
+                    {
                         value = ft_strdup("");
+                    }
                     else
                         value = get_env->value;
-                    char *first = ft_substr(temp->value, 0, i);
-                    char *last = ft_strdup(&temp->value[index]);
+                    first = ft_substr(temp->value, 0, i);
+                    last = ft_strdup(&temp->value[index]);
                     char *new_value = ft_strjoin(first, value);
+                    printf("%svalue: %s\n", RED,new_value);
                     new_value = ft_strjoin(new_value, last);
                     temp->value = new_value;
-                    // free(first);
-                    // free(last);
-                    // free(env_variable);
-                    // last = NULL;
-                    // first = NULL;
-                    // env_variable = NULL;
                 }
                 i++;
             }
@@ -1056,6 +1055,6 @@ int main(int argc, char **argv, char **base_env)
     }
     // free_minishell(minishell);
     // free_tokens(tokens);
-    free_environment(env);
+    // free_environment(env);
     return (0);
 }
