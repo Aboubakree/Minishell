@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 18:53:56 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/13 19:19:37 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/05/19 19:42:33 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ t_environment *env_get_bykey(t_environment *env, char *key)
     temp = env;
     while (temp)
     {
-        if (ft_strncmp(temp->key, key, ft_strlen(temp->key)) == 0)
+        if (ft_strncmp(temp->key, key, ft_strlen(temp->key) + 1) == 0)
             return (temp);
         temp = temp->next;
     }

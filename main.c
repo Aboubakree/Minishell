@@ -30,7 +30,6 @@ int count_char_occurence(char *str, int c)
     return (count);
 }
 
-
 int is_whitespace(char c)
 {
     return (c == ' ' || c == '\t' || c == '\n' || c == '\v' || c == '\f' || c == '\r');
@@ -379,7 +378,10 @@ void    handle_word(t_token **head, const char *str, int *i)
         }
         (*i)++;
     }
+    // char *temp = ft_substr(str, j, *i - j);
     add_token_back(head, new_token(T_WORD, ft_substr(str, j, *i - j)));
+    // add_token_back(head, new_token(T_WORD, temp));
+    // free(temp);
     (*i)--;
 }
 
@@ -417,13 +419,14 @@ void free_tokens(t_token *tokens)
         free(temp);
     }
 }
+
 int check_syntax_error_tokens(t_token *tokens)
 {
     t_token *temp;
 
-    temp = tokens;
-    if (!temp)
+    if (!tokens)
         return (0);
+    temp = tokens;
     while(temp)
     {
         if (temp->type == T_HERDOC && temp->next->type != T_WORD)
@@ -455,7 +458,11 @@ t_minishell *new_minishell(char *command, char **args, t_file_redirection *files
 
     minishell = (t_minishell *)malloc(sizeof(t_minishell));
     if (!minishell)
+    {
+        free(command);
+        free(args);
         return (NULL);
+    }
     minishell->command = command;
     minishell->args = args;
     // minishell->delimiter = delimiter;
@@ -584,7 +591,10 @@ char	**ft_split2(char const *s, char c)
 	res = (char **)malloc((ft_count_words(s, c) + 1) * sizeof(char *));
 	if (!res)
 		return (NULL);
-	return (do_it2(res, s, c, i));
+    res = do_it2(res, s, c, i);
+    if (!res)
+        return (ft_free(res));
+    return (res);
 }
 t_token *expand(t_token *tokens, t_environment *env)
 {
@@ -703,6 +713,19 @@ t_minishell *delete_quotes(t_minishell *minishell)
     }
     return (minishell);
 }
+void free_args(char **args)
+{
+    int i = 0;
+    if (args)
+    {
+        while(args[i])
+        {
+            free(args[i]);
+            i++;
+        }
+        free(args);
+    }
+}
 
 // t_minishell *delete_quotes(t_minishell *minishell)
 // {
@@ -809,20 +832,30 @@ t_minishell *token_to_minishell(t_token *tokens)
         }
         if (temp->type == T_WORD)
         {
+            char *temp_args1;
             if (new_command == 1)
             {
+                temp_args1 = ft_strjoin(args1, temp->value);
+                free(args1);
+                args1 = temp_args1;
                 command = ft_strdup(temp->value);
-                args1 = ft_strjoin(args1, temp->value);
-                args1 = ft_strjoin(args1, " ");
+                temp_args1 = ft_strjoin(args1, " ");
+                free(args1);
+                args1 = temp_args1;
                 args = ft_split2(args1, ' ');
                 new_command = 0;
             }
             else
             {
-                args1 = ft_strjoin(args1, temp->value);
-                args1 = ft_strjoin(args1, " ");
+                temp_args1 = ft_strjoin(args1, temp->value);
+                free(args1);
+                args1 = temp_args1;
+                temp_args1 = ft_strjoin(args1, " ");
+                free(args1);
+                args1 = temp_args1;
                 args = ft_split2(args1, ' ');
             }
+            
         }
         else if (temp->type == T_REDIRECTION_IN)
         {
@@ -847,6 +880,7 @@ t_minishell *token_to_minishell(t_token *tokens)
         temp = temp->next;
     }
     add_minishell_back(&minishell, new_minishell(command, args, files));
+    free(args1);
     return (minishell);
 }
 void print_minishell(t_minishell *minishell)
@@ -895,7 +929,11 @@ void handle_ctrl_c(int signal)
 {
     if (signal == SIGINT)
     {
-        write(1, "\nminishell$ ", 13);
+        // new prompt
+        rl_clear_message();
+        // rl_on_new_line();
+        printf("\n");
+        printf("%sminishell$ %s", GREEN, RESET);
         return;
     }
 }
@@ -908,6 +946,59 @@ void handle_sigquit(int signal)
     }
 }
 
+
+void free_environment(t_environment *env)
+{
+    t_environment *temp;
+
+    if (!env)
+        return ;
+    while(env)
+    {
+        temp = env;
+        env = env->next;
+        free(temp->key);
+        free(temp->value);
+        free(temp);
+    }
+}
+void free_minishell(t_minishell *minishell)
+{
+    t_minishell *temp;
+    char **temp_args; // change this line
+    t_file_redirection *temp_files;
+
+    if (!minishell)
+        return ;
+    while(minishell)
+    {
+        temp = minishell;
+        minishell = minishell->next;
+        free(temp->command);
+        if (temp->args)
+        {
+            temp_args = temp->args;
+            while(*temp_args)
+            {
+                char *temp_args2 = *temp_args;
+                temp_args++;
+                free(temp_args2);
+            }
+        }
+        if (temp->files)
+        {
+            temp_files = temp->files;
+            while(temp_files)
+            {
+                t_file_redirection *temp_files2 = temp_files;
+                temp_files = temp_files->next;
+                free(temp_files2->filename);
+                free(temp_files2);
+            }
+        }
+        free(temp);
+    }
+}
 
 int main(int argc, char **argv, char **base_env)
 {
@@ -934,21 +1025,31 @@ int main(int argc, char **argv, char **base_env)
         }
         str = readline("\033[0;32mminishell$ \033[0m");
         if (str == NULL)
+        {
             break;
-        if (check_syntax_error(str) == 1 || check_syntax_error_tokens(tokens) == 1 || ft_strlen(str) == 0)
+        }
+        tokens = tokenize_input(str);
+        tokens = expand(tokens, env);
+        if (check_syntax_error(str) == 1 ||  ft_strlen(str) == 0 || check_syntax_error_tokens(tokens) == 1)
         {
             free(str);
             continue;
         }
-        tokens = tokenize_input(str);
-        tokens = expand(tokens, env);
-        token_to_minishell(tokens);
+        // token_to_minishell(tokens);
         minishell = token_to_minishell(tokens);
         print_minishell(minishell);
         printf("minishell after deletng quotes\n");
         minishell = delete_quotes(token_to_minishell(tokens));
         print_minishell(minishell);
         printf("%s\n", str);
+
+        free(str);
+        free_tokens(tokens);
+        free_minishell(minishell);
+
     }
+    // free_minishell(minishell);
+    // free_tokens(tokens);
+    free_environment(env);
     return (0);
 }
