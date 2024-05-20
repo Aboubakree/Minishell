@@ -378,9 +378,9 @@ void    handle_word(t_token **head, const char *str, int *i)
         }
         (*i)++;
     }
-    // char *temp = ft_substr(str, j, *i - j);
-    add_token_back(head, new_token(T_WORD, ft_substr(str, j, *i - j)));
-    // add_token_back(head, new_token(T_WORD, temp));
+    char *temp = ft_substr(str, j, *i - j);
+    // add_token_back(head, new_token(T_WORD, ft_substr(str, j, *i - j)));
+    add_token_back(head, new_token(T_WORD, temp));
     // free(temp);
     (*i)--;
 }
@@ -650,6 +650,12 @@ t_token *expand(t_token *tokens, t_environment *env)
                     char *new_value = ft_strjoin(first, value);
                     new_value = ft_strjoin(new_value, last);
                     temp->value = new_value;
+                    // free(first);
+                    // free(last);
+                    // free(env_variable);
+                    // last = NULL;
+                    // first = NULL;
+                    // env_variable = NULL;
                 }
                 i++;
             }
