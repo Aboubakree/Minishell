@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/07 09:37:43 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/05/14 07:06:05 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,14 @@
 #include <signal.h>
 #include <errno.h>
 #include "lib/libft/libft.h"
+
+// colors 
+#define RED "\033[0;31m"
+#define GREEN "\033[0;32m"
+#define YELLOW "\033[0;33m"
+#define BLUE "\033[0;34m"
+#define MAGENTA "\033[0;35m"
+#define RESET "\033[0m"
 
 typedef struct s_environment
 {
@@ -49,10 +57,28 @@ typedef struct s_token
     struct s_token *next;
 } t_token;
 
+typedef struct s_files_redirection
+{
+    char *filename;
+    t_type_of_token type;
+    struct s_files_redirection *next;
+} t_file_redirection;
 
+typedef struct s_args
+{
+    char *args;
+    struct s_args *next;
+} t_args;
 
-
-
+typedef struct s_minishell
+{
+    char *command;
+    char **args;
+    // t_args *args;
+    char *path;
+    t_file_redirection *files; 
+    struct s_minishell *next;
+} t_minishell;
 
 // --------------------------------------------------- parsing ---------------------------------------------------
 //environment
