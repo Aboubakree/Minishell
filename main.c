@@ -193,9 +193,14 @@ int is_env_variable(char c)
     return (c == '$');
 }
 
+int is_arithmetic_operator(char c)
+{
+    return (c == '+' || c == '-' || c == '*' || c == '/');
+}
+
 int is_word(char c)
 {
-    return (!is_operator(c) && !is_quote(c) && !is_whitespace(c) && !is_env_variable(c));
+    return (!is_arithmetic_operator(c) && !is_operator(c) && !is_quote(c) && !is_whitespace(c) && !is_env_variable(c));
 }
 int s_minishell_size(t_minishell *minishell)
 {
@@ -642,6 +647,7 @@ t_token *expand(t_token *tokens, t_environment *env)
                     while(temp->value[index] && is_word(temp->value[index]))
                         index++;
                     char *env_variable = ft_substr(temp->value, i + 1, index - i - 1);
+                    printf("env_variable: %s\n", env_variable);
                     t_environment *get_env = env_get_bykey(env, env_variable);
                     if(get_env == NULL)
                     {
@@ -652,7 +658,6 @@ t_token *expand(t_token *tokens, t_environment *env)
                     first = ft_substr(temp->value, 0, i);
                     last = ft_strdup(&temp->value[index]);
                     char *new_value = ft_strjoin(first, value);
-                    printf("%svalue: %s\n", RED,new_value);
                     new_value = ft_strjoin(new_value, last);
                     temp->value = new_value;
                 }
@@ -1034,12 +1039,17 @@ int main(int argc, char **argv, char **base_env)
             break;
         }
         tokens = tokenize_input(str);
+        printf("====================================\n");
+        print_tokens(tokens);
+        printf("====================================\n");
         tokens = expand(tokens, env);
         if (check_syntax_error(str) == 1 ||  ft_strlen(str) == 0 || check_syntax_error_tokens(tokens) == 1)
         {
             free(str);
             continue;
         }
+        // print tokens 
+
         // token_to_minishell(tokens);
         minishell = token_to_minishell(tokens);
         print_minishell(minishell);
