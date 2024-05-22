@@ -12,7 +12,7 @@
 
 #include "minishell.h"
 
-// syntax error checking
+// syntax error checking/
 
 int count_char_occurence(char *str, int c)
 {
@@ -608,6 +608,7 @@ t_token *expand(t_token *tokens, t_environment *env)
     int in_double_quotes;
     char *value;
     char *first;
+    char *new_value;
     char *last;
     int i;
 
@@ -657,11 +658,14 @@ t_token *expand(t_token *tokens, t_environment *env)
                         value = get_env->value;
                     first = ft_substr(temp->value, 0, i);
                     last = ft_strdup(&temp->value[index]);
-                    char *new_value = ft_strjoin(first, value);
+                    new_value = ft_strjoin(first, value);
                     new_value = ft_strjoin(new_value, last);
                     temp->value = new_value;
+                    if (temp->value[i+1] == 0)
+                        break;
                 }
-                i++;
+                else
+                    i++;
             }
         }
         temp = temp->next;
@@ -694,6 +698,8 @@ t_minishell *delete_quotes(t_minishell *minishell)
     int i, j, k;
 
     temp = minishell;
+    if (temp->args == NULL)
+        return (minishell);
     while (temp)
     {
         i = 0;

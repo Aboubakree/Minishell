@@ -42,6 +42,11 @@ fclean : clean
 	@echo "\033[0;32m🧹🧹 fcleaned\033[0m"
 
 re : fclean all
+f : clean fclean $(NAME)
+	valgrind --leak-check=full ./$(NAME)
+
+v : clean fclean $(NAME)
+	valgrind ./$(NAME)
 
 .SECONDARY : $(OBJ)
 
