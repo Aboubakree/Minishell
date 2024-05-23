@@ -1175,6 +1175,20 @@ void    execute_one(t_minishell *minishell, t_environment **env)
     // printf("exit_stat : %d\n", status);
 }
 
+
+// --------------------------------------- end of exe one cmd ----------------------------------------------
+
+
+//----------------------------------------- multiple commands --------------------------------------
+
+// void execute_all(t_minishell *minishell, t_environment **env)
+// {
+
+// }
+
+//----------------------------------------- end of multiple command --------------------------------
+
+
 void    execution(t_minishell *minishell, t_environment **env)
 {
     if (cmd_count(minishell) == 1)
@@ -1188,7 +1202,6 @@ void    execution(t_minishell *minishell, t_environment **env)
     //     execute_all(minishell, env);
 }
 
-// --------------------------------------- end of exe one cmd ----------------------------------------------
 
 int main(int argc, char **argv, char **base_env)
 {

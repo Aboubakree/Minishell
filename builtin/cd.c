@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 11:04:31 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/22 10:30:59 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/23 09:32:32 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,30 +15,33 @@
 char *get_home( t_environment *env)
 {
     t_environment *temp;
-    static char *home = NULL;
+    char *home;
 
-    if (home == NULL)
-    {
-        temp = env_get_bykey(env, "HOME");
-        if (temp)
-            home = ft_strdup(temp->value);
-    }
+    temp = env_get_bykey(env, "HOME");
+    home = NULL;
+    if (temp)
+        home = ft_strdup(temp->value);
     return (home);
     // dont forgot to free home ???
 }
 
 int cd_pars(t_minishell *singl_mini,char *path)
 {
+    if (path == NULL)
+    {
+        write(2, "bash: cd: HOME not set\n", ft_strlen("bash: cd: HOME not set"));
+        return (1);
+    }
     if (args_count(singl_mini->args) > 2)
     {
-        printf("bash: cd: too many arguments\n");
-        // ? = 1
+        write(2,"bash: cd: too many arguments\n",ft_strlen("bash: cd: too many arguments\n"));
         return (1);
     }
     if (chdir(path))
     {
-        printf("bash: cd: %s: No such file or directory\n", path);
-        // ? == 1
+        write(2, "bash: cd: ", ft_strlen("bash: cd: "));
+        write(2, path, ft_strlen(path));
+        write(2, ": No such file or directory\n", ft_strlen(": No such file or directory\n"));
         return (1);
     }
     return (0);
@@ -53,7 +56,7 @@ void cd(t_minishell *singl_mini, t_environment *env)
 
     OLDPWD = env_get_bykey(env, "OLDPWD");
     PWD = env_get_bykey(env, "PWD");
-    if (args_count(singl_mini->args) == 1) // complete if cd without args 
+    if (args_count(singl_mini->args) == 1)
         path = get_home(env);
     else 
         path = singl_mini->args[1];

@@ -6,7 +6,14 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 09:09:02 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/02 09:09:23 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/23 10:04:06 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "minishell.h"
+
+
+// void unset(t_minishell *singl_mini, t_environment **env)
+// {
+//     t_environment *temp;
+// }
