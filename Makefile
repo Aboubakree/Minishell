@@ -7,7 +7,7 @@ NAME = minishell
 CFLAGS = -Wall -Werror -Wextra #-g3 -fsanitize=address
 
 SRC = main.c minishell.c environment.c \
-	builtin/cd.c builtin/pwd.c builtin/env.c builtin/exit.c\
+	builtin/cd.c builtin/pwd.c builtin/env.c builtin/exit.c builtin/unset.c\
 
 
 LIBFT_DIR = lib/libft

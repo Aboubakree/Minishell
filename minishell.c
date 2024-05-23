@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 10:47:20 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/22 17:33:52 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/23 15:06:43 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,15 +35,17 @@ char **check_paths(t_environment *temp, char *cmd)
 	return (ft_split( temp->value, ':'));
 }
 
-char	*get_cmd_path(char *cmd, t_environment *env)
+char	*get_cmd_path(char *cmd, t_environment *env, int i)
 {
-	int		i;
 	char	**all_paths;
 	char	*path;
 	char	*temp;
 
+	if (access(cmd, F_OK) == 0)
+		return (ft_strdup(cmd));
 	all_paths = check_paths(env_get_bykey(env, "PATH"), cmd);
-	i = 0;
+	if (all_paths == NULL)
+		return (NULL);
 	while (all_paths && all_paths[i])
 	{
 		temp = ft_strjoin(all_paths[i], "/");
@@ -54,8 +56,7 @@ char	*get_cmd_path(char *cmd, t_environment *env)
 		free(path);
 		i++;
 	}
-	if (all_paths)
-		free_split(all_paths);
+	free_split(all_paths);
 	write(2, cmd, ft_strlen(cmd));
 	write(2, ": command not found\n", ft_strlen(": command not found\n"));
 	return (NULL);

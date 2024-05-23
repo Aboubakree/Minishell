@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/22 17:50:44 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/23 19:43:03 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,9 @@ typedef struct s_minishell
     int outfile;
     int first_cmd;
     int last_cmd;
-    int *pipe;
+    int pipe[2];
+    int redirection_in;
+    int redirection_out;
     // t_args *args;
     t_file_redirection *files; 
     struct s_minishell *next;
@@ -107,7 +109,9 @@ void cd(t_minishell *singl_mini, t_environment *env);
 void    envi(t_environment *env);
 void fake_exit(t_minishell *singl_mini);
 void    pwd(t_environment *env);
+void unset(t_minishell *minishell, t_environment **env);
 
-// ------------------------ execution
-char	*get_cmd_path(char *cmd, t_environment *env);
+// ------------------------ execution -------------------------
+char	*get_cmd_path(char *cmd, t_environment *env, int i);
+int cmd_count(t_minishell *mini);
 #endif

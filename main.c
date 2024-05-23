@@ -1028,8 +1028,8 @@ int    check_builtin(t_minishell *singl_mini, t_environment **env)
         return (pwd(*env), 0);
     // if (ft_strncmp("export", singl_mini->command, 7) == 0)
     //     return (export(singl_mini, *env), 0);
-    // if (ft_strncmp("unset", singl_mini->command, 6) == 0)
-    //     return (unset(singl_mini, env), 0);
+    if (ft_strncmp("unset", singl_mini->command, 6) == 0)
+        return (unset(singl_mini, env), 0);
     if (strncmp("exit", singl_mini->command, 5) == 0)
         return (fake_exit(singl_mini), 0);
     return (1);
@@ -1151,7 +1151,7 @@ void    start_execute_one(t_minishell *minishell, t_environment **env)
     open_files(minishell);
     if (minishell->command == NULL)
         exit(0);
-    minishell->path = get_cmd_path(minishell->command, *env);
+    minishell->path = get_cmd_path(minishell->command, *env, 0);
     if (minishell->path == NULL)
         exit(127);
     dup2(minishell->infile, 0);
@@ -1181,10 +1181,115 @@ void    execute_one(t_minishell *minishell, t_environment **env)
 
 //----------------------------------------- multiple commands --------------------------------------
 
-// void execute_all(t_minishell *minishell, t_environment **env)
-// {
 
-// }
+void    pipe_init(t_minishell *mini)
+{
+    if (pipe(mini->pipe))
+    {
+        perror("pipe");
+        free_minishell(mini);
+        exit(1);
+    }
+}
+
+void wait_childs(t_minishell *mini, int num_cmd)
+{
+    int i;
+    int status;
+
+    i = 0;
+    close(mini->pipe[0]);
+    close(mini->pipe[1]);
+    while (i < num_cmd)
+    {
+        if (wait(&status) > 0)
+        {
+            status = status >> 8;
+            //? = status
+            printf("exit_stat : %d\n", status);
+            i ++;
+        }
+        else
+        {
+            perror("wait");
+            i ++;
+        }
+    }
+}
+
+void get_in_out_priorities(t_minishell *singl_mini)
+{
+    printf("%s --> is first : %d\n", singl_mini->command, singl_mini->first_cmd);
+    printf("%s --> is last : %d\n", singl_mini->command, singl_mini->last_cmd);
+    if (singl_mini->first_cmd)
+    {
+        close(singl_mini->pipe[0]);
+        dup2(singl_mini->infile, 0);
+        if (singl_mini->outfile == 1)
+            dup2(singl_mini->pipe[1], 1);
+        else
+            dup2(singl_mini->outfile, 1);
+    }
+    else if (singl_mini->last_cmd)
+    {
+        close(singl_mini->pipe[1]);
+        if (singl_mini->infile == 0)
+            dup2(singl_mini->pipe[0], 0);
+        else
+            dup2(singl_mini->infile, 0);
+        dup2(singl_mini->outfile, 1);
+    }
+    else
+    {
+        if (singl_mini->infile == 0)
+            dup2(singl_mini->pipe[0], 0);
+        else
+            dup2(singl_mini->infile, 0);
+        if (singl_mini->outfile == 1)
+            dup2(singl_mini->pipe[1], 1);
+        else
+            dup2(singl_mini->outfile, 1);
+    }
+}
+
+void final_execution(t_minishell *singl_mini, t_environment **env)
+{
+    open_files(singl_mini);
+    if (check_builtin(singl_mini, env) == 0)
+        exit (0);
+    singl_mini->path = get_cmd_path(singl_mini->command, *env, 0);
+    if (singl_mini->path == NULL)
+        exit(127);
+    get_in_out_priorities(singl_mini);
+    execve(singl_mini->path, singl_mini->args, NULL);
+    perror("execve");
+    exit(1);
+}
+
+void execute_all(t_minishell *minishell, t_environment **env, int num_cmd)
+{
+    pid_t       pid;
+    t_minishell *temp;
+    
+    temp = minishell;
+    pipe_init(minishell);
+    while (temp)
+    {
+        pid = fork();
+        if (pid == 0)
+        {
+            if (temp == minishell)
+                temp->first_cmd = 1;
+            if (temp->next == NULL)
+                temp->last_cmd = 1;
+            final_execution(temp, env);
+        }
+        temp = temp->next;
+    }
+    printf("parent after fork \n");
+    wait_childs(minishell, num_cmd);
+}
+
 
 //----------------------------------------- end of multiple command --------------------------------
 
@@ -1198,8 +1303,8 @@ void    execution(t_minishell *minishell, t_environment **env)
         else
             execute_one(minishell, env);
     }
-    // else
-    //     execute_all(minishell, env);
+    else
+        execute_all(minishell, env, cmd_count(minishell));
 }
 
 
