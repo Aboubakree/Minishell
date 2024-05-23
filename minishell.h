@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/22 08:22:05 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/22 17:50:44 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,6 +93,7 @@ typedef struct s_minishell
 
 // -------------- common function ---------------
 int args_count(char **args);
+void free_split(char **splited);
 
 //environment
 t_environment *env_node(char *key, char *value);
@@ -107,5 +108,6 @@ void    envi(t_environment *env);
 void fake_exit(t_minishell *singl_mini);
 void    pwd(t_environment *env);
 
-
+// ------------------------ execution
+char	*get_cmd_path(char *cmd, t_environment *env);
 #endif

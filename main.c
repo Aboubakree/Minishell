@@ -409,7 +409,7 @@ void free_tokens(t_token *tokens)
 {
     t_token *temp;
 
-    if (!tokens)
+    if (tokens == NULL)
         return ;
     while(tokens)
     {
@@ -615,7 +615,6 @@ t_token *expand(t_token *tokens, t_environment *env)
     {
         if (temp->type == T_WORD)
         {
-            printf("value: %s\n", temp->value);
             if (ft_strchr(temp->value, '$') == NULL)
             {
                 temp = temp->next;
@@ -978,36 +977,26 @@ void free_environment(t_environment *env)
 void free_minishell(t_minishell *minishell)
 {
     t_minishell *temp;
-    char **temp_args; // change this line
     t_file_redirection *temp_files;
 
-    if (!minishell)
+    if (minishell == NULL)
         return ;
     while(minishell)
     {
         temp = minishell;
         minishell = minishell->next;
-        free(temp->command);
+        if (temp->command)
+            free(temp->command);
+        if (temp->path != NULL)
+            free(temp->path);
         if (temp->args)
-        {
-            temp_args = temp->args;
-            while(*temp_args)
-            {
-                char *temp_args2 = *temp_args;
-                temp_args++;
-                free(temp_args2);
-            }
-        }
-        if (temp->files)
+            free_split(temp->args);
+        while(temp->files)
         {
             temp_files = temp->files;
-            while(temp_files)
-            {
-                t_file_redirection *temp_files2 = temp_files;
-                temp_files = temp_files->next;
-                free(temp_files2->filename);
-                free(temp_files2);
-            }
+            temp->files = temp->files->next;
+            free(temp_files->filename);
+            free(temp_files);
         }
         free(temp);
     }
@@ -1103,6 +1092,15 @@ void check_heredoc(t_minishell *minishell)
     }
 }
 
+void file_error(char *filename)
+{
+    write(2, "bash: ",6);
+    write(2, filename, ft_strlen(filename));
+    write(2, ": ", 2);
+    perror("");
+    exit(1);
+}
+
 void open_files(t_minishell *minishell)
 {
     t_file_redirection *files;
@@ -1112,22 +1110,55 @@ void open_files(t_minishell *minishell)
     while (files)
     {
         if (files->type == T_REDIRECTION_IN)
-            printf("file Name in : %s\n", files->filename);
+        {
+            if (minishell->infile != 0)
+                close(minishell->infile);
+            minishell->infile = open(files->filename, O_RDONLY, 0644);
+            if (minishell->infile < 0)
+                file_error(files->filename);
+        }
         else if (files->type == T_REDIRECTION_OUT)
-            printf("file Name out : %s\n", files->filename);
+        {
+            if (minishell->outfile != 1)
+                close(minishell->outfile);
+            minishell->outfile = open(files->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+            if (minishell->outfile < 0)
+                file_error(files->filename);
+        }
         else if (files->type == T_REDIRECTION_APPEND)
-            printf("file Name add : %s\n", files->filename);
+        {
+            if (minishell->outfile != 1)
+                close(minishell->outfile);
+            minishell->outfile = open(files->filename, O_WRONLY | O_APPEND | O_CREAT, 0664);
+            if (minishell->outfile < 0)
+                file_error(files->filename);
+        }
         else if (files->type == T_HERDOC)
-            printf("file Name herdoc : %s\n", files->filename);
+        {
+            if (minishell->infile != 0)
+                close(minishell->infile);
+            minishell->infile = open("heredoc_buffer", O_RDONLY, 0644);
+            if (minishell->infile < 0)
+                file_error(files->filename);
+        }
         files = files->next;
     }
 }
 
+
 void    start_execute_one(t_minishell *minishell, t_environment **env)
 {
-    (void) env;
     open_files(minishell);
-    exit(0);
+    if (minishell->command == NULL)
+        exit(0);
+    minishell->path = get_cmd_path(minishell->command, *env);
+    if (minishell->path == NULL)
+        exit(127);
+    dup2(minishell->infile, 0);
+    dup2(minishell->outfile, 1);
+    if (execve(minishell->path, minishell->args, NULL))
+        perror("execve");
+    exit(126);
 }
 
 void    execute_one(t_minishell *minishell, t_environment **env)
@@ -1141,7 +1172,7 @@ void    execute_one(t_minishell *minishell, t_environment **env)
     wait(&status);
     status = status >> 8;
     //$? = status
-    printf("exit_stat : %d\n", status);
+    // printf("exit_stat : %d\n", status);
 }
 
 void    execution(t_minishell *minishell, t_environment **env)
@@ -1189,23 +1220,19 @@ int main(int argc, char **argv, char **base_env)
         tokens = expand(tokens, env);
         if (check_syntax_error(str) == 1 ||  ft_strlen(str) == 0 || check_syntax_error_tokens(tokens) == 1)
         {
+            add_history(str);
             free(str);
             continue;
         }
         minishell = token_to_minishell(tokens);
-        // print_minishell(minishell);
         minishell = delete_quotes(minishell);
-        // printf("minishell after deletng quotes\n");
-        // print_minishell(minishell);
-        // printf("%s\n", str);
         execution(minishell, &env);
+        if (str[0] != '\0')
+            add_history(str);
         free(str);
         free_tokens(tokens);
         free_minishell(minishell);
-
     }
-    // free_minishell(minishell);
-    // free_tokens(tokens);
     free_environment(env);
     return (0);
 }

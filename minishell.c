@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 10:47:20 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/01 10:51:46 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/22 17:33:52 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,18 @@ void free_split(char **splited)
         free(splited);
 }
 
+char **check_paths(t_environment *temp, char *cmd)
+{
+	if (temp == NULL)
+	{
+		write(2, "bash: ", 6);// complete  ls
+		write(2, cmd, ft_strlen(cmd));
+		write(2, ": No such file or directory\n", ft_strlen(": No such file or directory\n"));
+		return (NULL);
+	}
+	return (ft_split( temp->value, ':'));
+}
+
 char	*get_cmd_path(char *cmd, t_environment *env)
 {
 	int		i;
@@ -30,7 +42,7 @@ char	*get_cmd_path(char *cmd, t_environment *env)
 	char	*path;
 	char	*temp;
 
-	all_paths = ft_split((env_get_bykey(env, "PATH"))->value, ':');
+	all_paths = check_paths(env_get_bykey(env, "PATH"), cmd);
 	i = 0;
 	while (all_paths && all_paths[i])
 	{
@@ -44,5 +56,7 @@ char	*get_cmd_path(char *cmd, t_environment *env)
 	}
 	if (all_paths)
 		free_split(all_paths);
+	write(2, cmd, ft_strlen(cmd));
+	write(2, ": command not found\n", ft_strlen(": command not found\n"));
 	return (NULL);
 }
