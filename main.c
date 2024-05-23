@@ -369,6 +369,7 @@ void    handle_word(t_token **head, const char *str, int *i)
 {
     int in_quote;
     char quote;
+    char *temp;
 
     in_quote = 0;
     int j = *i;
@@ -383,10 +384,9 @@ void    handle_word(t_token **head, const char *str, int *i)
         }
         (*i)++;
     }
-    char *temp = ft_substr(str, j, *i - j);
+    temp = ft_substr(str, j, *i - j);
     // add_token_back(head, new_token(T_WORD, ft_substr(str, j, *i - j)));
     add_token_back(head, new_token(T_WORD, temp));
-    // free(temp);
     (*i)--;
 }
 
@@ -412,18 +412,35 @@ t_token *tokenize_input(const char *str)
 
 void free_tokens(t_token *tokens)
 {
-    t_token *temp;
+    t_token *current, *next;
 
-    if (!tokens)
-        return ;
-    while(tokens)
+    current = tokens;
+    while(current != NULL)
     {
-        temp = tokens;
-        tokens = tokens->next;
-        free(temp->value);
-        free(temp);
+        next = current->next;
+        if (current->value != NULL)
+        {
+            free(current->value);
+            current->value = NULL;
+        }
+        free(current);
+        current = next;
     }
 }
+// void free_tokens(t_token *tokens)
+// {
+//     t_token *temp;
+
+//     if (!tokens)
+//         return ;
+//     while(tokens)
+//     {
+//         temp = tokens;
+//         tokens = tokens->next;
+//         free(temp->value);
+//         free(temp);
+//     }
+// }
 
 int check_syntax_error_tokens(t_token *tokens)
 {
@@ -470,7 +487,6 @@ t_minishell *new_minishell(char *command, char **args, t_file_redirection *files
     }
     minishell->command = command;
     minishell->args = args;
-    // minishell->delimiter = delimiter;
     minishell->files = files;
     minishell->next = NULL;
     return (minishell);
@@ -659,10 +675,14 @@ t_token *expand(t_token *tokens, t_environment *env)
                     first = ft_substr(temp->value, 0, i);
                     last = ft_strdup(&temp->value[index]);
                     new_value = ft_strjoin(first, value);
-                    new_value = ft_strjoin(new_value, last);
+                    char *temp2 = new_value;
+                    new_value = ft_strjoin(temp2, last);
+                    free(temp2);
+                    free(first);
+                    free(last);
+                    free(env_variable);
+                    free(temp->value);
                     temp->value = new_value;
-                    if (temp->value[i+1] == 0)
-                        break;
                 }
                 else
                     i++;
@@ -858,6 +878,7 @@ t_minishell *token_to_minishell(t_token *tokens)
                 temp_args1 = ft_strjoin(args1, " ");
                 free(args1);
                 args1 = temp_args1;
+                free_args(args);
                 args = ft_split2(args1, ' ');
                 new_command = 0;
             }
@@ -869,9 +890,9 @@ t_minishell *token_to_minishell(t_token *tokens)
                 temp_args1 = ft_strjoin(args1, " ");
                 free(args1);
                 args1 = temp_args1;
+                free_args(args);
                 args = ft_split2(args1, ' ');
             }
-            
         }
         else if (temp->type == T_REDIRECTION_IN)
         {
@@ -981,35 +1002,33 @@ void free_environment(t_environment *env)
 void free_minishell(t_minishell *minishell)
 {
     t_minishell *temp;
-    char **temp_args; // change this line
-    t_file_redirection *temp_files;
+    char **temp_args;
+    t_file_redirection *temp_files, *temp_files_next;
 
     if (!minishell)
-        return ;
-    while(minishell)
+        return;
+
+    while (minishell)
     {
         temp = minishell;
         minishell = minishell->next;
         free(temp->command);
+
         if (temp->args)
         {
             temp_args = temp->args;
-            while(*temp_args)
-            {
-                char *temp_args2 = *temp_args;
-                temp_args++;
-                free(temp_args2);
-            }
+            free_args(temp_args);
         }
+
         if (temp->files)
         {
             temp_files = temp->files;
-            while(temp_files)
+            while (temp_files)
             {
-                t_file_redirection *temp_files2 = temp_files;
-                temp_files = temp_files->next;
-                free(temp_files2->filename);
-                free(temp_files2);
+                temp_files_next = temp_files->next;
+                free(temp_files->filename);
+                free(temp_files);
+                temp_files = temp_files_next;
             }
         }
         free(temp);
@@ -1044,14 +1063,13 @@ int main(int argc, char **argv, char **base_env)
         {
             break;
         }
+
         tokens = tokenize_input(str);
-        printf("====================================\n");
-        print_tokens(tokens);
-        printf("====================================\n");
         tokens = expand(tokens, env);
         if (check_syntax_error(str) == 1 ||  ft_strlen(str) == 0 || check_syntax_error_tokens(tokens) == 1)
         {
             free(str);
+            free_tokens(tokens);
             continue;
         }
         // print tokens 
@@ -1060,7 +1078,7 @@ int main(int argc, char **argv, char **base_env)
         minishell = token_to_minishell(tokens);
         print_minishell(minishell);
         printf("minishell after deletng quotes\n");
-        minishell = delete_quotes(token_to_minishell(tokens));
+        minishell = delete_quotes(minishell);
         print_minishell(minishell);
         printf("%s\n", str);
 
@@ -1069,8 +1087,6 @@ int main(int argc, char **argv, char **base_env)
         free_minishell(minishell);
 
     }
-    // free_minishell(minishell);
-    // free_tokens(tokens);
-    // free_environment(env);
+    free_environment(env);
     return (0);
 }
