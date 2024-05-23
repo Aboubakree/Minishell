@@ -671,10 +671,11 @@ t_token *expand(t_token *tokens, t_environment *env)
                         value = ft_strdup("");
                     }
                     else
-                        value = get_env->value;
+                        value = ft_strdup(get_env->value);
                     first = ft_substr(temp->value, 0, i);
                     last = ft_strdup(&temp->value[index]);
                     new_value = ft_strjoin(first, value);
+                    free(value);
                     char *temp2 = new_value;
                     new_value = ft_strjoin(temp2, last);
                     free(temp2);
