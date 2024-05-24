@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/23 19:43:03 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/24 08:20:02 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,8 +84,6 @@ typedef struct s_minishell
     int first_cmd;
     int last_cmd;
     int pipe[2];
-    int redirection_in;
-    int redirection_out;
     // t_args *args;
     t_file_redirection *files; 
     struct s_minishell *next;

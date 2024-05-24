@@ -1219,9 +1219,7 @@ void wait_childs(t_minishell *mini, int num_cmd)
 
 void get_in_out_priorities(t_minishell *singl_mini)
 {
-    printf("%s --> is first : %d\n", singl_mini->command, singl_mini->first_cmd);
-    printf("%s --> is last : %d\n", singl_mini->command, singl_mini->last_cmd);
-    if (singl_mini->first_cmd)
+    if (singl_mini->first_cmd == 1)
     {
         close(singl_mini->pipe[0]);
         dup2(singl_mini->infile, 0);
@@ -1230,7 +1228,7 @@ void get_in_out_priorities(t_minishell *singl_mini)
         else
             dup2(singl_mini->outfile, 1);
     }
-    else if (singl_mini->last_cmd)
+    else if (singl_mini->last_cmd == 1)
     {
         close(singl_mini->pipe[1]);
         if (singl_mini->infile == 0)
@@ -1241,26 +1239,24 @@ void get_in_out_priorities(t_minishell *singl_mini)
     }
     else
     {
-        if (singl_mini->infile == 0)
-            dup2(singl_mini->pipe[0], 0);
-        else
-            dup2(singl_mini->infile, 0);
-        if (singl_mini->outfile == 1)
-            dup2(singl_mini->pipe[1], 1);
-        else
-            dup2(singl_mini->outfile, 1);
+        printf("ana ls tanya\n");
+        // dup2(singl_mini->pipe[0], 0);
+        dup2(singl_mini->pipe[1], STDOUT_FILENO);
     }
 }
+
+
+
 
 void final_execution(t_minishell *singl_mini, t_environment **env)
 {
     open_files(singl_mini);
+    get_in_out_priorities(singl_mini);
     if (check_builtin(singl_mini, env) == 0)
         exit (0);
     singl_mini->path = get_cmd_path(singl_mini->command, *env, 0);
     if (singl_mini->path == NULL)
         exit(127);
-    get_in_out_priorities(singl_mini);
     execve(singl_mini->path, singl_mini->args, NULL);
     perror("execve");
     exit(1);
@@ -1286,7 +1282,6 @@ void execute_all(t_minishell *minishell, t_environment **env, int num_cmd)
         }
         temp = temp->next;
     }
-    printf("parent after fork \n");
     wait_childs(minishell, num_cmd);
 }
 
