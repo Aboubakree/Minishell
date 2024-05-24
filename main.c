@@ -849,6 +849,7 @@ t_minishell *token_to_minishell(t_token *tokens)
     char *command = NULL;
     char *args1 = NULL;
     char **args = NULL;
+    char *temp_args1;
     t_file_redirection *files = NULL;
     int new_command = 1;
 
@@ -860,6 +861,7 @@ t_minishell *token_to_minishell(t_token *tokens)
         {
             add_minishell_back(&minishell, new_minishell(command, args, files));
             command = NULL;
+            free(args1);
             args = NULL;
             args1 = NULL;
             files = NULL;
@@ -869,7 +871,6 @@ t_minishell *token_to_minishell(t_token *tokens)
         }
         if (temp->type == T_WORD)
         {
-            char *temp_args1;
             if (new_command == 1)
             {
                 temp_args1 = ft_strjoin(args1, temp->value);
