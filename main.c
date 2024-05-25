@@ -1037,6 +1037,19 @@ void free_minishell(t_minishell *minishell)
     }
 }
 
+int check_whitespaces(const char *str)
+{
+    int i;
+
+    i = 0;
+    while(str[i])
+    {
+        if (is_whitespace(str[i]) != 1)
+            return (1);
+        i++;
+    }
+    return (0);
+}
 int main(int argc, char **argv, char **base_env)
 {
     t_environment *env;
@@ -1064,6 +1077,11 @@ int main(int argc, char **argv, char **base_env)
         if (str == NULL)
         {
             break;
+        }
+        if (check_whitespaces(str) == 0)
+        {
+            free(str);
+            continue;
         }
 
         tokens = tokenize_input(str);
