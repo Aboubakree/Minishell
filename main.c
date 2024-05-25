@@ -324,7 +324,7 @@ void print_tokens(t_token *tokens)
     {
         printf("--------------------\n");
         // printf("type: %d, value: %s\n", tokens->type, tokens->value);
-        printf("type: %s, value: %s\n", get_type_token(tokens->type), tokens->value);
+        printf("=======>type: %s, value: %s\n", get_type_token(tokens->type), tokens->value);
         printf("--------------------\n");
         tokens = tokens->next;
     }
@@ -399,7 +399,7 @@ t_token *tokenize_input(const char *str)
     i = 0;
     while(str[i])
     {
-        while(ft_strchr(" \t\n\v\f\r", str[i]))
+        while(ft_strchr(" \t\n\v\f\r", str[i]) && str[i])
             i++;
         if (ft_strchr("<>|", str[i]))
             handle_operator(&head, str, &i);
@@ -517,6 +517,20 @@ void *new_arg(char *arg)
     args->args = arg;
     args->next = NULL;
     return (args);
+}
+
+int check_whitespaces(const char *str)
+{
+    int i;
+
+    i = 0;
+    while(str[i])
+    {
+        if (is_whitespace(str[i]) != 1)
+            return (1);
+        i++;
+    }
+    return (0);
 }
 void add_arg_back(t_args **head, t_args *new_arg)
 {
@@ -763,86 +777,13 @@ void free_args(char **args)
         free(args);
     }
 }
+int in_quote(const char *str)
+{
+    size_t len;
 
-// t_minishell *delete_quotes(t_minishell *minishell)
-// {
-//     t_minishell *temp;
-//     int in_single_quote, in_double_quote;
-//     int i, j, len;
-//     char *new_arg;
-
-//     temp = minishell;
-//     while (temp)
-//     {
-//         i = 0;
-//         while (temp->args[i])
-//         {
-//             in_single_quote = 0;
-//             in_double_quote = 0;
-//             j = 0;
-//             len = 0;
-//             new_arg = malloc(sizeof(char));
-//             new_arg[0] = '\0';
-//             while (temp->args[i][j])
-//             {
-//                 if (temp->args[i][j] == '\'' && !in_double_quote)
-//                     in_single_quote = !in_single_quote;
-//                 else if (temp->args[i][j] == '\"' && !in_single_quote)
-//                     in_double_quote = !in_double_quote;
-//                 else
-//                 {
-//                     len++;
-//                     new_arg = realloc(new_arg, len + 1);
-//                     new_arg[len - 1] = temp->args[i][j];
-//                     new_arg[len] = '\0';
-//                 }
-//                 j++;
-//             }
-//             free(temp->args[i]);
-//             temp->args[i] = new_arg;
-//             i++;
-//         }
-//         temp = temp->next;
-//     }
-//     return (minishell);
-// }
-
-
-// t_minishell *delete_quotes(t_minishell *minishell)
-// {
-//     t_minishell *temp;
-//     int i;
-//     int j;
-//     char quote;
-//     int in_quote;
-
-//     temp = minishell;
-
-//     i = 0;
-//     quote = '\0';
-//     in_quote = 0;
-//     while(temp)
-//     {
-//         j = 0;
-//         while(temp->args[j])
-//         {
-//             i = 0;
-//             update_quote_state(&in_quote, &quote, temp->args[j][i]);
-//             while(temp->args[j][i])
-//             {
-//                 update_quote_state(&in_quote, &quote, temp->args[j][i]);
-                
-//                 i++;
-//             }
-//             j++;
-//         }
-//         temp = temp->next;
-//     }
-//     return (minishell);
-// }
-
-
-
+    len = ft_strlen(str);
+    return (len >= 2 && str[0] == '"' && str[len - 1] == '"');
+}
 t_minishell *token_to_minishell(t_token *tokens)
 {
     t_minishell *minishell;
@@ -899,17 +840,25 @@ t_minishell *token_to_minishell(t_token *tokens)
         else if (temp->type == T_REDIRECTION_IN)
         {
             temp = temp->next;
+            if (check_whitespaces(temp->value) == 1 && in_quote(temp->value) == 0)
+                printf("%sbash: [%s]: ambiguous redirect\n%s",RED,  temp->value, RESET);
             add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_IN));
         }
         else if (temp->type == T_REDIRECTION_OUT)
         {
             temp = temp->next;
-            add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_OUT));
+            if (check_whitespaces(temp->value) == 1 && in_quote(temp->value) == 0)
+                printf("%sbash: [%s]: ambiguous redirect\n%s",RED,  temp->value, RESET);
+            else
+                add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_OUT));
         }
         else if (temp->type == T_REDIRECTION_APPEND)
         {
             temp = temp->next;
-            add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_APPEND));
+            if (check_whitespaces(temp->value) == 1 && in_quote(temp->value) == 0)
+                printf("%sbash: [%s]: ambiguous redirect\n%s",RED,  temp->value, RESET);
+            else
+                add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_APPEND));
         }
         else if (temp->type == T_HERDOC)
         {
@@ -1037,19 +986,6 @@ void free_minishell(t_minishell *minishell)
     }
 }
 
-int check_whitespaces(const char *str)
-{
-    int i;
-
-    i = 0;
-    while(str[i])
-    {
-        if (is_whitespace(str[i]) != 1)
-            return (1);
-        i++;
-    }
-    return (0);
-}
 int main(int argc, char **argv, char **base_env)
 {
     t_environment *env;
@@ -1084,8 +1020,13 @@ int main(int argc, char **argv, char **base_env)
             continue;
         }
 
+        // printf("before expand ======================\n");
         tokens = tokenize_input(str);
+        // print_tokens(tokens);
+        // printf("after expand ======================\n");
         tokens = expand(tokens, env);
+        // print_tokens(tokens);
+        // printf("after expand ======================\n");
         if (check_syntax_error(str) == 1 ||  ft_strlen(str) == 0 || check_syntax_error_tokens(tokens) == 1)
         {
             free(str);
