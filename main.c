@@ -385,7 +385,6 @@ void    handle_word(t_token **head, const char *str, int *i)
         (*i)++;
     }
     temp = ft_substr(str, j, *i - j);
-    // add_token_back(head, new_token(T_WORD, ft_substr(str, j, *i - j)));
     add_token_back(head, new_token(T_WORD, temp));
     (*i)--;
 }
@@ -631,6 +630,7 @@ char	**ft_split2(char const *s, char c)
         return (ft_free(res));
     return (res);
 }
+
 t_token *expand(t_token *tokens, t_environment *env)
 {
     t_token *temp = tokens;
@@ -649,7 +649,6 @@ t_token *expand(t_token *tokens, t_environment *env)
     {
         if (temp->type == T_WORD)
         {
-            printf("value: %s\n", temp->value);
             if (ft_strchr(temp->value, '$') == NULL)
             {
                 temp = temp->next;
@@ -678,7 +677,7 @@ t_token *expand(t_token *tokens, t_environment *env)
                     while(temp->value[index] && is_word(temp->value[index]))
                         index++;
                     char *env_variable = ft_substr(temp->value, i + 1, index - i - 1);
-                    printf("env_variable: %s\n", env_variable);
+                    // printf("env_variable: %s\n", env_variable);
                     t_environment *get_env = env_get_bykey(env, env_variable);
                     if(get_env == NULL)
                     {
@@ -693,8 +692,8 @@ t_token *expand(t_token *tokens, t_environment *env)
                     char *temp2 = new_value;
                     new_value = ft_strjoin(temp2, last);
                     free(temp2);
-                    free(first);
                     free(last);
+                    free(first);
                     free(env_variable);
                     free(temp->value);
                     temp->value = new_value;
@@ -784,6 +783,20 @@ int in_quote(const char *str)
     len = ft_strlen(str);
     return (len >= 2 && str[0] == '"' && str[len - 1] == '"');
 }
+
+int check_if_have_space(const char *str)
+{
+    int i;
+
+    i = 0;
+    while(str[i])
+    {
+        if (is_whitespace(str[i]) == 1)
+            return (1);
+        i++;
+    }
+    return (0);
+}
 t_minishell *token_to_minishell(t_token *tokens)
 {
     t_minishell *minishell;
@@ -812,17 +825,18 @@ t_minishell *token_to_minishell(t_token *tokens)
         }
         if (temp->type == T_WORD)
         {
+            // printf("temp->value = [[%s]]\n", temp->value);
             if (new_command == 1)
             {
                 temp_args1 = ft_strjoin(args1, temp->value);
                 free(args1);
                 args1 = temp_args1;
                 command = ft_strdup(temp->value);
-                temp_args1 = ft_strjoin(args1, " ");
+                temp_args1 = ft_strjoin(args1, "\r");
                 free(args1);
                 args1 = temp_args1;
                 free_args(args);
-                args = ft_split2(args1, ' ');
+                args = ft_split2(args1, '\r');
                 new_command = 0;
             }
             else
@@ -830,24 +844,24 @@ t_minishell *token_to_minishell(t_token *tokens)
                 temp_args1 = ft_strjoin(args1, temp->value);
                 free(args1);
                 args1 = temp_args1;
-                temp_args1 = ft_strjoin(args1, " ");
+                temp_args1 = ft_strjoin(args1, "\r");
                 free(args1);
                 args1 = temp_args1;
                 free_args(args);
-                args = ft_split2(args1, ' ');
+                args = ft_split2(args1, '\r');
             }
         }
         else if (temp->type == T_REDIRECTION_IN)
         {
             temp = temp->next;
-            if (check_whitespaces(temp->value) == 1 && in_quote(temp->value) == 0)
+            if (check_if_have_space(temp->value) == 1 && in_quote(temp->value) == 0)
                 printf("%sbash: [%s]: ambiguous redirect\n%s",RED,  temp->value, RESET);
             add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_IN));
         }
         else if (temp->type == T_REDIRECTION_OUT)
         {
             temp = temp->next;
-            if (check_whitespaces(temp->value) == 1 && in_quote(temp->value) == 0)
+            if (check_if_have_space(temp->value) == 1 && in_quote(temp->value) == 0)
                 printf("%sbash: [%s]: ambiguous redirect\n%s",RED,  temp->value, RESET);
             else
                 add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_OUT));
@@ -855,7 +869,7 @@ t_minishell *token_to_minishell(t_token *tokens)
         else if (temp->type == T_REDIRECTION_APPEND)
         {
             temp = temp->next;
-            if (check_whitespaces(temp->value) == 1 && in_quote(temp->value) == 0)
+            if (check_if_have_space(temp->value) == 1 && in_quote(temp->value) == 0)
                 printf("%sbash: [%s]: ambiguous redirect\n%s",RED,  temp->value, RESET);
             else
                 add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_APPEND));
@@ -874,8 +888,6 @@ t_minishell *token_to_minishell(t_token *tokens)
 void print_minishell(t_minishell *minishell)
 {
     t_minishell *temp;
-    // t_args *temp_args;
-
     temp = minishell;
     int i = 0;
     while(temp)
@@ -1019,7 +1031,6 @@ int main(int argc, char **argv, char **base_env)
             free(str);
             continue;
         }
-
         // printf("before expand ======================\n");
         tokens = tokenize_input(str);
         // print_tokens(tokens);
@@ -1033,12 +1044,9 @@ int main(int argc, char **argv, char **base_env)
             free_tokens(tokens);
             continue;
         }
-        // print tokens 
-
-        // token_to_minishell(tokens);
         minishell = token_to_minishell(tokens);
-        print_minishell(minishell);
-        printf("minishell after deletng quotes\n");
+        // print_minishell(minishell);
+        // printf("minishell after deleting quotes\n");
         minishell = delete_quotes(minishell);
         print_minishell(minishell);
         printf("%s\n", str);
