@@ -4,11 +4,13 @@ NC=\033[0m # No Color
 CC = @gcc
 NAME = minishell
 
-CFLAGS = -Wall -Werror -Wextra #-g3 -fsanitize=address
+CFLAGS = -Wall -Werror -Wextra -g #-fsanitize=address
 
 SRC = main.c minishell.c environment.c \
-	builtin/cd.c builtin/pwd.c builtin/env.c builtin/exit.c builtin/unset.c\
-
+	builtin/cd.c builtin/pwd.c builtin/env.c builtin/exit.c\
+	# libft/ft_strlen.c libft/ft_substr.c libft/ft_strchr.c libft/ft_strncmp.c\
+	# libft/ft_strdup.c libft/ft_split.c libft/ft_strjoin.c libft/ft_isdigit.c\
+	# libft/ft_atoi.c\
 
 LIBFT_DIR = lib/libft
 LIBFT = $(LIBFT_DIR)/libft.a
@@ -40,6 +42,11 @@ fclean : clean
 	@echo "\033[0;32m🧹🧹 fcleaned\033[0m"
 
 re : fclean all
+f : $(NAME)
+	valgrind --leak-check=full ./$(NAME)
+
+v : clean fclean $(NAME)
+	valgrind ./$(NAME)
 
 .SECONDARY : $(OBJ)
 
