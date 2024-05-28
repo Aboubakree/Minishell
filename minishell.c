@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 10:47:20 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/01 10:51:46 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/23 15:06:43 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,15 +23,29 @@ void free_split(char **splited)
         free(splited);
 }
 
-char	*get_cmd_path(char *cmd, t_environment *env)
+char **check_paths(t_environment *temp, char *cmd)
 {
-	int		i;
+	if (temp == NULL)
+	{
+		write(2, "bash: ", 6);// complete  ls
+		write(2, cmd, ft_strlen(cmd));
+		write(2, ": No such file or directory\n", ft_strlen(": No such file or directory\n"));
+		return (NULL);
+	}
+	return (ft_split( temp->value, ':'));
+}
+
+char	*get_cmd_path(char *cmd, t_environment *env, int i)
+{
 	char	**all_paths;
 	char	*path;
 	char	*temp;
 
-	all_paths = ft_split((env_get_bykey(env, "PATH"))->value, ':');
-	i = 0;
+	if (access(cmd, F_OK) == 0)
+		return (ft_strdup(cmd));
+	all_paths = check_paths(env_get_bykey(env, "PATH"), cmd);
+	if (all_paths == NULL)
+		return (NULL);
 	while (all_paths && all_paths[i])
 	{
 		temp = ft_strjoin(all_paths[i], "/");
@@ -42,7 +56,8 @@ char	*get_cmd_path(char *cmd, t_environment *env)
 		free(path);
 		i++;
 	}
-	if (all_paths)
-		free_split(all_paths);
+	free_split(all_paths);
+	write(2, cmd, ft_strlen(cmd));
+	write(2, ": command not found\n", ft_strlen(": command not found\n"));
 	return (NULL);
 }
