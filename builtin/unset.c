@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 09:09:02 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/23 12:24:17 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/24 12:01:25 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@ void unset(t_minishell *minishell, t_environment **env)
     t_environment *previous;
     int           i;
 
+    open_files(minishell);
+    get_in_out_priorities(minishell);
     if (minishell->args && args_count(minishell->args) == 1)
         return;
     i = 1;

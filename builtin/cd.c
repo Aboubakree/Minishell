@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 11:04:31 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/23 09:32:32 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/24 11:58:11 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ int cd_pars(t_minishell *singl_mini,char *path)
 {
     if (path == NULL)
     {
-        write(2, "bash: cd: HOME not set\n", ft_strlen("bash: cd: HOME not set"));
+        write(2, "bash: cd: HOME not set\n", ft_strlen("bash: cd: HOME not set\n"));
         return (1);
     }
     if (args_count(singl_mini->args) > 2)
@@ -54,6 +54,8 @@ void cd(t_minishell *singl_mini, t_environment *env)
     char            new_path[1024];
     char            *path;
 
+    open_files(singl_mini);
+    get_in_out_priorities(singl_mini);
     OLDPWD = env_get_bykey(env, "OLDPWD");
     PWD = env_get_bykey(env, "PWD");
     if (args_count(singl_mini->args) == 1)
