@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/29 18:48:43 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/24 12:00:12 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/28 16:12:02 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ void    envi(t_minishell *singl_mini, t_environment *env)
     t_environment *temp;
 
     open_files(singl_mini);
-    get_in_out_priorities(singl_mini);
+    handel_input_output(singl_mini);
     temp = env;
     while (temp)
     {
