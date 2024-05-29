@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 11:04:31 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/28 16:10:49 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/29 06:21:50 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,8 @@ char *get_home( t_environment *env)
     temp = env_get_bykey(env, "HOME");
     home = NULL;
     if (temp)
-        home = ft_strdup(temp->value);
+        home = temp->value;
     return (home);
-    // dont forgot to free home ???
 }
 
 int cd_pars(t_minishell *singl_mini,char *path)

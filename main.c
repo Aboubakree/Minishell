@@ -1049,7 +1049,7 @@ int cmd_count(t_minishell *minishell)
     return (count);
 }
 
-void fill_heredoc(t_minishell *temp)
+void fill_heredoc(t_minishell *temp, t_file_redirection *files)
 {
     int     fd;
     char    *str;
@@ -1066,7 +1066,7 @@ void fill_heredoc(t_minishell *temp)
                 ft_strlen("bash: warning: here-document delimited by end-of-file\n"));
             break;
         }
-        if (ft_strncmp(temp->files->filename, str, ft_strlen(str) + 1) == 0)
+        if (ft_strncmp(files->filename, str, ft_strlen(str) + 1) == 0)
         {
             free(str);
             close(fd);
@@ -1092,7 +1092,7 @@ void loop_heredoc(t_minishell *minishell)
         while (files)
         {
             if (files->type == T_HERDOC)
-                fill_heredoc(temp);
+                fill_heredoc(temp, files);
             files = files->next;
         }
         temp = temp->next;
@@ -1185,7 +1185,7 @@ void open_files(t_minishell *minishell)
 void    start_execute_one(t_minishell *minishell, t_environment **env)
 {
     open_files(minishell);
-    if (minishell->command == NULL)
+    if (minishell->command == NULL || ft_strncmp(minishell->command, "", 1) == 0)
         exit(0);
     minishell->path = get_cmd_path(minishell->command, *env, 0);
     if (minishell->path == NULL)
