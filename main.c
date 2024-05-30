@@ -355,6 +355,7 @@ void handle_operator(t_token **head, const char *str, int *i)
             add_token_back(head, new_token(T_REDIRECTION_OUT, ft_strdup(">")));
     }
 }
+
 void    update_quote_state(int *in_quote, char *quote, char c)
 {
     if (*in_quote == 0 && (c == '\'' || c == '\"'))
@@ -365,6 +366,7 @@ void    update_quote_state(int *in_quote, char *quote, char c)
     else if (*in_quote == 1 && c == *quote)
         *in_quote = 0;
 }
+
 void    handle_word(t_token **head, const char *str, int *i)
 {
     int in_quote;
@@ -398,9 +400,9 @@ t_token *tokenize_input(const char *str)
     i = 0;
     while(str[i])
     {
-        while(ft_strchr(" \t\n\v\f\r", str[i]) && str[i])
+        while(str[i]  &&  ft_strchr(" \t\n\v\f\r", str[i]))
             i++;
-        if (ft_strchr("<>|", str[i]))
+        if (str[i] && ft_strchr("<>|", str[i]))
             handle_operator(&head, str, &i);
         else
             handle_word(&head, str, &i);
@@ -484,6 +486,11 @@ t_minishell *new_minishell(char *command, char **args, t_file_redirection *files
         free(args);
         return (NULL);
     }
+    minishell->heredoc_path = NULL;
+    minishell->infile = 0;
+    minishell->outfile = 0;
+    minishell->pipe = 0;
+    minishell->path = NULL;
     minishell->command = command;
     minishell->args = args;
     minishell->files = files;
@@ -761,6 +768,9 @@ t_minishell *delete_quotes(t_minishell *minishell)
         }
         temp = temp->next;
     }
+    free(minishell->command);
+    if (minishell->args[0])
+        minishell->command = ft_strdup(minishell->args[0]);
     return (minishell);
 }
 void free_args(char **args)
@@ -1457,7 +1467,7 @@ int main(int argc, char **argv, char **base_env)
         // print_minishell(minishell);
         // printf("minishell after deleting quotes\n");
         minishell = delete_quotes(minishell);
-        // print_minishell(minishell);
+        //print_minishell(minishell);
         // printf("%s\n", str);
         execution(minishell, &env);
         free(str);
