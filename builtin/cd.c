@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 11:04:31 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/24 11:58:11 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/29 06:21:50 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,8 @@ char *get_home( t_environment *env)
     temp = env_get_bykey(env, "HOME");
     home = NULL;
     if (temp)
-        home = ft_strdup(temp->value);
+        home = temp->value;
     return (home);
-    // dont forgot to free home ???
 }
 
 int cd_pars(t_minishell *singl_mini,char *path)
@@ -47,6 +46,17 @@ int cd_pars(t_minishell *singl_mini,char *path)
     return (0);
 }
 
+void    handel_input_output(t_minishell *singl_mini)
+{
+    if (singl_mini->nbr_cmd == 1)
+    {
+        dup2(singl_mini->infile, 0);
+        dup2(singl_mini->outfile, 1);
+    }
+    else
+        get_in_out_priorities(singl_mini);
+}
+
 void cd(t_minishell *singl_mini, t_environment *env)
 {
     t_environment *OLDPWD;
@@ -55,7 +65,7 @@ void cd(t_minishell *singl_mini, t_environment *env)
     char            *path;
 
     open_files(singl_mini);
-    get_in_out_priorities(singl_mini);
+    handel_input_output(singl_mini);
     OLDPWD = env_get_bykey(env, "OLDPWD");
     PWD = env_get_bykey(env, "PWD");
     if (args_count(singl_mini->args) == 1)

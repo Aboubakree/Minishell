@@ -1,0 +1,17 @@
+Makefile
+a.out
+builtin
+environment_1.c
+environment_1.o
+environment_2.c
+file.c
+herdoc_buffer_a
+lib
+ls
+main.c
+main.o
+minishell
+minishell.c
+minishell.h
+minishell.o
+parsing.c

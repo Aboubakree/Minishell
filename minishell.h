@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/25 14:25:09 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/05/30 15:51:17 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,10 @@
 #include <signal.h>
 #include <errno.h>
 #include "lib/libft/libft.h"
+#include <sys/wait.h>
+#include <sys/types.h>
+#include <readline/history.h>
+#include <fcntl.h>
 
 // colors 
 #define RED "\033[0;31m"
@@ -74,25 +78,46 @@ typedef struct s_minishell
 {
     char *command;
     char **args;
-    // t_args *args;
     char *path;
+    int infile;
+    int outfile;
+    int cmd_order;
+    int nbr_cmd;
+    int *pipe;
+    char *heredoc_path;
     t_file_redirection *files; 
     struct s_minishell *next;
 } t_minishell;
 
 // --------------------------------------------------- parsing ---------------------------------------------------
+
+// -------------- common function ---------------
+int args_count(char **args);
+void free_split(char **splited);
+
 //environment
 t_environment *env_node(char *key, char *value);
 void    env_add_back(t_environment **env, t_environment *node);
 void get_environment(t_environment **env, char **base_env);
 t_environment *env_get_bykey(t_environment *env, char *key);
+char **convert_env(t_environment *env);
+
+
+
+// ------------------------ execution -------------------------
+char	*get_cmd_path(char *cmd, t_environment *env, int i);
+int cmd_count(t_minishell *mini);
+void open_files(t_minishell *minishell);
+void get_in_out_priorities(t_minishell *singl_mini);
 
 
 // builtin
-void    cd(char *path, t_environment *env);
-void    pwd(t_environment *env);
-void    envi(t_environment *env);
-void    fake_exit(char *arg);
+void    handel_input_output(t_minishell *singl_mini);
+void cd(t_minishell *singl_mini, t_environment *env);
+void    envi(t_minishell *singl_mini, t_environment *env);
+void fake_exit(t_minishell *singl_mini);
+void    pwd(t_minishell *singl_mini, t_environment *env);
+void unset(t_minishell *minishell, t_environment **env);
 
 
 #endif

@@ -6,11 +6,27 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 10:47:20 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/23 15:06:43 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/29 08:58:00 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+int	parse_cmds(char *command)
+{
+	if (ft_strchr(command, '/') != NULL)
+	{
+		if (access(command, X_OK) != 0)
+		{
+			write(2, "bash: ", 6);
+			write(2, command, ft_strlen(command));
+			write(2, ": ", 2);
+			perror("");
+			return (1);
+		}
+	}
+	return (0);
+}
 
 void free_split(char **splited)
 {
@@ -41,8 +57,10 @@ char	*get_cmd_path(char *cmd, t_environment *env, int i)
 	char	*path;
 	char	*temp;
 
-	if (access(cmd, F_OK) == 0)
+	if (ft_strchr(cmd, '/') && access(cmd, F_OK) == 0)
 		return (ft_strdup(cmd));
+	if (parse_cmds(cmd))
+		return (NULL);
 	all_paths = check_paths(env_get_bykey(env, "PATH"), cmd);
 	if (all_paths == NULL)
 		return (NULL);
