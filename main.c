@@ -739,38 +739,80 @@ t_minishell *delete_quotes(t_minishell *minishell)
     int i, j, k;
 
     temp = minishell;
-    if (temp->args == NULL)
-        return (minishell);
-    while (temp)
+    if (temp->args != NULL)
     {
-        i = 0;
-        while (temp->args[i])
+            printf("hello\n");
+            printf("temp->args[0] = %s\n", temp->args[0]);
+        while (temp)
         {
-            in_single_quote = 0;
-            in_double_quote = 0;
-            j = 0;
-            k = 0;
-            while (temp->args[i][j])
+            i = 0;
+            while (temp->args[i])
             {
-                if (temp->args[i][j] == '\'' && !in_double_quote)
-                    in_single_quote = !in_single_quote;
-                else if (temp->args[i][j] == '\"' && !in_single_quote)
-                    in_double_quote = !in_double_quote;
-                else
+                in_single_quote = 0;
+                in_double_quote = 0;
+                j = 0;
+                k = 0;
+                while (temp->args[i][j])
                 {
-                    temp->args[i][k] = temp->args[i][j];
-                    k++;
+                    if (temp->args[i][j] == '\'' && !in_double_quote)
+                        in_single_quote = !in_single_quote;
+                    else if (temp->args[i][j] == '\"' && !in_single_quote)
+                        in_double_quote = !in_double_quote;
+                    else
+                    {
+                        temp->args[i][k] = temp->args[i][j];
+                        k++;
+                    }
+                    j++;
                 }
-                j++;
+                temp->args[i][k] = '\0';
+                i++;
             }
-            temp->args[i][k] = '\0';
-            i++;
+            temp = temp->next;
         }
-        temp = temp->next;
+        if (minishell->command)
+        {
+            free(minishell->command);
+            minishell->command = NULL;            
+        }
+        if (minishell->args[0])
+            minishell->command = ft_strdup(minishell->args[0]);
     }
-    free(minishell->command);
-    if (minishell->args[0])
-        minishell->command = ft_strdup(minishell->args[0]);
+    temp = minishell;
+    if(temp!= NULL && temp->files != NULL)
+    {
+        t_file_redirection *temp_files;
+        temp = minishell;
+        while(temp)
+        {
+
+            printf("helllllllllllllllllloooooooooooooooooo\n");
+            temp_files = temp->files;
+            while(temp_files)
+            {
+                in_single_quote = 0;
+                in_double_quote = 0;
+                j = 0;
+                k = 0;
+                while(temp_files->filename[j])
+                {
+                    if (temp_files->filename[j] == '\'' && !in_double_quote)
+                        in_single_quote = !in_single_quote;
+                    else if (temp_files->filename[j] == '\"' && !in_single_quote)
+                        in_double_quote = !in_double_quote;
+                    else
+                    {
+                        temp_files->filename[k] = temp_files->filename[j];
+                        k++;
+                    }
+                    j++;
+                }
+                temp_files->filename[k] = '\0';
+                temp_files = temp_files->next;
+            }
+            temp = temp->next;
+        }
+    }
     return (minishell);
 }
 void free_args(char **args)
@@ -903,8 +945,11 @@ void print_minishell(t_minishell *minishell)
     while(temp)
     {
         printf("--------------------\n");
-        printf("command [%d]: %s\n",i,  temp->command);
-        printf("args: ");
+        if (temp->command)
+            printf("command [%d]: %s\n",i,  temp->command);
+        if (temp->args)
+        {
+            printf("args: ");
         int j = 0;
         if (temp->args)
         {
@@ -915,13 +960,14 @@ void print_minishell(t_minishell *minishell)
             }
         }
         printf("\n");
+        }
         if (temp->files)
         {
             t_file_redirection *temp_files = temp->files;
             printf("files :\n");
             while(temp_files)
             {
-                printf(" file: %s \n", temp_files->filename);
+                printf(" file: [%s] \n", temp_files->filename);
                 printf("  type: %s \n", get_type_token(temp_files->type));
                 temp_files = temp_files->next;
             }
@@ -1467,9 +1513,9 @@ int main(int argc, char **argv, char **base_env)
         // print_minishell(minishell);
         // printf("minishell after deleting quotes\n");
         minishell = delete_quotes(minishell);
-        //print_minishell(minishell);
+        print_minishell(minishell);
         // printf("%s\n", str);
-        execution(minishell, &env);
+        // execution(minishell, &env);
         free(str);
         free_tokens(tokens);
         free_minishell(minishell);
