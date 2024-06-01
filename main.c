@@ -664,7 +664,6 @@ char	**ft_split2(char const *s, char c)
 }
 char *expand_string(char *str, t_environment *env, int from_heredoc)
 {
-    printf("str : %s\n", str);
     int i = 0;
     char *value;
     char *first;
@@ -792,7 +791,6 @@ t_token *expand(t_token *tokens, t_environment *env)
             //         i++;
             // }
             temp->value  = expand_string(temp->value, env, 0);
-            printf("temp->value = [%s]\n", temp->value);
         }
         temp = temp->next;
     }
@@ -1150,7 +1148,35 @@ int args_count(char **args)
         i ++;
     return (i);
 }
+void echo(t_minishell *single_mini, t_environment *env)
+{
+    // char *str;
+    // t_minishell *temp;
 
+    // temp = signle_mini;
+    (void) env;
+    int i = 1;
+    int j = 0;
+    if (single_mini->args[i][j] == '-' && single_mini->args[i][j + 1] == 'n')
+    {
+        j =+ 2;
+        while(single_mini->args[i][j] == 'n')
+        {
+            j++;
+        }
+        if (single_mini->args[i][j] == '\0')
+        {
+            i++;
+        }
+    }
+
+    while(single_mini->args[i])
+    {
+        printf("%s ", single_mini->args[i]);
+        i++;
+    }
+    printf("\n");
+}
 int    check_builtin(t_minishell *singl_mini, t_environment **env)
 {
 
@@ -1158,8 +1184,8 @@ int    check_builtin(t_minishell *singl_mini, t_environment **env)
         return (1);
     if (ft_strncmp("cd", singl_mini->command, 3) == 0)
         return (cd(singl_mini, *env), 0);
-    // if (ft_strncmp("echo", singl_mini->command, 5) == 0)
-    //    return (echo(singl_mini, *env), 0);
+    if (ft_strncmp("echo", singl_mini->command, 5) == 0)
+       return (echo(singl_mini, *env), 0);
     if (ft_strncmp("env", singl_mini->command, 4) == 0)
         return (envi(singl_mini, *env), 0);
     if (ft_strncmp("pwd", singl_mini->command, 4) == 0 )
