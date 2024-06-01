@@ -1157,25 +1157,33 @@ void echo(t_minishell *single_mini, t_environment *env)
     (void) env;
     int i = 1;
     int j = 0;
-    if (single_mini->args[i][j] == '-' && single_mini->args[i][j + 1] == 'n')
-    {
-        j =+ 2;
-        while(single_mini->args[i][j] == 'n')
-        {
-            j++;
-        }
-        if (single_mini->args[i][j] == '\0')
-        {
-            i++;
-        }
-    }
-
+    int new_line = 1;
     while(single_mini->args[i])
     {
-        printf("%s ", single_mini->args[i]);
+        j = 0;
+        if (single_mini->args[i][j] == '-' && single_mini->args[i][j + 1] == 'n')
+        {
+            j =+ 2;
+            while(single_mini->args[i][j] == 'n')
+                j++;
+            if (single_mini->args[i][j] == '\0' || (single_mini->args[i][j] == '-' && single_mini->args[i][j + 1] == 'n'))
+                i++;
+            else 
+                break;
+            new_line = 0;
+        }
+        else
+            break;
+    }
+    while(single_mini->args[i])
+    {
+        printf("%s", single_mini->args[i]);
+        if (single_mini->args[i+1] != NULL)
+            printf(" ");
         i++;
     }
-    printf("\n");
+    if (new_line == 1)
+        printf("\n");
 }
 int    check_builtin(t_minishell *singl_mini, t_environment **env)
 {
