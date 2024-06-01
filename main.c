@@ -243,11 +243,25 @@ t_token get_last_token(t_token *tokens)
         temp = temp->next;
     return (*temp);
 }
-int check_if_string_inside_quotes(char *str)
+int check_if_have_quotes(char *str)
 {
-    int len = ft_strlen(str);
-    if ((str[0] == '\'' && str[len - 1] == '\'') || (str[0] == '\"' && str[len - 1] == '\"'))
-        return (0);
+    int i;
+    int single_quotes;
+    int double_quotes;
+    single_quotes = 0;
+    double_quotes = 0;
+
+    i = 0;
+    while(str[i])
+    {
+        if (str[i] == '\"')
+            double_quotes++;
+        else if (str[i] == '\'')
+            single_quotes++;
+        i++;
+    }
+    if (single_quotes >= 1 || double_quotes >= 1)
+        return 0;
     return (1);
 }
 
@@ -261,12 +275,7 @@ t_file_redirection *new_file_redirection(char *filename, t_type_of_token type)
         return (NULL);
     file->filename = filename;
     file->should_expand_heredoc = 1;
-    printf("file->should_expand_heredoc = %d\n", file->should_expand_heredoc);
-    file->should_expand_heredoc = check_if_string_inside_quotes(filename);
-    printf("file->should_expand_heredoc = %d\n", file->should_expand_heredoc);
-    // int len = ft_strlen(filename);
-    // if (filename[0] == '\'' && filename[len - 1] == '\'')
-    //     file->should_expand_heredoc = 0;
+    file->should_expand_heredoc = check_if_have_quotes(filename);
     file->type = type;
     file->next = NULL;
     return (file);
