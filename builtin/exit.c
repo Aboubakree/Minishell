@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 09:11:41 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/28 16:12:12 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/31 10:27:39 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ void fake_exit(t_minishell *singl_mini)
     {
         if (check_digits(args[1]) == 0)
         {
-            printf("exit\nbash: exit: %s: numeric argument required\n", args[0]);
+            printf("exit\nbash: exit: %s: numeric argument required\n", args[1]);
             exit(2);
             //$? = 2
         }

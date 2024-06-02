@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/30 15:51:17 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/01 18:43:23 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 #include <sys/types.h>
 #include <readline/history.h>
 #include <fcntl.h>
+
 
 // colors 
 #define RED "\033[0;31m"
@@ -98,9 +99,12 @@ void free_split(char **splited);
 //environment
 t_environment *env_node(char *key, char *value);
 void    env_add_back(t_environment **env, t_environment *node);
+t_environment *get_before_target(t_environment *env, t_environment *target);
+void  put_at_end(t_environment **env, char *target_key);
 void get_environment(t_environment **env, char **base_env);
 t_environment *env_get_bykey(t_environment *env, char *key);
 char **convert_env(t_environment *env);
+void free_environment(t_environment *env);
 
 
 
@@ -109,6 +113,7 @@ char	*get_cmd_path(char *cmd, t_environment *env, int i);
 int cmd_count(t_minishell *mini);
 void open_files(t_minishell *minishell);
 void get_in_out_priorities(t_minishell *singl_mini);
+void unlink_files(t_minishell *minishell);
 
 
 // builtin
@@ -118,6 +123,7 @@ void    envi(t_minishell *singl_mini, t_environment *env);
 void fake_exit(t_minishell *singl_mini);
 void    pwd(t_minishell *singl_mini, t_environment *env);
 void unset(t_minishell *minishell, t_environment **env);
+void export(t_minishell *minishell, t_environment **env);
 
 
 #endif

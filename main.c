@@ -355,6 +355,7 @@ void handle_operator(t_token **head, const char *str, int *i)
             add_token_back(head, new_token(T_REDIRECTION_OUT, ft_strdup(">")));
     }
 }
+
 void    update_quote_state(int *in_quote, char *quote, char c)
 {
     if (*in_quote == 0 && (c == '\'' || c == '\"'))
@@ -365,6 +366,7 @@ void    update_quote_state(int *in_quote, char *quote, char c)
     else if (*in_quote == 1 && c == *quote)
         *in_quote = 0;
 }
+
 void    handle_word(t_token **head, const char *str, int *i)
 {
     int in_quote;
@@ -398,9 +400,9 @@ t_token *tokenize_input(const char *str)
     i = 0;
     while(str[i])
     {
-        while(ft_strchr(" \t\n\v\f\r", str[i]) && str[i])
+        while(str[i]  &&  ft_strchr(" \t\n\v\f\r", str[i]))
             i++;
-        if (ft_strchr("<>|", str[i]))
+        if (str[i] && ft_strchr("<>|", str[i]))
             handle_operator(&head, str, &i);
         else
             handle_word(&head, str, &i);
@@ -484,6 +486,11 @@ t_minishell *new_minishell(char *command, char **args, t_file_redirection *files
         free(args);
         return (NULL);
     }
+    minishell->heredoc_path = NULL;
+    minishell->infile = 0;
+    minishell->outfile = 0;
+    minishell->pipe = 0;
+    minishell->path = NULL;
     minishell->command = command;
     minishell->args = args;
     minishell->files = files;
@@ -761,6 +768,9 @@ t_minishell *delete_quotes(t_minishell *minishell)
         }
         temp = temp->next;
     }
+    free(minishell->command);
+    if (minishell->args[0])
+        minishell->command = ft_strdup(minishell->args[0]);
     return (minishell);
 }
 void free_args(char **args)
@@ -1027,8 +1037,8 @@ int    check_builtin(t_minishell *singl_mini, t_environment **env)
         return (envi(singl_mini, *env), 0);
     if (ft_strncmp("pwd", singl_mini->command, 4) == 0 )
         return (pwd(singl_mini, *env), 0);
-    // if (ft_strncmp("export", singl_mini->command, 7) == 0)
-    //     return (export(singl_mini, *env), 0);
+    if (ft_strncmp("export", singl_mini->command, 7) == 0)
+        return (export(singl_mini, env), 0);
     if (ft_strncmp("unset", singl_mini->command, 6) == 0)
         return (unset(singl_mini, env), 0);
     if (strncmp("exit", singl_mini->command, 5) == 0)
@@ -1184,6 +1194,9 @@ void open_files(t_minishell *minishell)
 
 void    start_execute_one(t_minishell *minishell, t_environment **env)
 {
+    char **env_conv;
+
+    env_conv = convert_env(*env);
     open_files(minishell);
     if (minishell->command == NULL || ft_strncmp(minishell->command, "", 1) == 0)
         exit(0);
@@ -1192,8 +1205,8 @@ void    start_execute_one(t_minishell *minishell, t_environment **env)
         exit(127);
     dup2(minishell->infile, 0);
     dup2(minishell->outfile, 1);
-    if (execve(minishell->path, minishell->args, NULL))
-        perror("execve");
+    execve(minishell->path, minishell->args, env_conv);
+    perror("execve");
     exit(126);
 }
 
@@ -1206,6 +1219,7 @@ void    execute_one(t_minishell *minishell, t_environment **env)
     if (pid == 0)
         start_execute_one(minishell, env);
     wait(&status);
+    unlink_files(minishell);
     status = status >> 8;
     //$? = status
     // printf("exit_stat : %d\n", status);
@@ -1253,6 +1267,19 @@ void close_pipes(int *pipe, int nbr_cmd)
         close(pipe[i ++]);
 }
 
+void unlink_files(t_minishell *minishell)
+{
+    while (minishell)
+    {
+        if (access(minishell->heredoc_path, F_OK) == 0)
+        {
+            if (unlink(minishell->heredoc_path))
+                perror("unlink");
+        }
+        minishell = minishell->next;
+    }
+}
+
 void wait_childs(t_minishell *mini, int num_cmd)
 {
     int i;
@@ -1275,6 +1302,7 @@ void wait_childs(t_minishell *mini, int num_cmd)
             i ++;
         }
     }
+    unlink_files(mini);
 }
 
 void get_in_out_priorities(t_minishell *singl_mini)
@@ -1312,14 +1340,19 @@ void get_in_out_priorities(t_minishell *singl_mini)
 
 void final_execution(t_minishell *singl_mini, t_environment **env)
 {
+    char **env_conv;
+
+    env_conv = convert_env(*env);
     open_files(singl_mini);
     get_in_out_priorities(singl_mini);
     if (check_builtin(singl_mini, env) == 0)
         exit (0);
+    if (singl_mini->command == NULL || ft_strncmp(singl_mini->command, "", 1) == 0)
+        exit(0);
     singl_mini->path = get_cmd_path(singl_mini->command, *env, 0);
     if (singl_mini->path == NULL)
         exit(127);
-    execve(singl_mini->path, singl_mini->args, NULL);
+    execve(singl_mini->path, singl_mini->args, env_conv );
     perror("execve");
     exit(1);
 }
@@ -1435,8 +1468,6 @@ int main(int argc, char **argv, char **base_env)
     t_token *tokens;
     t_minishell *minishell;
     char *str;
-    // int i;
-    // char **test_env;
     
     (void)argv;
     env = NULL;
@@ -1456,7 +1487,9 @@ int main(int argc, char **argv, char **base_env)
         }
         str = readline("\033[0;32mminishell$ \033[0m");
         if (str == NULL)
+        {
             break;
+        }
         if (check_whitespaces(str) == 0)
         {
             free(str);
@@ -1473,6 +1506,7 @@ int main(int argc, char **argv, char **base_env)
         // printf("after expand ======================\n");
         if (check_syntax_error(str) == 1 ||  ft_strlen(str) == 0 || check_syntax_error_tokens(tokens) == 1)
         {
+            add_history(str);
             free(str);
             free_tokens(tokens);
             continue;
@@ -1481,7 +1515,7 @@ int main(int argc, char **argv, char **base_env)
         // print_minishell(minishell);
         // printf("minishell after deleting quotes\n");
         minishell = delete_quotes(minishell);
-        // print_minishell(minishell);
+        //print_minishell(minishell);
         // printf("%s\n", str);
         execution(minishell, &env);
         free(str);
@@ -1492,13 +1526,3 @@ int main(int argc, char **argv, char **base_env)
     free_environment(env);
     return (0);
 }
-
-    // test_env = convert_env(env);
-    
-    // i = 0;
-    // while (test_env && test_env[i])
-    // {
-    //     printf("%s\n", test_env[i]);
-    //     free(test_env[i ++]);
-    // }
-    // free(test_env);

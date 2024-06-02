@@ -1,15 +1,15 @@
-#include "minishell.h"
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <readline/readline.h>
+#include <string.h>
+#include <signal.h>
+#include <errno.h>
 
-int main()
+
+int main(int argc, char **argv, char **base_env)
 {
-    // int x;
-
-    // x = dup(STDIN_FILENO);
-    // printf("%d\n", x);
-    // int fd = open("test.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
-
-    
-
-    // close(fd);
-    printf("hello world\n");
+    if (unlink("file_notexist"))
+        perror("unlink");
+    // printf("base : %p\nbase[0] : %s\n", base_env, base_env[0]);
 }
