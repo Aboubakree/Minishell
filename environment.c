@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   environment.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 18:53:56 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/19 19:42:33 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/06/01 12:07:08 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,47 @@ void    env_add_back(t_environment **env, t_environment *node)
     }
 }
 
+
+t_environment *creat_env()
+{
+    t_environment *env;
+    char            current_path[1024];
+
+    if (getcwd(current_path, 1024) == NULL)
+    {
+        perror("getcwd");
+        exit(1);
+    }
+    env = NULL;
+    printf("%s\n", current_path);
+    env_add_back(&env, env_node(ft_strdup("PATH"),
+        ft_strdup("/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/snap/bin")));
+    env_add_back(&env, env_node(ft_strdup("PWD"), ft_strdup(current_path)));
+    env_add_back(&env, env_node(ft_strdup("SHLVL"), ft_strdup("1")));
+    env_add_back(&env, env_node(ft_strdup("OLDPWD"), NULL));
+    env_add_back(&env, env_node(ft_strdup("_"), ft_strdup("]")));
+    return (env);
+}
+
+void increment_shlvl(t_environment *env)
+{
+    t_environment *SHLVL;
+    char *new_lvl;
+    int lvl;
+
+    SHLVL = env_get_bykey(env, "SHLVL");
+    if (SHLVL == NULL || SHLVL->value == NULL)
+        return;
+    
+    lvl = ft_atoi(SHLVL->value);
+    lvl ++;
+    new_lvl = malloc(sizeof(char) * 2);
+    new_lvl[0] = lvl + '0';
+    new_lvl[1] = '\0';
+    free(SHLVL->value);
+    SHLVL->value = new_lvl;
+} 
+
 void get_environment(t_environment **env, char **base_env)
 {
     int i;
@@ -49,6 +90,11 @@ void get_environment(t_environment **env, char **base_env)
     char *value;
 
     i = 0;
+    if (base_env == NULL || base_env[0] == NULL)
+    {
+        *env = creat_env();
+        return;
+    }
     while (base_env[i])
     {
         equal = ft_strchr(base_env[i], '=');
@@ -57,6 +103,9 @@ void get_environment(t_environment **env, char **base_env)
         env_add_back(env, env_node(key, value));
         i ++;
     }
+    increment_shlvl(*env);
+    put_at_end(env, "OLDPWD");
+    put_at_end(env, "_");
 }
 
 t_environment *env_get_bykey(t_environment *env, char *key)

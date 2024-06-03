@@ -243,6 +243,7 @@ t_token get_last_token(t_token *tokens)
         temp = temp->next;
     return (*temp);
 }
+
 int check_if_have_quotes(char *str)
 {
     int i;
@@ -662,6 +663,7 @@ char	**ft_split2(char const *s, char c)
         return (ft_free(res));
     return (res);
 }
+
 char *expand_string(char *str, t_environment *env, int from_heredoc)
 {
     int i = 0;
@@ -796,6 +798,7 @@ t_token *expand(t_token *tokens, t_environment *env)
     }
     return (tokens);
 }
+
 int ft_remove_char(char *str, int index)
 {
     int i;
@@ -1016,6 +1019,7 @@ t_minishell *token_to_minishell(t_token *tokens)
     free(args1);
     return (minishell);
 }
+
 void print_minishell(t_minishell *minishell)
 {
     t_minishell *temp;
@@ -1185,6 +1189,7 @@ void echo(t_minishell *single_mini, t_environment *env)
     if (new_line == 1)
         printf("\n");
 }
+
 int    check_builtin(t_minishell *singl_mini, t_environment **env)
 {
 
@@ -1198,8 +1203,8 @@ int    check_builtin(t_minishell *singl_mini, t_environment **env)
         return (envi(singl_mini, *env), 0);
     if (ft_strncmp("pwd", singl_mini->command, 4) == 0 )
         return (pwd(singl_mini, *env), 0);
-    // if (ft_strncmp("export", singl_mini->command, 7) == 0)
-    //     return (export(singl_mini, *env), 0);
+    if (ft_strncmp("export", singl_mini->command, 7) == 0)
+        return (export(singl_mini, env), 0);
     if (ft_strncmp("unset", singl_mini->command, 6) == 0)
         return (unset(singl_mini, env), 0);
     if (strncmp("exit", singl_mini->command, 5) == 0)
@@ -1370,6 +1375,9 @@ void open_files(t_minishell *minishell)
 
 void    start_execute_one(t_minishell *minishell, t_environment **env)
 {
+    char **env_conv;
+
+    env_conv = convert_env(*env);
     open_files(minishell);
     if (minishell->command == NULL || ft_strncmp(minishell->command, "", 1) == 0)
         exit(0);
@@ -1378,8 +1386,8 @@ void    start_execute_one(t_minishell *minishell, t_environment **env)
         exit(127);
     dup2(minishell->infile, 0);
     dup2(minishell->outfile, 1);
-    if (execve(minishell->path, minishell->args, NULL))
-        perror("execve");
+    execve(minishell->path, minishell->args, env_conv);
+    perror("execve");
     exit(126);
 }
 
@@ -1392,6 +1400,7 @@ void    execute_one(t_minishell *minishell, t_environment **env)
     if (pid == 0)
         start_execute_one(minishell, env);
     wait(&status);
+    unlink_files(minishell);
     status = status >> 8;
     //$? = status
     // printf("exit_stat : %d\n", status);
@@ -1439,6 +1448,19 @@ void close_pipes(int *pipe, int nbr_cmd)
         close(pipe[i ++]);
 }
 
+void unlink_files(t_minishell *minishell)
+{
+    while (minishell)
+    {
+        if (access(minishell->heredoc_path, F_OK) == 0)
+        {
+            if (unlink(minishell->heredoc_path))
+                perror("unlink");
+        }
+        minishell = minishell->next;
+    }
+}
+
 void wait_childs(t_minishell *mini, int num_cmd)
 {
     int i;
@@ -1461,6 +1483,7 @@ void wait_childs(t_minishell *mini, int num_cmd)
             i ++;
         }
     }
+    unlink_files(mini);
 }
 
 void get_in_out_priorities(t_minishell *singl_mini)
@@ -1498,14 +1521,19 @@ void get_in_out_priorities(t_minishell *singl_mini)
 
 void final_execution(t_minishell *singl_mini, t_environment **env)
 {
+    char **env_conv;
+
+    env_conv = convert_env(*env);
     open_files(singl_mini);
     get_in_out_priorities(singl_mini);
     if (check_builtin(singl_mini, env) == 0)
         exit (0);
+    if (singl_mini->command == NULL || ft_strncmp(singl_mini->command, "", 1) == 0)
+        exit(0);
     singl_mini->path = get_cmd_path(singl_mini->command, *env, 0);
     if (singl_mini->path == NULL)
         exit(127);
-    execve(singl_mini->path, singl_mini->args, NULL);
+    execve(singl_mini->path, singl_mini->args, env_conv );
     perror("execve");
     exit(1);
 }
@@ -1541,8 +1569,8 @@ char    *get_herdoc_path(int i)
 {
     char *heredoc_path;
 
-    heredoc_path = malloc(sizeof(char) * (ft_strlen("herdoc_buffer_") + 2));
-    ft_strlcpy(heredoc_path, "herdoc_buffer_", 16);
+    heredoc_path = malloc(sizeof(char) * (ft_strlen("/tmp/herdoc_buffer_") + 2));
+    ft_strlcpy(heredoc_path, "/tmp/herdoc_buffer_", 16);
     heredoc_path[14] = i + 'a';
     heredoc_path[15] = '\0';
     return (heredoc_path);
@@ -1569,6 +1597,26 @@ void    minishell_init(t_minishell *minishell, int count_cmds)
     }
 }
 
+void set_under_score(t_minishell *minishell, t_environment **env)
+{
+    t_environment *env_under_score;
+
+    env_under_score = env_get_bykey(*env, "_");
+    if (env_under_score)
+    {
+        if (args_count(minishell->args) > 0)
+        {
+            free(env_under_score->value);
+            env_under_score->value = ft_strdup(minishell->args[args_count(minishell->args) - 1]);
+        }
+        else
+        {
+            free(env_under_score->value);
+            env_under_score->value = ft_strdup("");
+        }
+    }
+}
+
 void    execution(t_minishell *minishell, t_environment **env)
 {
     int stdout;
@@ -1581,9 +1629,14 @@ void    execution(t_minishell *minishell, t_environment **env)
     if (cmd_count(minishell) == 1)
     {
         if (check_builtin(minishell, env) == 0)
-            return (restore_STD_IN_OUT(stdout, stdin), (void)0);
+        {
+            set_under_score(minishell, env);
+            restore_STD_IN_OUT(stdout, stdin);
+            return ;
+        }
         else
             execute_one(minishell, env);
+        set_under_score(minishell, env);
     }
     else
         execute_all(minishell, env);
@@ -1643,7 +1696,7 @@ int main(int argc, char **argv, char **base_env)
         // print_minishell(minishell);
         // printf("minishell after deleting quotes\n");
         minishell = delete_quotes(minishell);
-        // print_minishell(minishell);
+        //print_minishell(minishell);
         // printf("%s\n", str);
         execution(minishell, &env);
         free(str);

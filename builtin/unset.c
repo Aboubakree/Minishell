@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 09:09:02 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/28 16:13:03 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/31 10:23:32 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ void unset(t_minishell *minishell, t_environment **env)
     while (minishell->args && minishell->args[i])
     {
         target = env_get_bykey(*env, minishell->args[i]);
-        if (target == NULL)
+        if (target == NULL || ft_strncmp(target->key, "_", 2) == 0)
         {
             i ++;
             continue;
@@ -50,12 +50,20 @@ void unset(t_minishell *minishell, t_environment **env)
         else if (target == *env)
         {
             *env = (*env)->next;
+            if (target->key)
+                free(target->key);
+            if (target->value)
+                free(target->value);
             free(target);
         }
         else 
         {
             previous = get_before_target(*env, target);
             previous->next = target->next;
+            if (target->key)
+                free(target->key);
+            if (target->value)
+                free(target->value);
             free(target);
         }
         i ++;

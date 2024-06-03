@@ -57,17 +57,41 @@ void    handel_input_output(t_minishell *singl_mini)
         get_in_out_priorities(singl_mini);
 }
 
-void cd(t_minishell *singl_mini, t_environment *env)
+
+void set_pwd_oldpwd(t_environment *env, char *new_path)
 {
     t_environment *OLDPWD;
     t_environment *PWD;
+
+    OLDPWD = env_get_bykey(env, "OLDPWD");
+    PWD = env_get_bykey(env, "PWD");
+    if (OLDPWD && PWD)
+    {
+        free(OLDPWD->value);
+        OLDPWD->value = PWD->value;
+        PWD->value = ft_strdup(new_path);
+    }
+    else if (PWD)
+    {
+        if (PWD->value)
+            free(PWD->value);
+        PWD->value = ft_strdup(new_path);
+    }
+    else
+    {
+        if (OLDPWD->value)
+            free(OLDPWD->value);
+        OLDPWD->value = NULL;
+    }
+}
+
+void cd(t_minishell *singl_mini, t_environment *env)
+{
     char            new_path[1024];
     char            *path;
 
     open_files(singl_mini);
     handel_input_output(singl_mini);
-    OLDPWD = env_get_bykey(env, "OLDPWD");
-    PWD = env_get_bykey(env, "PWD");
     if (args_count(singl_mini->args) == 1)
         path = get_home(env);
     else 
@@ -79,10 +103,5 @@ void cd(t_minishell *singl_mini, t_environment *env)
         printf("getcwd : %s: %s\n",strerror(errno), path);
         return ;
     }
-    if (OLDPWD && PWD)
-    {
-        free(OLDPWD->value);
-        OLDPWD->value = PWD->value;
-        PWD->value = ft_strdup(new_path);
-    }
+    set_pwd_oldpwd(env, new_path);
 }
