@@ -14,6 +14,8 @@
 
 // syntax error checking/
 
+int exit_status = 0;
+
 int count_char_occurence(char *str, int c)
 {
     int i;
