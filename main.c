@@ -1068,11 +1068,14 @@ void handle_ctrl_c(int signal)
 {
     if (signal == SIGINT)
     {
-        // new prompt
-        rl_clear_message();
-        // rl_on_new_line();
+        // clear the current line
+        rl_replace_line("", 0);
+        // move to a new line
         printf("\n");
-        printf("%sminishell$ %s", GREEN, RESET);
+        //display the prmmpt on the new line
+        rl_on_new_line();
+        // redrws the readline line
+        rl_redisplay();
         return;
     }
 }
