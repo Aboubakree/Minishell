@@ -26,7 +26,6 @@
 #include <readline/history.h>
 #include <fcntl.h>
 
-
 // colors 
 #define RED "\033[0;31m"
 #define GREEN "\033[0;32m"
@@ -115,6 +114,14 @@ int cmd_count(t_minishell *mini);
 void open_files(t_minishell *minishell);
 void get_in_out_priorities(t_minishell *singl_mini);
 void unlink_files(t_minishell *minishell);
+
+
+
+// ------------------------ execution -------------------------
+char	*get_cmd_path(char *cmd, t_environment *env, int i);
+int cmd_count(t_minishell *mini);
+void open_files(t_minishell *minishell);
+void get_in_out_priorities(t_minishell *singl_mini);
 
 
 // builtin

@@ -269,6 +269,7 @@ int check_if_have_quotes(char *str)
 t_file_redirection *new_file_redirection(char *filename, t_type_of_token type)
 {
     t_file_redirection *file;
+   
 
     file = (t_file_redirection *)malloc(sizeof(t_file_redirection));
     if(!file)
@@ -1019,41 +1020,6 @@ t_minishell *token_to_minishell(t_token *tokens)
     return (minishell);
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void print_minishell(t_minishell *minishell)
 {
     t_minishell *temp;
@@ -1223,7 +1189,6 @@ void echo(t_minishell *single_mini, t_environment *env)
     if (new_line == 1)
         printf("\n");
 }
-
 
 int    check_builtin(t_minishell *singl_mini, t_environment **env)
 {

@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 11:04:31 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/03 13:51:02 by akrid            ###   ########.fr       */
+/*   Updated: 2024/05/29 06:21:50 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,7 @@ void    handel_input_output(t_minishell *singl_mini)
     else
         get_in_out_priorities(singl_mini);
 }
+
 
 void set_pwd_oldpwd(t_environment *env, char *new_path)
 {
