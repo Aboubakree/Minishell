@@ -1,12 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   echo.c                                             :+:      :+:    :+:   */
+/*   ft_lstlast_bonus.c                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/27 10:41:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/04/27 11:03:08 by akrid            ###   ########.fr       */
+/*   Created: 2023/11/14 00:22:28 by rtamouss          #+#    #+#             */
+/*   Updated: 2024/03/09 15:22:17 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "libft.h"
+
+t_list	*ft_lstlast(t_list *lst)
+{
+	t_list	*ptr;
+
+	ptr = lst;
+	if (!ptr)
+		return (0);
+	while (ptr->next)
+		ptr = ptr -> next;
+	return (ptr);
+}

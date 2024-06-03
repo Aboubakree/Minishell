@@ -1,12 +1,22 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   echo.c                                             :+:      :+:    :+:   */
+/*   ft_lstdelone.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/27 10:41:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/04/27 11:03:08 by akrid            ###   ########.fr       */
+/*   Created: 2023/11/14 00:45:26 by rtamouss          #+#    #+#             */
+/*   Updated: 2023/11/14 00:59:01 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "libft.h"
+
+void	ft_lstdelone(t_list *lst, void (*del)(void*))
+{
+	if (lst && del)
+	{
+		del(lst -> content);
+		free(lst);
+	}
+}

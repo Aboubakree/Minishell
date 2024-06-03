@@ -1,12 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   echo.c                                             :+:      :+:    :+:   */
+/*   ft_lstiter.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/27 10:41:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/04/27 11:03:08 by akrid            ###   ########.fr       */
+/*   Created: 2023/11/14 01:43:40 by rtamouss          #+#    #+#             */
+/*   Updated: 2023/11/14 01:45:45 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "libft.h"
+
+void	ft_lstiter(t_list *lst, void (*f)(void *))
+{
+	if (lst && f)
+	{
+		while (lst)
+		{
+			f(lst -> content);
+			lst = lst -> next;
+		}
+	}
+}

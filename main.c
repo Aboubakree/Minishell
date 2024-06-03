@@ -243,6 +243,7 @@ t_token get_last_token(t_token *tokens)
         temp = temp->next;
     return (*temp);
 }
+
 int check_if_have_quotes(char *str)
 {
     int i;
@@ -268,7 +269,6 @@ int check_if_have_quotes(char *str)
 t_file_redirection *new_file_redirection(char *filename, t_type_of_token type)
 {
     t_file_redirection *file;
-   
 
     file = (t_file_redirection *)malloc(sizeof(t_file_redirection));
     if(!file)
@@ -662,6 +662,7 @@ char	**ft_split2(char const *s, char c)
         return (ft_free(res));
     return (res);
 }
+
 char *expand_string(char *str, t_environment *env, int from_heredoc)
 {
     int i = 0;
@@ -796,6 +797,7 @@ t_token *expand(t_token *tokens, t_environment *env)
     }
     return (tokens);
 }
+
 int ft_remove_char(char *str, int index)
 {
     int i;
@@ -1016,6 +1018,42 @@ t_minishell *token_to_minishell(t_token *tokens)
     free(args1);
     return (minishell);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void print_minishell(t_minishell *minishell)
 {
     t_minishell *temp;
@@ -1185,6 +1223,8 @@ void echo(t_minishell *single_mini, t_environment *env)
     if (new_line == 1)
         printf("\n");
 }
+
+
 int    check_builtin(t_minishell *singl_mini, t_environment **env)
 {
 
@@ -1564,8 +1604,8 @@ char    *get_herdoc_path(int i)
 {
     char *heredoc_path;
 
-    heredoc_path = malloc(sizeof(char) * (ft_strlen("herdoc_buffer_") + 2));
-    ft_strlcpy(heredoc_path, "herdoc_buffer_", 16);
+    heredoc_path = malloc(sizeof(char) * (ft_strlen("/tmp/herdoc_buffer_") + 2));
+    ft_strlcpy(heredoc_path, "/tmp/herdoc_buffer_", 16);
     heredoc_path[14] = i + 'a';
     heredoc_path[15] = '\0';
     return (heredoc_path);
@@ -1691,7 +1731,7 @@ int main(int argc, char **argv, char **base_env)
         // print_minishell(minishell);
         // printf("minishell after deleting quotes\n");
         minishell = delete_quotes(minishell);
-        // print_minishell(minishell);
+        //print_minishell(minishell);
         // printf("%s\n", str);
         execution(minishell, &env);
         free(str);

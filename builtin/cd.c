@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 11:04:31 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/31 18:51:15 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/03 13:51:02 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,4 +102,5 @@ void cd(t_minishell *singl_mini, t_environment *env)
         printf("getcwd : %s: %s\n",strerror(errno), path);
         return ;
     }
+    set_pwd_oldpwd(env, new_path);
 }
