@@ -1228,6 +1228,20 @@ int cmd_count(t_minishell *minishell)
     return (count);
 }
 
+
+void handle_heredoc_signals(int signal)
+{
+    if (signal == SIGINT)
+    {
+        // Clear the current line and move to a new line
+        rl_replace_line("", 0);
+        printf("\n");
+        rl_on_new_line();
+        // rl_redisplay();
+        exit(130);
+    }
+}
+
 void fill_heredoc(t_minishell *temp, t_file_redirection *files, t_environment *env)
 {
     int     fd;
@@ -1238,6 +1252,8 @@ void fill_heredoc(t_minishell *temp, t_file_redirection *files, t_environment *e
         perror("open");
     while (1)
     {
+        
+        signal(SIGINT, handle_heredoc_signals);
         str = readline(">");
         if (str == NULL)
         {
@@ -1251,21 +1267,8 @@ void fill_heredoc(t_minishell *temp, t_file_redirection *files, t_environment *e
             close(fd);
             break;
         }
-        //expand herdoc here !!
-        printf("%s%s\n%s", RED, str, RESET);
-        // int should_expand = 1;
-        // int len = ft_strlen(files->filename);
-        // if (files->filename[0] == '\'' && files->filename[len - 1] == '\'')
-        //     should_expand = 0;
-        // printf("should expand = %d\n", files->should_expand_heredoc);
         if (files->should_expand_heredoc == 1 && ft_strchr(str, '$') != NULL)
-        // if (should_expand == 1 && ft_strchr(str, '$') != NULL)
-        {
             str = expand_string(str, env, 1);
-        }
-        printf("%s%s\n%s", GREEN, str, RESET);
-        // int i = 0;
-
         write(fd, str, ft_strlen(str));
         write(fd, "\n", 1);
         if(str)
