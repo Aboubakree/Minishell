@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/01 18:43:23 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/03 10:41:50 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,7 @@ typedef struct s_token
 typedef struct s_files_redirection
 {
     char *filename;
+    int should_expand_heredoc;
     t_type_of_token type;
     struct s_files_redirection *next;
 } t_file_redirection;
