@@ -6,6 +6,8 @@ config.json
 # Binaries for programs and plugins
 *.exe
 *.o
+*.a
+/minishell
 *.exe~
 *.dll
 *.so

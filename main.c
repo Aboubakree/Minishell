@@ -196,12 +196,15 @@ int is_env_variable(char c)
 
 int is_arithmetic_operator(char c)
 {
-    return (c == '+' || c == '-' || c == '*' || c == '/');
+    return (c == '+' || c == '-' || c == '*' || c == '/' || c == '=');
 }
-
+int is_colone(char c)
+{
+    return (c == ':');
+}
 int is_word(char c)
 {
-    return (!is_arithmetic_operator(c) && !is_operator(c) && !is_quote(c) && !is_whitespace(c) && !is_env_variable(c));
+    return (!is_arithmetic_operator(c) &&  !is_colone(c) && !is_operator(c) && !is_quote(c) && !is_whitespace(c) && !is_env_variable(c));
 }
 int s_minishell_size(t_minishell *minishell)
 {
@@ -684,7 +687,7 @@ char *expand_string(char *str, t_environment *env, int from_heredoc)
             in_double_quotes = 1;
         else if (str[i] == '\"' && in_double_quotes == 1)
                  in_double_quotes = 0;
-        if ((str[i] == '$' && in_single_quotes == 0 && from_heredoc == 0) || (str[i] == '$' && from_heredoc == 1))
+        if ((str[i] == '$' && in_single_quotes == 0 && from_heredoc == 0 && is_word(str[i + 1])) || (str[i] == '$' && from_heredoc == 1))
         {
             if (is_whitespace(str[i + 1]) || str[i + 1] == '\0')
             {
@@ -1020,7 +1023,20 @@ t_minishell *token_to_minishell(t_token *tokens)
     free(args1);
     return (minishell);
 }
+int is_empty(char *str)
+{
+    int i;
 
+    i = 0;
+    while(str[i])
+    {
+        if (is_whitespace(str[i]) == 0)
+            return (0);
+        i++;
+    }
+    return (1);
+
+}
 void print_minishell(t_minishell *minishell)
 {
     t_minishell *temp;
@@ -1030,7 +1046,7 @@ void print_minishell(t_minishell *minishell)
     {
         printf("--------------------\n");
         if (temp->command)
-            printf("command [%d]: %s\n",i,  temp->command);
+            printf("command [%d]: [%s] ====> empty : %d\n",i,  temp->command, is_empty(temp->command));
         if (temp->args)
         {
             printf("args: ");
@@ -1686,7 +1702,7 @@ int main(int argc, char **argv, char **base_env)
             perror("signal");
             return 1;
         }
-        str = readline("\033[0;32mminishell$ \033[0m");
+        str = readline("$> ");
         if (str == NULL)
         {
             break;
@@ -1705,18 +1721,25 @@ int main(int argc, char **argv, char **base_env)
         tokens = expand(tokens, env);
         // print_tokens(tokens);
         // printf("after expand ======================\n");
-        if (check_syntax_error(str) == 1 ||  ft_strlen(str) == 0 || check_syntax_error_tokens(tokens) == 1)
+        if (check_syntax_error(str) == 1 ||  ft_strlen(str) == 0 || ft_strncmp(str, ":", ft_strlen(str)) == 0 || check_syntax_error_tokens(tokens) == 1)
         {
             add_history(str);
             free(str);
             free_tokens(tokens);
-            continue;
+            // continue;
         }
         minishell = token_to_minishell(tokens);
         // print_minishell(minishell);
         // printf("minishell after deleting quotes\n");
         minishell = delete_quotes(minishell);
-        //print_minishell(minishell);
+        if (minishell->command != NULL && is_empty(minishell->command) == 1)
+        {
+            free(str);
+            free_tokens(tokens);
+            free_minishell(minishell);
+            continue;
+        }
+        // print_minishell(minishell);
         // printf("%s\n", str);
         execution(minishell, &env);
         free(str);
