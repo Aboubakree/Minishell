@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/04 16:47:16 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/04 21:26:05 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,16 +149,16 @@ int check_invalid_redirection(const char *str)
     return (0);
 }
 
-int check_syntax_error(const char *str)
+int check_syntax_error(const char *str, t_environment *env)
 {
     if (check_unclosed_quotes(str) == 1)
-        return (printf("Syntax error : Unclosed quote\n"), 1);
+        return (set_exit_status(env, 2), printf("Syntax error : Unclosed quote\n"), 1);
     if (check_misplaced_operators(str) == 1)
-        return (1);
+        return (set_exit_status(env, 2), 1);
     if (check_logical_operators(str) == 1)
-        return (1);
+        return (set_exit_status(env, 2), 1);
     if (check_invalid_redirection(str) == 1)
-        return (1);
+        return (set_exit_status(env, 2), 1);
     return (0);
 }
 
@@ -202,9 +202,18 @@ int is_colone(char c)
 {
     return (c == ':');
 }
+
 int is_word(char c)
 {
-    return (!is_arithmetic_operator(c) &&  !is_colone(c) && !is_operator(c) && !is_quote(c) && !is_whitespace(c) && !is_env_variable(c));
+    return (!is_arithmetic_operator(c) 
+        && !is_colone(c) 
+        && !is_operator(c)
+        && !is_quote(c)
+        && !is_whitespace(c)
+        && !is_env_variable(c)
+        && c != '['
+        && c != '%'
+        && c != ']');
 }
 int s_minishell_size(t_minishell *minishell)
 {
@@ -696,8 +705,13 @@ char *expand_string(char *str, t_environment *env, int from_heredoc)
             }
             int index = i;
             index++;
-            while(str[index] && is_word(str[index]))
+            if (str[index] == '?')
                 index++;
+            else
+            {
+                while(str[index] && is_word(str[index]))
+                    index++;
+            }
             char *env_variable = ft_substr(str, i + 1, index - i - 1);
             // printf("env_variable: %s\n", env_variable);
             t_environment *get_env = env_get_bykey(env, env_variable);
@@ -1721,12 +1735,12 @@ int main(int argc, char **argv, char **base_env)
         tokens = expand(tokens, env);
         // print_tokens(tokens);
         // printf("after expand ======================\n");
-        if (check_syntax_error(str) == 1 ||  ft_strlen(str) == 0 || ft_strncmp(str, ":", ft_strlen(str)) == 0 || check_syntax_error_tokens(tokens) == 1)
+        if (check_syntax_error(str, env) == 1 ||  ft_strlen(str) == 0 || ft_strncmp(str, ":", ft_strlen(str)) == 0 || check_syntax_error_tokens(tokens) == 1)
         {
             add_history(str);
             free(str);
             free_tokens(tokens);
-            // continue;
+            continue;
         }
         minishell = token_to_minishell(tokens);
         // print_minishell(minishell);
