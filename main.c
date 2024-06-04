@@ -14,6 +14,8 @@
 
 // syntax error checking/
 
+int exit_status = 0;
+
 int count_char_occurence(char *str, int c)
 {
     int i;
@@ -1068,11 +1070,14 @@ void handle_ctrl_c(int signal)
 {
     if (signal == SIGINT)
     {
-        // new prompt
-        rl_clear_message();
-        // rl_on_new_line();
+        // clear the current line
+        rl_replace_line("", 0);
+        // move to a new line
         printf("\n");
-        printf("%sminishell$ %s", GREEN, RESET);
+        //display the prmmpt on the new line
+        rl_on_new_line();
+        // redrws the readline line
+        rl_redisplay();
         return;
     }
 }
@@ -1225,6 +1230,20 @@ int cmd_count(t_minishell *minishell)
     return (count);
 }
 
+
+void handle_heredoc_signals(int signal)
+{
+    if (signal == SIGINT)
+    {
+        // Clear the current line and move to a new line
+        rl_replace_line("", 0);
+        printf("\n");
+        rl_on_new_line();
+        // rl_redisplay();
+        exit(130);
+    }
+}
+
 void fill_heredoc(t_minishell *temp, t_file_redirection *files, t_environment *env)
 {
     int     fd;
@@ -1235,6 +1254,8 @@ void fill_heredoc(t_minishell *temp, t_file_redirection *files, t_environment *e
         perror("open");
     while (1)
     {
+        
+        signal(SIGINT, handle_heredoc_signals);
         str = readline(">");
         if (str == NULL)
         {
@@ -1248,21 +1269,8 @@ void fill_heredoc(t_minishell *temp, t_file_redirection *files, t_environment *e
             close(fd);
             break;
         }
-        //expand herdoc here !!
-        printf("%s%s\n%s", RED, str, RESET);
-        // int should_expand = 1;
-        // int len = ft_strlen(files->filename);
-        // if (files->filename[0] == '\'' && files->filename[len - 1] == '\'')
-        //     should_expand = 0;
-        // printf("should expand = %d\n", files->should_expand_heredoc);
         if (files->should_expand_heredoc == 1 && ft_strchr(str, '$') != NULL)
-        // if (should_expand == 1 && ft_strchr(str, '$') != NULL)
-        {
             str = expand_string(str, env, 1);
-        }
-        printf("%s%s\n%s", GREEN, str, RESET);
-        // int i = 0;
-
         write(fd, str, ft_strlen(str));
         write(fd, "\n", 1);
         if(str)
@@ -1291,14 +1299,26 @@ void loop_heredoc(t_minishell *minishell, t_environment *env)
     exit(0);
 }
 
-void check_heredoc(t_minishell *minishell , t_environment *env)
+int  fork_heredoc(t_minishell *minishell , t_environment *env)
 {
     pid_t   pid;
+    int     status;
+
+    status = 0;
+    pid = fork();
+    if (pid == 0)
+        loop_heredoc(minishell, env);
+    wait(&status);
+    status = status >> 8;
+    exit_status = 130;
+    return (status);
+}
+
+int check_heredoc(t_minishell *minishell , t_environment *env, int i)
+{
     t_file_redirection *files;
     t_minishell *temp;
-    int i;
 
-    i = 0;
     temp = minishell;
     while (temp)
     {
@@ -1306,18 +1326,20 @@ void check_heredoc(t_minishell *minishell , t_environment *env)
         while (files)
         {
             if (files->type == T_HERDOC)
-                i = 1;
+                i ++;
             files = files->next;
         }
         temp = temp->next;
     }
-    if (i)
+    if (i > 0 && i < 17)
+        return (fork_heredoc(minishell, env));
+    else if (i > 16)
     {
-        pid = fork();
-        if (pid == 0)
-            loop_heredoc(minishell, env);
-        wait(NULL);
+        write(2, "bash: maximum here-document count exceeded\n", 43);
+        // free_lists_collector();
+        exit(2);
     }
+    return (0);
 }
 
 void file_error(char *filename)
@@ -1402,8 +1424,7 @@ void    execute_one(t_minishell *minishell, t_environment **env)
     wait(&status);
     unlink_files(minishell);
     status = status >> 8;
-    //$? = status
-    // printf("exit_stat : %d\n", status);
+    exit_status = status;
 }
 
 
@@ -1426,7 +1447,7 @@ void    pipe_init(t_minishell *mini)
         if (pipe(pip + i * 2))
         {
             perror("pipe");
-            free_minishell(mini);
+            //free_lists_collector();
             exit(1);
         }
         i ++;
@@ -1473,8 +1494,7 @@ void wait_childs(t_minishell *mini, int num_cmd)
         if (wait(&status) > 0)
         {
             status = status >> 8;
-            //? = status
-            // printf("exit_stat : %d\n", status);
+            exit_status = status;
             i ++;
         }
         else
@@ -1625,7 +1645,8 @@ void    execution(t_minishell *minishell, t_environment **env)
     stdout = dup(STDOUT_FILENO);
     stdin = dup(STDIN_FILENO);
     minishell_init(minishell, cmd_count(minishell));
-    check_heredoc(minishell, *env);
+    if (check_heredoc(minishell, *env, 0))
+        return;
     if (cmd_count(minishell) == 1)
     {
         if (check_builtin(minishell, env) == 0)

@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/03 13:38:47 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/04 09:22:02 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,10 @@
 #define BLUE "\033[0;34m"
 #define MAGENTA "\033[0;35m"
 #define RESET "\033[0m"
+
+
+extern int exit_status;
+
 
 typedef struct s_environment
 {
@@ -89,6 +93,10 @@ typedef struct s_minishell
     t_file_redirection *files; 
     struct s_minishell *next;
 } t_minishell;
+
+
+
+
 
 // --------------------------------------------------- parsing ---------------------------------------------------
 
