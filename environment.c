@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 18:53:56 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/01 12:07:08 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/04 10:49:14 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,7 +72,6 @@ void increment_shlvl(t_environment *env)
     SHLVL = env_get_bykey(env, "SHLVL");
     if (SHLVL == NULL || SHLVL->value == NULL)
         return;
-    
     lvl = ft_atoi(SHLVL->value);
     lvl ++;
     new_lvl = malloc(sizeof(char) * 2);
