@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/04 14:52:26 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/04 16:48:25 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,7 +122,7 @@ void free_environment(t_environment *env);
 // ------------------------ execution -------------------------
 char	*get_cmd_path(char *cmd, t_environment *env, int i);
 int cmd_count(t_minishell *mini);
-void open_files(t_minishell *minishell);
+int open_files(t_minishell *minishell, t_environment *env, t_file_redirection *files);
 void get_in_out_priorities(t_minishell *singl_mini);
 void unlink_files(t_minishell *minishell);
 
@@ -137,6 +137,7 @@ void fake_exit(t_minishell *singl_mini, t_environment *env);
 void    pwd(t_minishell *singl_mini, t_environment *env);
 void unset(t_minishell *minishell, t_environment **env);
 void export(t_minishell *minishell, t_environment **env);
+void echo(t_minishell *single_mini, t_environment *env);
 
 
 #endif

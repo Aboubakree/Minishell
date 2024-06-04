@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 09:09:02 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/04 14:29:03 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/04 16:40:15 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,8 @@ void unset(t_minishell *minishell, t_environment **env)
     t_environment *previous;
     int           i;
 
-    open_files(minishell);
+    if (open_files(minishell, *env, minishell->files))
+        return ;
     handel_input_output(minishell);
     i = 1;
     while (minishell->args && minishell->args[i])

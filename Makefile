@@ -4,13 +4,11 @@ NC=\033[0m # No Color
 CC = @gcc
 NAME = minishell
 
-CFLAGS = -Wall -Werror -Wextra -g #-fsanitize=address
+CFLAGS = -Wall -Werror -Wextra -g3 #-fsanitize=address
 
 SRC = main.c minishell.c environment.c environment_2.c environment_3.c\
-	builtin/cd.c builtin/pwd.c builtin/env.c builtin/exit.c builtin/unset.c builtin/export.c\
-	# libft/ft_strlen.c libft/ft_substr.c libft/ft_strchr.c libft/ft_strncmp.c\
-	# libft/ft_strdup.c libft/ft_split.c libft/ft_strjoin.c libft/ft_isdigit.c\
-	# libft/ft_atoi.c\
+	builtin/cd.c builtin/pwd.c builtin/env.c builtin/exit.c builtin/unset.c\
+	builtin/export.c builtin/echo.c\
 
 LIBFT_DIR = lib/libft
 LIBFT = $(LIBFT_DIR)/libft.a

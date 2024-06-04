@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 09:11:41 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/04 14:21:21 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/04 16:38:47 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,8 @@ void fake_exit(t_minishell *singl_mini, t_environment *env)
     char **args;
     int  exit_status;
 
-    open_files(singl_mini);
+    if (open_files(singl_mini, env, singl_mini->files))
+        return ;
     handel_input_output(singl_mini);
     args = singl_mini->args;
     exit_status = 0;
