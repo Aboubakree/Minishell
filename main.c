@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/05 17:8:135:21rtamouss         ###   ########.fr       */
+/*   Updated: 2024/06/04 14:53:53 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 
 // syntax error checking/
 
-int exit_status = 0;
 
 int count_char_occurence(char *str, int c)
 {
@@ -1213,7 +1212,7 @@ int    check_builtin(t_minishell *singl_mini, t_environment **env)
     if (ft_strncmp("unset", singl_mini->command, 6) == 0)
         return (unset(singl_mini, env), 0);
     if (strncmp("exit", singl_mini->command, 5) == 0)
-        return (fake_exit(singl_mini), 0);
+        return (fake_exit(singl_mini, *env), 0);
     return (1);
 }
 
@@ -1244,6 +1243,8 @@ void handle_heredoc_signals(int signal)
     }
 }
 
+
+
 void fill_heredoc(t_minishell *temp, t_file_redirection *files, t_environment *env)
 {
     int     fd;
@@ -1261,6 +1262,7 @@ void fill_heredoc(t_minishell *temp, t_file_redirection *files, t_environment *e
         {
             write(2, "bash: warning: here-document delimited by end-of-file\n",
                 ft_strlen("bash: warning: here-document delimited by end-of-file\n"));
+            close(fd);
             break;
         }
         if (ft_strncmp(files->filename, str, ft_strlen(str) + 1) == 0)
@@ -1310,7 +1312,7 @@ int  fork_heredoc(t_minishell *minishell , t_environment *env)
         loop_heredoc(minishell, env);
     wait(&status);
     status = status >> 8;
-    exit_status = 130;
+    set_exit_status(env, status);
     return (status);
 }
 
@@ -1424,7 +1426,7 @@ void    execute_one(t_minishell *minishell, t_environment **env)
     wait(&status);
     unlink_files(minishell);
     status = status >> 8;
-    exit_status = status;
+    set_exit_status(*env, status);
 }
 
 
@@ -1482,7 +1484,7 @@ void unlink_files(t_minishell *minishell)
     }
 }
 
-void wait_childs(t_minishell *mini, int num_cmd)
+void wait_childs(t_minishell *mini, t_environment *env, int num_cmd)
 {
     int i;
     int status;
@@ -1494,7 +1496,7 @@ void wait_childs(t_minishell *mini, int num_cmd)
         if (wait(&status) > 0)
         {
             status = status >> 8;
-            exit_status = status;
+            set_exit_status(env, status);
             i ++;
         }
         else
@@ -1572,7 +1574,7 @@ void execute_all(t_minishell *minishell, t_environment **env)
             final_execution(temp, env);
         temp = temp->next;
     }
-    wait_childs(minishell, minishell->nbr_cmd);
+    wait_childs(minishell, *env, minishell->nbr_cmd);
 }
 
 

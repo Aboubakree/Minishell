@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 18:53:56 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/04 10:49:14 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/04 11:37:51 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,7 @@ t_environment *creat_env()
         ft_strdup("/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/snap/bin")));
     env_add_back(&env, env_node(ft_strdup("PWD"), ft_strdup(current_path)));
     env_add_back(&env, env_node(ft_strdup("SHLVL"), ft_strdup("1")));
+    env_add_back(&env, env_node(ft_strdup("?"), ft_strdup("0")));
     env_add_back(&env, env_node(ft_strdup("OLDPWD"), NULL));
     env_add_back(&env, env_node(ft_strdup("_"), ft_strdup("]")));
     return (env);
@@ -81,6 +82,17 @@ void increment_shlvl(t_environment *env)
     SHLVL->value = new_lvl;
 } 
 
+void add_exit_status(t_environment **env)
+{
+    t_environment *EXIT;
+
+    EXIT = NULL;
+    EXIT = env_get_bykey(*env, "?");
+    if (EXIT)
+        return;
+    env_add_back(env, env_node(ft_strdup("?"), ft_strdup("0")));
+}
+
 void get_environment(t_environment **env, char **base_env)
 {
     int i;
@@ -102,6 +114,7 @@ void get_environment(t_environment **env, char **base_env)
         env_add_back(env, env_node(key, value));
         i ++;
     }
+    add_exit_status(env);
     increment_shlvl(*env);
     put_at_end(env, "OLDPWD");
     put_at_end(env, "_");
