@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 09:11:10 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/04 14:11:07 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/04 16:51:57 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -251,7 +251,8 @@ void export(t_minishell *minishell, t_environment **env)
 {
     int exit_value;
     
-    open_files(minishell);
+    if (open_files(minishell, *env, minishell->files))
+        return ;
     handel_input_output(minishell);
     if (args_count(minishell->args) < 2)
         exit_value = export_print(env);

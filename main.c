@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/04 14:53:53 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/04 16:47:16 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1172,48 +1172,9 @@ int args_count(char **args)
         i ++;
     return (i);
 }
-void echo(t_minishell *single_mini, t_environment *env)
-{
-    // char *str;
-    // t_minishell *temp;
-
-    // temp = signle_mini;
-    (void) env;
-    int i = 1;
-    int j = 0;
-    int new_line = 1;
-    while(single_mini->args[i])
-    {
-        j = 0;
-        if (single_mini->args[i][j] == '-' && single_mini->args[i][j + 1] == 'n')
-        {
-            j =+ 2;
-            while(single_mini->args[i][j] == 'n')
-                j++;
-            // if (single_mini->args[i][j] == '\0' || (single_mini->args[i][j] == '-' && single_mini->args[i][j + 1] == 'n'))
-            if (single_mini->args[i][j] == '\0')
-                i++;
-            else 
-                break;
-            new_line = 0;
-        }
-        else
-            break;
-    }
-    while(single_mini->args[i])
-    {
-        printf("%s", single_mini->args[i]);
-        if (single_mini->args[i+1] != NULL)
-            printf(" ");
-        i++;
-    }
-    if (new_line == 1)
-        printf("\n");
-}
 
 int    check_builtin(t_minishell *singl_mini, t_environment **env)
 {
-
     if (singl_mini->command == NULL)
         return (1);
     if (ft_strncmp("cd", singl_mini->command, 3) == 0)
@@ -1361,19 +1322,67 @@ int check_heredoc(t_minishell *minishell , t_environment *env, int i)
     return (0);
 }
 
-void file_error(char *filename)
+int is_builtin(char *cmd)
+{
+    if (cmd == NULL)
+        return (0);
+    if (ft_strncmp("cd", cmd, 3) == 0)
+        return (1);
+    if (ft_strncmp("echo", cmd, 5) == 0)
+       return (1);
+    if (ft_strncmp("env", cmd, 4) == 0)
+        return (1);
+    if (ft_strncmp("pwd", cmd, 4) == 0 )
+        return (1);
+    if (ft_strncmp("export", cmd, 7) == 0)
+        return (1);
+    if (ft_strncmp("unset", cmd, 6) == 0)
+        return (1);
+    if (strncmp("exit", cmd, 5) == 0)
+        return (1);
+    return (0);
+}
+
+int file_error(t_minishell *minishell, t_environment *env, char *filename)
 {
     write(2, "bash: ",6);
     write(2, filename, ft_strlen(filename));
     write(2, ": ", 2);
     perror("");
+    if (minishell->nbr_cmd == 1 && is_builtin(minishell->command))
+    {
+        set_exit_status(env, 1);
+        return (1);
+    }
+    set_exit_status(env, 1);
+    //free_lists_collector
     exit(1);
 }
 
-void open_files(t_minishell *minishell)
-{
-    t_file_redirection *files;
 
+int open_file_extended(t_minishell *minishell, t_environment *env, t_file_redirection *files)
+{
+    if (files->type == T_REDIRECTION_APPEND)
+    {
+        if (minishell->outfile != 1)
+            close(minishell->outfile);
+        minishell->outfile = open(files->filename, O_WRONLY | O_APPEND | O_CREAT, 0664);
+        if (minishell->outfile < 0)
+            return (file_error(minishell, env, files->filename));
+    }
+    else if (files->type == T_HERDOC)
+    {
+        if (minishell->infile != 0)
+            close(minishell->infile);
+        minishell->infile = open(minishell->heredoc_path, O_RDONLY, 0644);
+        if (minishell->infile < 0)
+            return (file_error(minishell, env, "heredoc_buffer"));
+    }
+    return (0);
+}
+
+int open_files(t_minishell *minishell, t_environment *env, t_file_redirection *files)
+{
     files = minishell->files;
     while (files)
     {
@@ -1383,7 +1392,7 @@ void open_files(t_minishell *minishell)
                 close(minishell->infile);
             minishell->infile = open(files->filename, O_RDONLY, 0644);
             if (minishell->infile < 0)
-                file_error(files->filename);
+                return (file_error(minishell, env, files->filename));
         }
         else if (files->type == T_REDIRECTION_OUT)
         {
@@ -1391,26 +1400,13 @@ void open_files(t_minishell *minishell)
                 close(minishell->outfile);
             minishell->outfile = open(files->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
             if (minishell->outfile < 0)
-                file_error(files->filename);
+                return (file_error(minishell, env, files->filename));
         }
-        else if (files->type == T_REDIRECTION_APPEND)
-        {
-            if (minishell->outfile != 1)
-                close(minishell->outfile);
-            minishell->outfile = open(files->filename, O_WRONLY | O_APPEND | O_CREAT, 0664);
-            if (minishell->outfile < 0)
-                file_error(files->filename);
-        }
-        else if (files->type == T_HERDOC)
-        {
-            if (minishell->infile != 0)
-                close(minishell->infile);
-            minishell->infile = open(minishell->heredoc_path, O_RDONLY, 0644);
-            if (minishell->infile < 0)
-                file_error("heredoc_buffer");
-        }
+        else if (open_file_extended(minishell, env, files))
+            return (1);
         files = files->next;
     }
+    return (0);
 }
 
 
@@ -1419,7 +1415,7 @@ void    start_execute_one(t_minishell *minishell, t_environment **env)
     char **env_conv;
 
     env_conv = convert_env(*env);
-    open_files(minishell);
+    open_files(minishell, *env, minishell->files);
     if (minishell->command == NULL || ft_strncmp(minishell->command, "", 1) == 0)
         exit(0);
     minishell->path = get_cmd_path(minishell->command, *env, 0);
@@ -1563,7 +1559,7 @@ void final_execution(t_minishell *singl_mini, t_environment **env)
     char **env_conv;
 
     env_conv = convert_env(*env);
-    open_files(singl_mini);
+    open_files(singl_mini, *env, singl_mini->files);
     get_in_out_priorities(singl_mini);
     if (check_builtin(singl_mini, env) == 0)
         exit (0);

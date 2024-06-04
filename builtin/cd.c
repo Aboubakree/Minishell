@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 11:04:31 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/04 14:03:17 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/04 16:34:25 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,8 @@ void cd(t_minishell *singl_mini, t_environment *env)
     char            new_path[1024];
     char            *path;
 
-    open_files(singl_mini);
+    if (open_files(singl_mini, env, singl_mini->files))
+        return ;
     handel_input_output(singl_mini);
     if (args_count(singl_mini->args) == 1)
         path = get_home(env);
