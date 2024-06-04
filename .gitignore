@@ -7,6 +7,7 @@ config.json
 *.exe
 *.o
 *.a
+/minishell
 *.exe~
 *.dll
 *.so

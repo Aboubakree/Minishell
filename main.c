@@ -1024,7 +1024,20 @@ t_minishell *token_to_minishell(t_token *tokens)
     free(args1);
     return (minishell);
 }
+int is_empty(char *str)
+{
+    int i;
 
+    i = 0;
+    while(str[i])
+    {
+        if (is_whitespace(str[i]) == 0)
+            return (0);
+        i++;
+    }
+    return (1);
+
+}
 void print_minishell(t_minishell *minishell)
 {
     t_minishell *temp;
@@ -1034,7 +1047,7 @@ void print_minishell(t_minishell *minishell)
     {
         printf("--------------------\n");
         if (temp->command)
-            printf("command [%d]: %s\n",i,  temp->command);
+            printf("command [%d]: [%s] ====> empty : %d\n",i,  temp->command, is_empty(temp->command));
         if (temp->args)
         {
             printf("args: ");
@@ -1178,7 +1191,8 @@ void echo(t_minishell *single_mini, t_environment *env)
             j =+ 2;
             while(single_mini->args[i][j] == 'n')
                 j++;
-            if (single_mini->args[i][j] == '\0' || (single_mini->args[i][j] == '-' && single_mini->args[i][j + 1] == 'n'))
+            // if (single_mini->args[i][j] == '\0' || (single_mini->args[i][j] == '-' && single_mini->args[i][j + 1] == 'n'))
+            if (single_mini->args[i][j] == '\0')
                 i++;
             else 
                 break;
@@ -1690,7 +1704,7 @@ int main(int argc, char **argv, char **base_env)
             perror("signal");
             return 1;
         }
-        str = readline("minishell$ ");
+        str = readline("$> ");
         if (str == NULL)
         {
             break;
@@ -1714,13 +1728,20 @@ int main(int argc, char **argv, char **base_env)
             add_history(str);
             free(str);
             free_tokens(tokens);
-            continue;
+            // continue;
         }
         minishell = token_to_minishell(tokens);
         // print_minishell(minishell);
         // printf("minishell after deleting quotes\n");
         minishell = delete_quotes(minishell);
-        //print_minishell(minishell);
+        if (minishell->command != NULL && is_empty(minishell->command) == 1)
+        {
+            free(str);
+            free_tokens(tokens);
+            free_minishell(minishell);
+            continue;
+        }
+        // print_minishell(minishell);
         // printf("%s\n", str);
         execution(minishell, &env);
         free(str);
