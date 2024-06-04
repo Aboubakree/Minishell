@@ -1677,7 +1677,7 @@ int main(int argc, char **argv, char **base_env)
             perror("signal");
             return 1;
         }
-        str = readline("\033[0;32mminishell$ \033[0m");
+        str = readline("minishell$ ");
         if (str == NULL)
         {
             break;
