@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 09:11:41 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/31 10:27:39 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/04 14:21:21 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ int check_digits(char *str)
 }
 
 
-void fake_exit(t_minishell *singl_mini)
+void fake_exit(t_minishell *singl_mini, t_environment *env)
 {
     char **args;
     int  exit_status;
@@ -42,11 +42,10 @@ void fake_exit(t_minishell *singl_mini)
         {
             printf("exit\nbash: exit: %s: numeric argument required\n", args[1]);
             exit(2);
-            //$? = 2
         }
         if (args[2] != NULL)
         {
-            //$? = 1
+            set_exit_status(env, 1);
             return (printf("exit\nbash: exit: too many arguments\n"), (void)0);
         }
         exit_status = ft_atoi(args[1]);

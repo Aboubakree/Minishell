@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 17:34:04 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/31 15:39:32 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/04 14:27:05 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,4 +31,5 @@ void    pwd(t_minishell *singl_mini, t_environment *env)
         }
         printf("%s\n", new_path);
     }
+    handel_exit_status(env, singl_mini->nbr_cmd, 0);
 }

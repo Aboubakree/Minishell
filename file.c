@@ -5,11 +5,17 @@
 #include <string.h>
 #include <signal.h>
 #include <errno.h>
+#include "minishell.h"
+
 
 
 int main(int argc, char **argv, char **base_env)
 {
-    if (unlink("file_notexist"))
-        perror("unlink");
-    // printf("base : %p\nbase[0] : %s\n", base_env, base_env[0]);
+    pid_t pid;
+
+    pid = fork();
+    if (pid == 0)
+        exit(0);
+    printf("parent : %d\n", (int)getpid());
+    printf("pid : %d \n", (int)pid);
 }

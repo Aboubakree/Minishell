@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 09:09:02 by akrid             #+#    #+#             */
-/*   Updated: 2024/05/31 10:23:32 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/04 14:29:03 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,23 @@ t_environment *get_before_target(t_environment *env, t_environment *target)
     return (NULL);
 }
 
+void free_target(t_environment *target)
+{
+    if (target->key)
+        free(target->key);
+    if (target->value)
+        free(target->value);
+    free(target);
+}
+
+int check_valid_key(t_environment *target)
+{
+    if (target == NULL 
+        || ft_strncmp(target->key, "_", 2) == 0 
+        || ft_strncmp(target->key, "?", 2) == 0)
+        return (1);
+    return (0);
+}
 
 void unset(t_minishell *minishell, t_environment **env)
 {
@@ -36,36 +53,23 @@ void unset(t_minishell *minishell, t_environment **env)
 
     open_files(minishell);
     handel_input_output(minishell);
-    if (minishell->args && args_count(minishell->args) == 1)
-        return;
     i = 1;
     while (minishell->args && minishell->args[i])
     {
-        target = env_get_bykey(*env, minishell->args[i]);
-        if (target == NULL || ft_strncmp(target->key, "_", 2) == 0)
-        {
-            i ++;
+        target = env_get_bykey(*env, minishell->args[i ++]);
+        if (check_valid_key(target))
             continue;
-        }
         else if (target == *env)
         {
             *env = (*env)->next;
-            if (target->key)
-                free(target->key);
-            if (target->value)
-                free(target->value);
             free(target);
         }
         else 
         {
             previous = get_before_target(*env, target);
             previous->next = target->next;
-            if (target->key)
-                free(target->key);
-            if (target->value)
-                free(target->value);
             free(target);
         }
-        i ++;
     }
+    handel_exit_status(*env, minishell->nbr_cmd, 0);
 }

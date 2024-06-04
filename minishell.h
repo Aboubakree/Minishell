@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/04 09:22:02 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/04 14:52:26 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,6 @@
 #define BLUE "\033[0;34m"
 #define MAGENTA "\033[0;35m"
 #define RESET "\033[0m"
-
-
-extern int exit_status;
 
 
 typedef struct s_environment
@@ -98,11 +95,17 @@ typedef struct s_minishell
 
 
 
-// --------------------------------------------------- parsing ---------------------------------------------------
 
 // -------------- common function ---------------
 int args_count(char **args);
 void free_split(char **splited);
+char *ft_putnbr(int nbr);
+void set_exit_status(t_environment *env, int new_value);
+
+
+// --------------------------------------------------- parsing ---------------------------------------------------
+
+
 
 //environment
 t_environment *env_node(char *key, char *value);
@@ -125,18 +128,12 @@ void unlink_files(t_minishell *minishell);
 
 
 
-// ------------------------ execution -------------------------
-char	*get_cmd_path(char *cmd, t_environment *env, int i);
-int cmd_count(t_minishell *mini);
-void open_files(t_minishell *minishell);
-void get_in_out_priorities(t_minishell *singl_mini);
-
-
 // builtin
 void    handel_input_output(t_minishell *singl_mini);
+void handel_exit_status(t_environment *env, int nbr_cmd , int exit_value);
 void cd(t_minishell *singl_mini, t_environment *env);
 void    envi(t_minishell *singl_mini, t_environment *env);
-void fake_exit(t_minishell *singl_mini);
+void fake_exit(t_minishell *singl_mini, t_environment *env);
 void    pwd(t_minishell *singl_mini, t_environment *env);
 void unset(t_minishell *minishell, t_environment **env);
 void export(t_minishell *minishell, t_environment **env);

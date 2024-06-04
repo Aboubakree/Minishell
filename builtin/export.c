@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 09:11:10 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/02 15:23:34 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/04 14:11:07 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,7 @@ int    export_print( t_environment **env)
     helper = copy_env;
     while (helper)
     {
-        if (strncmp(helper->key, "_", 2) != 0)
+        if (strncmp(helper->key, "_", 2) != 0 && ft_strncmp(helper->key, "?", 2) != 0)
         {
             if (helper->value != NULL)
                 printf("declare -x %s=\"%s\"\n",helper->key, helper->value);
@@ -238,6 +238,15 @@ int export_add(t_minishell *minishell, t_environment *env)
     return (exit_value);
 }
 
+void handel_exit_status(t_environment *env, int nbr_cmd , int exit_value)
+{
+    if (nbr_cmd == 1)
+        set_exit_status(env, exit_value);
+    else
+        exit(exit_value);
+}
+
+
 void export(t_minishell *minishell, t_environment **env)
 {
     int exit_value;
@@ -248,9 +257,5 @@ void export(t_minishell *minishell, t_environment **env)
         exit_value = export_print(env);
     else
         exit_value = export_add(minishell, *env);
-    (void)exit_value;
-    // if (minishell->nbr_cmd == 1)
-    //     exit_status = exit_value;
-    // else
-    //     exit(exit_value);
+    handel_exit_status(*env, minishell->nbr_cmd, exit_value);
 }
