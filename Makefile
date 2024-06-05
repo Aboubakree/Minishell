@@ -43,8 +43,10 @@ re : fclean all
 f : $(NAME)
 	valgrind --leak-check=full ./$(NAME)
 
-v : clean fclean $(NAME)
+v : $(NAME)
 	valgrind ./$(NAME)
+k : $(NAME)
+	./$(NAME)
 
 .SECONDARY : $(OBJ)
 

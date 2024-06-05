@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/04 16:47:16 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/05 15:30:26 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,16 +149,16 @@ int check_invalid_redirection(const char *str)
     return (0);
 }
 
-int check_syntax_error(const char *str)
+int check_syntax_error(const char *str, t_environment *env)
 {
     if (check_unclosed_quotes(str) == 1)
-        return (printf("Syntax error : Unclosed quote\n"), 1);
+        return (set_exit_status(env, 2), printf("Syntax error : Unclosed quote\n"), 1);
     if (check_misplaced_operators(str) == 1)
-        return (1);
+        return (set_exit_status(env, 2), 1);
     if (check_logical_operators(str) == 1)
-        return (1);
+        return (set_exit_status(env, 2), 1);
     if (check_invalid_redirection(str) == 1)
-        return (1);
+        return (set_exit_status(env, 2), 1);
     return (0);
 }
 
@@ -202,9 +202,22 @@ int is_colone(char c)
 {
     return (c == ':');
 }
+int is_number(char c)
+{
+    return (c >= '0' && c <= '9');
+}
+
 int is_word(char c)
 {
-    return (!is_arithmetic_operator(c) &&  !is_colone(c) && !is_operator(c) && !is_quote(c) && !is_whitespace(c) && !is_env_variable(c));
+    return (!is_arithmetic_operator(c) 
+        && !is_colone(c) 
+        && !is_operator(c)
+        && !is_quote(c)
+        && !is_whitespace(c)
+        && !is_env_variable(c)
+        && c != '['
+        && c != '%'
+        && c != ']');
 }
 int s_minishell_size(t_minishell *minishell)
 {
@@ -696,8 +709,13 @@ char *expand_string(char *str, t_environment *env, int from_heredoc)
             }
             int index = i;
             index++;
-            while(str[index] && is_word(str[index]))
+            if (str[index] == '?' || is_number(str[index]))
                 index++;
+            else
+            {
+                while(str[index] && is_word(str[index]))
+                    index++;
+            }
             char *env_variable = ft_substr(str, i + 1, index - i - 1);
             // printf("env_variable: %s\n", env_variable);
             t_environment *get_env = env_get_bykey(env, env_variable);
@@ -723,23 +741,21 @@ char *expand_string(char *str, t_environment *env, int from_heredoc)
         else
             i++;
     }
+    if (str[0] == '$' && (str[1] == '\'' || str[1] == '\"'))
+    {
+        i = 0;
+        while(str[i])
+        {
+            str[i] = str[i + 1];
+            i++;
+        }
+    }
     return (str);
 }
 
 t_token *expand(t_token *tokens, t_environment *env)
 {
     t_token *temp = tokens;
-    // int in_single_quotes;
-    // int in_double_quotes;
-    // char *value;
-    // char *first;
-    // char *new_value;
-    // char *last;
-    // int i;
-
-    // in_single_quotes = 0;
-    // in_double_quotes = 0;
-    // i = 0;
     while(temp)
     {
         if (temp->type == T_WORD)
@@ -749,53 +765,6 @@ t_token *expand(t_token *tokens, t_environment *env)
                 temp = temp->next;
                 continue;
             }
-            // i = 0;
-            // while(temp->value[i])
-            // {
-            //     if (temp->value[i] == '\'' && in_single_quotes == 0 && in_double_quotes == 0)
-            //         in_single_quotes = 1;
-            //     else if (temp->value[i] == '\'' && in_single_quotes == 1)
-            //         in_single_quotes = 0;
-            //     else if (temp->value[i] == '\"' && in_double_quotes == 0 && in_single_quotes == 0)
-            //         in_double_quotes = 1;
-            //     else if (temp->value[i] == '\"' && in_double_quotes == 1)
-            //         in_double_quotes = 0;
-            //     if (temp->value[i] == '$' && in_single_quotes == 0)
-            //     {
-            //         if (is_whitespace(temp->value[i + 1]) || temp->value[i + 1] == '\0')
-            //         {
-            //             i++;
-            //             continue;
-            //         }
-            //         int index = i;
-            //         index++;
-            //         while(temp->value[index] && is_word(temp->value[index]))
-            //             index++;
-            //         char *env_variable = ft_substr(temp->value, i + 1, index - i - 1);
-            //         // printf("env_variable: %s\n", env_variable);
-            //         t_environment *get_env = env_get_bykey(env, env_variable);
-            //         if(get_env == NULL)
-            //         {
-            //             value = ft_strdup("");
-            //         }
-            //         else
-            //             value = ft_strdup(get_env->value);
-            //         first = ft_substr(temp->value, 0, i);
-            //         last = ft_strdup(&temp->value[index]);
-            //         new_value = ft_strjoin(first, value);
-            //         free(value);
-            //         char *temp2 = new_value;
-            //         new_value = ft_strjoin(temp2, last);
-            //         free(temp2);
-            //         free(last);
-            //         free(first);
-            //         free(env_variable);
-            //         free(temp->value);
-            //         temp->value = new_value;
-            //     }
-            //     else
-            //         i++;
-            // }
             temp->value  = expand_string(temp->value, env, 0);
         }
         temp = temp->next;
@@ -1721,12 +1690,12 @@ int main(int argc, char **argv, char **base_env)
         tokens = expand(tokens, env);
         // print_tokens(tokens);
         // printf("after expand ======================\n");
-        if (check_syntax_error(str) == 1 ||  ft_strlen(str) == 0 || ft_strncmp(str, ":", ft_strlen(str)) == 0 || check_syntax_error_tokens(tokens) == 1)
+        if (check_syntax_error(str, env) == 1 ||  ft_strlen(str) == 0 || ft_strncmp(str, ":", ft_strlen(str)) == 0 || check_syntax_error_tokens(tokens) == 1)
         {
             add_history(str);
             free(str);
             free_tokens(tokens);
-            // continue;
+            continue;
         }
         minishell = token_to_minishell(tokens);
         // print_minishell(minishell);
