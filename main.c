@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/05 15:30:26 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/06/06 14:36:33 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -800,7 +800,7 @@ t_minishell *delete_quotes(t_minishell *minishell)
     temp = minishell;
     if (temp->args != NULL)
     {
-        while (temp)
+        while (temp && temp->args != NULL)
         {
             i = 0;
             while (temp->args[i])
