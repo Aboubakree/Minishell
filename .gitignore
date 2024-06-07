@@ -1,0 +1,40 @@
+# Configuration files for IDEs
+settings.json
+config.json
+
+
+# Binaries for programs and plugins
+*.exe
+*.o
+*.a
+/minishell
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# IDE-specific files
+.vscode/
+.atom/
+.intellij/
+
+# Configuration files for IDEs
+settings.json
+config.json
+
+This is not an exhaustive list, and you may need to add or remove items based on your specific project’s requirements. You can also use online tools and templates to generate a .gitignore file for your project.
+
+Context
+
+BMC Blogs
+Ignoring in Git: How To Use .gitignore Files – BMC Software | Blogs
+
+GitHub
+.gitignore for C/C++ developers. · GitHub
+
