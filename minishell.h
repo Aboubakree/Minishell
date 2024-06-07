@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/04 16:48:25 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/07 16:14:21 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 #include <sys/types.h>
 #include <readline/history.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 // colors 
 #define RED "\033[0;31m"

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/05 15:30:26 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/06/07 21:15:41 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1345,7 +1345,7 @@ int open_file_extended(t_minishell *minishell, t_environment *env, t_file_redire
             close(minishell->infile);
         minishell->infile = open(minishell->heredoc_path, O_RDONLY, 0644);
         if (minishell->infile < 0)
-            return (file_error(minishell, env, "heredoc_buffer"));
+            return (file_error(minishell, env, minishell->heredoc_path));
     }
     return (0);
 }
@@ -1385,15 +1385,13 @@ void    start_execute_one(t_minishell *minishell, t_environment **env)
 
     env_conv = convert_env(*env);
     open_files(minishell, *env, minishell->files);
-    if (minishell->command == NULL || ft_strncmp(minishell->command, "", 1) == 0)
-        exit(0);
     minishell->path = get_cmd_path(minishell->command, *env, 0);
     if (minishell->path == NULL)
         exit(127);
     dup2(minishell->infile, 0);
     dup2(minishell->outfile, 1);
     execve(minishell->path, minishell->args, env_conv);
-    perror("execve");
+    perror("bash");
     exit(126);
 }
 
@@ -1532,8 +1530,6 @@ void final_execution(t_minishell *singl_mini, t_environment **env)
     get_in_out_priorities(singl_mini);
     if (check_builtin(singl_mini, env) == 0)
         exit (0);
-    if (singl_mini->command == NULL || ft_strncmp(singl_mini->command, "", 1) == 0)
-        exit(0);
     singl_mini->path = get_cmd_path(singl_mini->command, *env, 0);
     if (singl_mini->path == NULL)
         exit(127);
@@ -1574,9 +1570,9 @@ char    *get_herdoc_path(int i)
     char *heredoc_path;
 
     heredoc_path = malloc(sizeof(char) * (ft_strlen("/tmp/herdoc_buffer_") + 2));
-    ft_strlcpy(heredoc_path, "/tmp/herdoc_buffer_", 16);
-    heredoc_path[14] = i + 'a';
-    heredoc_path[15] = '\0';
+    ft_strlcpy(heredoc_path, "/tmp/herdoc_buffer_", 19);
+    heredoc_path[ft_strlen("/tmp/herdoc_buffer_")] = i + 'a';
+    heredoc_path[ft_strlen("/tmp/herdoc_buffer_") + 1] = '\0';
     return (heredoc_path);
 }
 
@@ -1673,9 +1669,7 @@ int main(int argc, char **argv, char **base_env)
         }
         str = readline("$> ");
         if (str == NULL)
-        {
             break;
-        }
         if (check_whitespaces(str) == 0)
         {
             free(str);
@@ -1701,13 +1695,13 @@ int main(int argc, char **argv, char **base_env)
         // print_minishell(minishell);
         // printf("minishell after deleting quotes\n");
         minishell = delete_quotes(minishell);
-        if (minishell->command != NULL && is_empty(minishell->command) == 1)
-        {
-            free(str);
-            free_tokens(tokens);
-            free_minishell(minishell);
-            continue;
-        }
+        // if (minishell->command != NULL && is_empty(minishell->command) == 1)
+        // {
+        //     free(str);
+        //     free_tokens(tokens);
+        //     free_minishell(minishell);
+        //     continue;
+        // }
         // print_minishell(minishell);
         // printf("%s\n", str);
         execution(minishell, &env);

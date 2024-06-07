@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 11:04:31 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/04 16:34:25 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/07 11:55:26 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,12 +97,14 @@ void cd(t_minishell *singl_mini, t_environment *env)
         path = get_home(env);
     else 
         path = singl_mini->args[1];
+    if (path && ft_strncmp(path, "", 1) == 0)
+        return (handel_exit_status(env, singl_mini->nbr_cmd, 0));
     if (cd_pars(singl_mini, path))
-        return (handel_exit_status(env, singl_mini->nbr_cmd, 1) ,(void)0);
+        return (handel_exit_status(env, singl_mini->nbr_cmd, 1));
     if (getcwd(new_path, 1024) == NULL)
     {
         printf("getcwd : %s: %s\n",strerror(errno), path);
-        return (handel_exit_status(env, singl_mini->nbr_cmd, 1) ,(void)0);
+        return (handel_exit_status(env, singl_mini->nbr_cmd, 1));
     }
     set_pwd_oldpwd(env, new_path);
     handel_exit_status(env, singl_mini->nbr_cmd, 0);

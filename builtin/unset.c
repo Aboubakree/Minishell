@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 09:09:02 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/04 16:40:15 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/05 21:23:54 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,13 +63,13 @@ void unset(t_minishell *minishell, t_environment **env)
         else if (target == *env)
         {
             *env = (*env)->next;
-            free(target);
+            free_target(target);
         }
         else 
         {
             previous = get_before_target(*env, target);
             previous->next = target->next;
-            free(target);
+            free_target(target);
         }
     }
     handel_exit_status(*env, minishell->nbr_cmd, 0);
