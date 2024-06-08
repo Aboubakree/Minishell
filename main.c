@@ -237,6 +237,14 @@ int	is_number(char c)
 {
 	return (c >= '0' && c <= '9');
 }
+int is_alpha(char c)
+{
+	return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
+}
+int not_alpha_numeric(char c)
+{
+	return (!is_alpha(c) && !is_number(c));
+}
 
 int	is_word(char c)
 {
@@ -246,9 +254,7 @@ int	is_word(char c)
 		&& !is_quote(c)
 		&& !is_whitespace(c)
 		&& !is_env_variable(c)
-		&& c != '['
-		&& c != '%'
-		&& c != ']');
+		&& !not_alpha_numeric(c));
 }
 int	s_minishell_size(t_minishell *minishell)
 {
@@ -408,7 +414,6 @@ void	print_tokens(t_token *tokens)
 	}
 		printf("--------------------\n");
 }
-
 void	handle_operator(t_token **head, const char *str, int *i)
 {
 	if (is_pipe(str[*i]))
@@ -678,40 +683,43 @@ static char	**ft_free(char **strs)
 	return (0);
 }
 
+void initialize_value_split2(int *j, char *quote, int *in_quote)
+{
+	*j = 0;
+	*quote = '\0';
+	*in_quote = 0;
+}
 
+void ft_skip2(int *i, int in_quote, const char *s, char c)
+{
+	if (in_quote == 0 && s[*i] == c)
+		(*i)++;
+}
 
-static char	**ft_split2_helper(char **res, char const *s, char c, int i)
+char	**ft_split2_helper(char **res, char const *s, char c, int i)
 {
 	int		start;
-	int		end;
 	char	quote;
 	int		in_quote;
 	int		j;
 
-	j = 0;
-	quote = '\0';
-	in_quote = 0;
+	initialize_value_split2(&j, &quote, &in_quote);
 	update_quote_state(&in_quote, &quote, s[i]);
 	while (s[i])
 	{
 		update_quote_state(&in_quote, &quote, s[i]);
-		if (in_quote == 0 && s[i] == c)
-			i++;
+		ft_skip2(&i, in_quote, s, c);
 		start = i;
-		while (s[i] && (s[i] != c || in_quote == 1))
-		{
+		i--;
+		while (s[++i] && (s[i] != c || in_quote == 1))
 			update_quote_state(&in_quote, &quote, s[i]);
-			i++;
-		}
-		end = i;
-		if (end > start)
-		{
-			res[j] = (char *)malloc((end - start + 1) * sizeof(char));
-			if (!res[j])
-				return (ft_free(res));
-			ft_strlcpy(res[j], &s[start], end - start + 1);
-			j++;
-		}
+		if (i <= start)
+			continue ;
+		res[j] = (char *)malloc((i - start + 1) * sizeof(char));
+		if (!res[j])
+			return (ft_free(res));
+		ft_strlcpy(res[j], &s[start], i - start + 1);
+		j++;
 	}
 	res[j] = NULL;
 	return (res);
@@ -728,40 +736,82 @@ char	**ft_split2(char const *s, char c)
 	res = (char **)malloc((ft_count_words(s, c) + 1) * sizeof(char *));
 	if (!res)
 		return (NULL);
-	res = ft_split2_helper(res, s, c, i);
+	res = ft_split2_helper(res, s, c , i);
 	if (!res)
 		return (ft_free(res));
 	return (res);
 }
 
-char	*expand_string(char *str, t_environment *env, int from_heredoc)
+void check_quote(const char *str, int *in_single_quotes, int *in_double_quotes, int *i)
+{
+		if (str[*i] == '\'' && *in_single_quotes == 0 && *in_double_quotes == 0)
+			*in_single_quotes = 1;
+		else if (str[*i] == '\'' && *in_single_quotes == 1)
+			*in_single_quotes = 0;
+		else if (str[*i] == '\"' && *in_double_quotes == 0
+			&& *in_single_quotes == 0)
+			*in_double_quotes = 1;
+		else if (str[*i] == '\"' && *in_double_quotes == 1)
+			*in_double_quotes = 0;
+}
+
+void handle_quotes_after_dollar(char *str)
+{
+	int i;
+
+	if (str[0] == '$' && (str[1] == '\'' || str[1] == '\"'))
+	{
+		i = 0;
+		while (str[i])
+		{
+			str[i] = str[i + 1];
+			i++;
+		}
+	}
+}
+
+char *change_value(char *str, int *i, int *index)
+{
+	char *new_value;
+	t_environment *get_env;
+	char *value;
+	char *first;
+	char *last;
+	char *env_variable;
+
+	env_variable = ft_substr(str, *i + 1, *index - *i - 1);
+	get_env = env_get_bykey(env, env_variable);
+	if (get_env == NULL)
+		value = ft_strdup("");
+	else
+		value = ft_strdup(get_env->value);
+	first = ft_substr(str, 0, *i);
+	last = ft_strdup(&str[*index]);
+	new_value = ft_strjoin(first, value);
+	free(value);
+	value = new_value;
+	new_value = ft_strjoin(value, last);
+	free(value);
+	free(last);
+	free(first);
+	free(env_variable);
+	free(str);
+	return new_value;
+}
+
+char	*expand_string(char *str, int from_heredoc)
 {
 	int		i;
-	char	*value;
-	char	*first;
-	char	*new_value;
-	char	*last;
 	int		in_single_quotes;
 	int		in_double_quotes;
 	int		index;
-	char	*env_variable;
-	t_environment	*get_env;
-	char 	*temp2;
 
 	i = 0;
 	in_single_quotes = 0;
 	in_double_quotes = 0;
 	while (str[i])
 	{
-		if (str[i] == '\'' && in_single_quotes == 0 && in_double_quotes == 0)
-			in_single_quotes = 1;
-		else if (str[i] == '\'' && in_single_quotes == 1)
-			in_single_quotes = 0;
-		else if (str[i] == '\"' && in_double_quotes == 0
-			&& in_single_quotes == 0)
-			in_double_quotes = 1;
-		else if (str[i] == '\"' && in_double_quotes == 1)
-			in_double_quotes = 0;
+		check_quote(str, &in_single_quotes, &in_double_quotes, &i);
 		if ((str[i] == '$' && in_single_quotes == 0 && from_heredoc == 0
 				&& is_word(str[i + 1])) || (str[i] == '$' && from_heredoc == 1))
 		{
@@ -779,44 +829,17 @@ char	*expand_string(char *str, t_environment *env, int from_heredoc)
 				while (str[index] && is_word(str[index]))
 					index++;
 			}
-			env_variable = ft_substr(str, i + 1, index - i - 1);
-			// printf("env_variable: %s\n", env_variable);
-			get_env = env_get_bykey(env, env_variable);
-			if (get_env == NULL)
-			{
-				value = ft_strdup("");
-			}
-			else
-				value = ft_strdup(get_env->value);
-			first = ft_substr(str, 0, i);
-			last = ft_strdup(&str[index]);
-			new_value = ft_strjoin(first, value);
-			free(value);
-			temp2 = new_value;
-			new_value = ft_strjoin(temp2, last);
-			free(temp2);
-			free(last);
-			free(first);
-			free(env_variable);
-			free(str);
-			str = new_value;
+			str = change_value(str, &i, &index);
 		}
 		else
 			i++;
 	}
-	if (str[0] == '$' && (str[1] == '\'' || str[1] == '\"'))
-	{
-		i = 0;
-		while (str[i])
-		{
-			str[i] = str[i + 1];
-			i++;
-		}
-	}
+	handle_quotes_after_dollar(str);
 	return (str);
 }
 
-t_token	*expand(t_token *tokens, t_environment *env)
+
+t_token	*expand(t_token *tokens)
 {
 	t_token	*temp;
 
@@ -830,7 +853,7 @@ t_token	*expand(t_token *tokens, t_environment *env)
 				temp = temp->next;
 				continue ;
 			}
-			temp->value = expand_string(temp->value, env, 0);
+			temp->value = expand_string(temp->value, 0);
 		}
 		temp = temp->next;
 	}
@@ -1280,7 +1303,7 @@ void	handle_heredoc_signals(int signal)
 
 
 
-void	fill_heredoc(t_minishell *temp, t_file_redirection *files, t_environment *env)
+void	fill_heredoc(t_minishell *temp, t_file_redirection *files)
 {
 	int		fd;
 	char	*str;
@@ -1306,7 +1329,7 @@ void	fill_heredoc(t_minishell *temp, t_file_redirection *files, t_environment *e
 			break ;
 		}
 		if (files->should_expand_heredoc == 1 && ft_strchr(str, '$') != NULL)
-			str = expand_string(str, env, 1);
+			str = expand_string(str, 1);
 		write(fd, str, ft_strlen(str));
 		write(fd, "\n", 1);
 		if (str)
@@ -1315,7 +1338,7 @@ void	fill_heredoc(t_minishell *temp, t_file_redirection *files, t_environment *e
 	close(fd);
 }
 
-void	loop_heredoc(t_minishell *minishell, t_environment *env)
+void	loop_heredoc(t_minishell *minishell)
 {
 	t_file_redirection	*files;
 	t_minishell	*temp;
@@ -1327,7 +1350,7 @@ void	loop_heredoc(t_minishell *minishell, t_environment *env)
 		while (files)
 		{
 			if (files->type == T_HERDOC)
-				fill_heredoc(temp, files, env);
+				fill_heredoc(temp, files);
 			files = files->next;
 		}
 		temp = temp->next;
@@ -1343,7 +1366,7 @@ int	fork_heredoc(t_minishell *minishell , t_environment *env)
 	status = 0;
 	pid = fork();
 	if (pid == 0)
-		loop_heredoc(minishell, env);
+		loop_heredoc(minishell);
 	wait(&status);
 	status = status >> 8;
 	set_exit_status(env, status);
@@ -1770,7 +1793,7 @@ int main(int argc, char **argv, char **base_env)
 		tokens = tokenize_input(str);
 		// print_tokens(tokens);
 		// printf("after expand ======================\n");
-		tokens = expand(tokens, env);
+		tokens = expand(tokens);
 		// print_tokens(tokens);
 		// printf("after expand ======================\n");
 		if (check_syntax_error(str) == 1 || check_syntax_error_tokens(tokens) == 1)
