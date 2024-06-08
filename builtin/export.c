@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 09:11:10 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/04 16:51:57 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/08 11:25:36 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -243,7 +243,10 @@ void handel_exit_status(t_environment *env, int nbr_cmd , int exit_value)
     if (nbr_cmd == 1)
         set_exit_status(env, exit_value);
     else
+    {
+        free_at_exit();
         exit(exit_value);
+    }
 }
 
 

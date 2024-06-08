@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/06 14:36:33 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/06/08 11:14:32 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 // syntax error checking/
 
+t_lists_collecter *lists_collecter;
 
 int count_char_occurence(char *str, int c)
 {
@@ -1186,6 +1187,7 @@ void handle_heredoc_signals(int signal)
         printf("\n");
         rl_on_new_line();
         // rl_redisplay();
+        free_at_exit();
         exit(130);
     }
 }
@@ -1245,6 +1247,7 @@ void loop_heredoc(t_minishell *minishell, t_environment *env)
         }
         temp = temp->next;
     }
+    free_at_exit();
     exit(0);
 }
 
@@ -1285,7 +1288,7 @@ int check_heredoc(t_minishell *minishell , t_environment *env, int i)
     else if (i > 16)
     {
         write(2, "bash: maximum here-document count exceeded\n", 43);
-        // free_lists_collector();
+        free_at_exit();
         exit(2);
     }
     return (0);
@@ -1324,7 +1327,7 @@ int file_error(t_minishell *minishell, t_environment *env, char *filename)
         return (1);
     }
     set_exit_status(env, 1);
-    //free_lists_collector
+    free_at_exit();
     exit(1);
 }
 
@@ -1345,7 +1348,7 @@ int open_file_extended(t_minishell *minishell, t_environment *env, t_file_redire
             close(minishell->infile);
         minishell->infile = open(minishell->heredoc_path, O_RDONLY, 0644);
         if (minishell->infile < 0)
-            return (file_error(minishell, env, "heredoc_buffer"));
+            return (file_error(minishell, env, minishell->heredoc_path));
     }
     return (0);
 }
@@ -1383,17 +1386,20 @@ void    start_execute_one(t_minishell *minishell, t_environment **env)
 {
     char **env_conv;
 
-    env_conv = convert_env(*env);
     open_files(minishell, *env, minishell->files);
-    if (minishell->command == NULL || ft_strncmp(minishell->command, "", 1) == 0)
-        exit(0);
     minishell->path = get_cmd_path(minishell->command, *env, 0);
     if (minishell->path == NULL)
+    {
+        free_at_exit();
         exit(127);
+    }
     dup2(minishell->infile, 0);
     dup2(minishell->outfile, 1);
+    env_conv = convert_env(*env);
     execve(minishell->path, minishell->args, env_conv);
-    perror("execve");
+    perror("bash");
+    free_split(env_conv);
+    free_at_exit();
     exit(126);
 }
 
@@ -1431,7 +1437,7 @@ void    pipe_init(t_minishell *mini)
         if (pipe(pip + i * 2))
         {
             perror("pipe");
-            //free_lists_collector();
+            free_at_exit();
             exit(1);
         }
         i ++;
@@ -1527,18 +1533,24 @@ void final_execution(t_minishell *singl_mini, t_environment **env)
 {
     char **env_conv;
 
-    env_conv = convert_env(*env);
     open_files(singl_mini, *env, singl_mini->files);
     get_in_out_priorities(singl_mini);
     if (check_builtin(singl_mini, env) == 0)
+    {
+        free_at_exit();
         exit (0);
-    if (singl_mini->command == NULL || ft_strncmp(singl_mini->command, "", 1) == 0)
-        exit(0);
+    }
     singl_mini->path = get_cmd_path(singl_mini->command, *env, 0);
     if (singl_mini->path == NULL)
+    {
+        free_at_exit();
         exit(127);
+    }
+    env_conv = convert_env(*env);
     execve(singl_mini->path, singl_mini->args, env_conv );
     perror("execve");
+    free_split(env_conv);
+    free_at_exit();
     exit(1);
 }
 
@@ -1574,9 +1586,9 @@ char    *get_herdoc_path(int i)
     char *heredoc_path;
 
     heredoc_path = malloc(sizeof(char) * (ft_strlen("/tmp/herdoc_buffer_") + 2));
-    ft_strlcpy(heredoc_path, "/tmp/herdoc_buffer_", 16);
-    heredoc_path[14] = i + 'a';
-    heredoc_path[15] = '\0';
+    ft_strlcpy(heredoc_path, "/tmp/herdoc_buffer_", 19);
+    heredoc_path[ft_strlen("/tmp/herdoc_buffer_")] = i + 'a';
+    heredoc_path[ft_strlen("/tmp/herdoc_buffer_") + 1] = '\0';
     return (heredoc_path);
 }
 
@@ -1648,6 +1660,33 @@ void    execution(t_minishell *minishell, t_environment **env)
     restore_STD_IN_OUT(stdout, stdin);
 }
 
+void collecter_init(t_minishell **minishell, t_environment **env, t_token **tokens)
+{
+    lists_collecter = malloc(sizeof(t_lists_collecter));
+    if (lists_collecter == NULL)
+    {
+        perror("malloc");
+        exit(1);
+    }
+    *env = NULL;
+    *tokens = NULL;
+    *minishell = NULL;
+    lists_collecter->minishell = minishell;
+    lists_collecter->env = env;
+    lists_collecter->tokens = tokens;
+}
+
+void free_at_exit()
+{
+    if (*lists_collecter->env )
+        free_environment(*lists_collecter->env);
+    if (*lists_collecter->minishell )
+        free_minishell(*lists_collecter->minishell);
+    if (*lists_collecter->tokens )
+        free_tokens(*lists_collecter->tokens);
+    free(lists_collecter);
+}
+
 int main(int argc, char **argv, char **base_env)
 {
     t_environment *env;
@@ -1656,9 +1695,9 @@ int main(int argc, char **argv, char **base_env)
     char *str;
     
     (void)argv;
-    env = NULL;
     if (argc > 1)
         return (1);
+    collecter_init(&minishell, &env, &tokens);
     get_environment(&env, base_env);
     printf("Welcome to minishell\n");
     while (1)
@@ -1673,9 +1712,7 @@ int main(int argc, char **argv, char **base_env)
         }
         str = readline("$> ");
         if (str == NULL)
-        {
             break;
-        }
         if (check_whitespaces(str) == 0)
         {
             free(str);
@@ -1701,21 +1738,21 @@ int main(int argc, char **argv, char **base_env)
         // print_minishell(minishell);
         // printf("minishell after deleting quotes\n");
         minishell = delete_quotes(minishell);
-        if (minishell->command != NULL && is_empty(minishell->command) == 1)
-        {
-            free(str);
-            free_tokens(tokens);
-            free_minishell(minishell);
-            continue;
-        }
+        // if (minishell->command != NULL && is_empty(minishell->command) == 1)
+        // {
+        //     free(str);
+        //     free_tokens(tokens);
+        //     free_minishell(minishell);
+        //     continue;
+        // }
         // print_minishell(minishell);
         // printf("%s\n", str);
         execution(minishell, &env);
         free(str);
         free_tokens(tokens);
         free_minishell(minishell);
-
     }
     free_environment(env);
+    free(lists_collecter);
     return (0);
 }
