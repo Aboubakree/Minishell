@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/07 16:14:21 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/07 21:51:36 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@
 #define BLUE "\033[0;34m"
 #define MAGENTA "\033[0;35m"
 #define RESET "\033[0m"
+
+extern t_lists_collecter *lists_collecter;
 
 
 typedef struct s_environment
@@ -93,7 +95,12 @@ typedef struct s_minishell
 } t_minishell;
 
 
-
+typedef struct s_lists_collecter
+{
+    t_minishell **minishell;
+    t_token **tokens;
+    t_environment **env;
+} t_lists_collecter;
 
 
 

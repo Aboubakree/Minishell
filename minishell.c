@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 10:47:20 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/07 21:14:03 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/07 21:32:14 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ int is_directory(char *cmd)
 
  	stat(cmd, &path_stat);
     // Check if it is a directory
-    return S_ISDIR(path_stat.st_mode);
+    return (S_ISDIR(path_stat.st_mode));
 }
 
 int empty_cmd(char *cmd)

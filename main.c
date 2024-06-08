@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/07 21:15:41 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/07 21:58:54 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 // syntax error checking/
 
+t_lists_collecter *lists_collecter;
 
 int count_char_occurence(char *str, int c)
 {
@@ -1642,6 +1643,28 @@ void    execution(t_minishell *minishell, t_environment **env)
     else
         execute_all(minishell, env);
     restore_STD_IN_OUT(stdout, stdin);
+}
+
+void collecter_init(t_minishell **minishell, t_environment **env, t_token **tokens)
+{
+    lists_collecter = malloc(sizeof(lists_collecter));
+    lists_collecter->minishell = minishell;
+    lists_collecter->env = env;
+    lists_collecter->tokens = tokens;
+    *env = NULL;
+    *minishell = NULL;
+    *tokens = NULL;
+}
+
+free_at_exit()
+{
+    if (*lists_collecter->env )
+        free_environment(*lists_collecter->env);
+    if (*lists_collecter->minishell )
+        free_minishell(*lists_collecter->minishell);
+    if (*lists_collecter->tokens )
+        free_tokens(*lists_collecter->tokens);
+    free(lists_collecter);
 }
 
 int main(int argc, char **argv, char **base_env)
