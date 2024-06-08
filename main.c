@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
 /*   Updated: 2024/06/08 11:14:32 by akrid            ###   ########.fr       */
@@ -801,7 +801,7 @@ t_minishell *delete_quotes(t_minishell *minishell)
     temp = minishell;
     if (temp->args != NULL)
     {
-        while (temp)
+        while (temp && temp->args != NULL)
         {
             i = 0;
             while (temp->args[i])
