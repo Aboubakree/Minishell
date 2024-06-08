@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/07 21:58:54 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/08 11:14:32 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1187,6 +1187,7 @@ void handle_heredoc_signals(int signal)
         printf("\n");
         rl_on_new_line();
         // rl_redisplay();
+        free_at_exit();
         exit(130);
     }
 }
@@ -1246,6 +1247,7 @@ void loop_heredoc(t_minishell *minishell, t_environment *env)
         }
         temp = temp->next;
     }
+    free_at_exit();
     exit(0);
 }
 
@@ -1286,7 +1288,7 @@ int check_heredoc(t_minishell *minishell , t_environment *env, int i)
     else if (i > 16)
     {
         write(2, "bash: maximum here-document count exceeded\n", 43);
-        // free_lists_collector();
+        free_at_exit();
         exit(2);
     }
     return (0);
@@ -1325,7 +1327,7 @@ int file_error(t_minishell *minishell, t_environment *env, char *filename)
         return (1);
     }
     set_exit_status(env, 1);
-    //free_lists_collector
+    free_at_exit();
     exit(1);
 }
 
@@ -1384,15 +1386,20 @@ void    start_execute_one(t_minishell *minishell, t_environment **env)
 {
     char **env_conv;
 
-    env_conv = convert_env(*env);
     open_files(minishell, *env, minishell->files);
     minishell->path = get_cmd_path(minishell->command, *env, 0);
     if (minishell->path == NULL)
+    {
+        free_at_exit();
         exit(127);
+    }
     dup2(minishell->infile, 0);
     dup2(minishell->outfile, 1);
+    env_conv = convert_env(*env);
     execve(minishell->path, minishell->args, env_conv);
     perror("bash");
+    free_split(env_conv);
+    free_at_exit();
     exit(126);
 }
 
@@ -1430,7 +1437,7 @@ void    pipe_init(t_minishell *mini)
         if (pipe(pip + i * 2))
         {
             perror("pipe");
-            //free_lists_collector();
+            free_at_exit();
             exit(1);
         }
         i ++;
@@ -1526,16 +1533,24 @@ void final_execution(t_minishell *singl_mini, t_environment **env)
 {
     char **env_conv;
 
-    env_conv = convert_env(*env);
     open_files(singl_mini, *env, singl_mini->files);
     get_in_out_priorities(singl_mini);
     if (check_builtin(singl_mini, env) == 0)
+    {
+        free_at_exit();
         exit (0);
+    }
     singl_mini->path = get_cmd_path(singl_mini->command, *env, 0);
     if (singl_mini->path == NULL)
+    {
+        free_at_exit();
         exit(127);
+    }
+    env_conv = convert_env(*env);
     execve(singl_mini->path, singl_mini->args, env_conv );
     perror("execve");
+    free_split(env_conv);
+    free_at_exit();
     exit(1);
 }
 
@@ -1647,16 +1662,21 @@ void    execution(t_minishell *minishell, t_environment **env)
 
 void collecter_init(t_minishell **minishell, t_environment **env, t_token **tokens)
 {
-    lists_collecter = malloc(sizeof(lists_collecter));
+    lists_collecter = malloc(sizeof(t_lists_collecter));
+    if (lists_collecter == NULL)
+    {
+        perror("malloc");
+        exit(1);
+    }
+    *env = NULL;
+    *tokens = NULL;
+    *minishell = NULL;
     lists_collecter->minishell = minishell;
     lists_collecter->env = env;
     lists_collecter->tokens = tokens;
-    *env = NULL;
-    *minishell = NULL;
-    *tokens = NULL;
 }
 
-free_at_exit()
+void free_at_exit()
 {
     if (*lists_collecter->env )
         free_environment(*lists_collecter->env);
@@ -1675,9 +1695,9 @@ int main(int argc, char **argv, char **base_env)
     char *str;
     
     (void)argv;
-    env = NULL;
     if (argc > 1)
         return (1);
+    collecter_init(&minishell, &env, &tokens);
     get_environment(&env, base_env);
     printf("Welcome to minishell\n");
     while (1)
@@ -1731,8 +1751,8 @@ int main(int argc, char **argv, char **base_env)
         free(str);
         free_tokens(tokens);
         free_minishell(minishell);
-
     }
     free_environment(env);
+    free(lists_collecter);
     return (0);
 }

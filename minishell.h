@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/07 21:51:36 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/08 10:44:59 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,6 @@
 #define MAGENTA "\033[0;35m"
 #define RESET "\033[0m"
 
-extern t_lists_collecter *lists_collecter;
 
 
 typedef struct s_environment
@@ -103,10 +102,14 @@ typedef struct s_lists_collecter
 } t_lists_collecter;
 
 
+extern t_lists_collecter *lists_collecter;
+
+
 
 // -------------- common function ---------------
 int args_count(char **args);
 void free_split(char **splited);
+void free_at_exit();
 char *ft_putnbr(int nbr);
 void set_exit_status(t_environment *env, int new_value);
 

@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 10:47:20 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/07 21:32:14 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/08 11:18:36 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,11 +24,15 @@ int is_directory(char *cmd)
 int empty_cmd(char *cmd)
 {
 	if (cmd == NULL)
+	{
+		free_at_exit();
 		exit(0);
+	}
 	if (ft_strncmp(cmd, "", 1) == 0 || (ft_strlen(cmd) == 2 && cmd[0] == '"' && cmd[1] == '"'))
 	{
 		write(2, "'': command not found\n",
 			ft_strlen("'': command not found\n"));
+		free_at_exit();
 		return (1);
 	}
 	return (0);
@@ -43,6 +47,7 @@ int	parse_cmds(char *command)
 			write(2, "bash: ", 6);
 			write(2, command, ft_strlen(command));
 			write(2, ": Is a directory\n", 17);
+			free_at_exit();
 			exit(126);
 		}
 		if (access(command, F_OK) == 0)
@@ -53,6 +58,7 @@ int	parse_cmds(char *command)
 			write(2, command, ft_strlen(command));
 			write(2, ": ", 2);
 			perror("");
+			free_at_exit();
 			exit(127);
 		}
 	}
@@ -74,7 +80,7 @@ void free_split(char **splited)
 
 char **check_paths(t_environment *temp, char *cmd)
 {
-	if (temp == NULL || ft_strncmp(temp->value, "", 1) == 0)
+	if (temp == NULL ||(temp->value == NULL || ft_strncmp(temp->value, "", 1) == 0))
 	{
 		write(2, "bash: ", 6);
 		write(2, cmd, ft_strlen(cmd));
