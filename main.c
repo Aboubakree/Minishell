@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/07 15:57:03 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/06/07 19:30:07by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,12 @@
 // syntax error checking/
 
 
+t_environment	*env;
+
+void	puterr(char *str)
+{
+	ft_putstr_fd(str, 2);
+}
 int	count_char_occurence(char *str, int c)
 {
 	int	i;
@@ -69,6 +75,35 @@ int	check_logical_operators(const char *str)
 	}
 	return (0);
 }
+void skip_whitespaces(const char *str, int *i)
+{
+	while (str[*i] && is_whitespace(str[*i]))
+		(*i)++;
+}
+
+int	check_misplaced_operators_helper(const char *str, int *nb_quote_single
+	, int *nb_quote_double,int *expect_operator)
+{
+	int	i;
+
+	i = 0;
+	while (str[i])
+	{
+		update_nb_quote(str[i], nb_quote_single, nb_quote_double);
+		if (str[i] == '|' && *nb_quote_single % 2 == 0
+			&& *nb_quote_double % 2 == 0)
+		{
+			if (*expect_operator == 1)
+				return (ft_putstr_fd(\
+					"Syntax error : Misplaced Operator\n", 2), 1);
+			*expect_operator = 1;
+		}
+		else if (!is_whitespace(str[i]))
+			*expect_operator = 0;
+		i++;
+	}
+	return (0);
+}
 
 int	check_misplaced_operators(const char *str)
 {
@@ -81,29 +116,16 @@ int	check_misplaced_operators(const char *str)
 	nb_quote_single = 0;
 	nb_quote_double = 0;
 	expect_operator = 0;
-	while (str[i] && is_whitespace(str[i]))
-		i++;
+	skip_whitespaces(str, &i);
 	if (str[i] == '|')
-		return (printf("Syntax error : \
-			Misplaced Operator at first of line\n"), 1);
-	i = 0;
-	while (str[i])
-	{
-		update_nb_quote(str[i], &nb_quote_single, &nb_quote_double);
-		if (str[i] == '|' && nb_quote_single % 2 == 0
-			&& nb_quote_double % 2 == 0)
-		{
-			if (expect_operator == 1)
-				return (printf("Syntax error : Misplaced Operator\n"), 1);
-			expect_operator = 1;
-		}
-		else if (!is_whitespace(str[i]))
-			expect_operator = 0;
-		i++;
-	}
+		return (ft_putstr_fd(\
+			"Syntax error : Misplaced Operator at first of line\n", 2), 1);
+	if (check_misplaced_operators_helper(str, &nb_quote_single
+			, &nb_quote_double, &expect_operator) == 1)
+		return (1);
 	if (expect_operator == 1)
-		return (printf("Syntax error : Misplaced\
-			 Operator at end of line\n"), 1);
+		return (ft_putstr_fd(\
+			"Syntax error : Misplaced Operator at end of line\n", 2), 1);
 	else
 		return (0);
 }
@@ -158,17 +180,16 @@ int	check_invalid_redirection(const char *str)
 	return (0);
 }
 
-int	check_syntax_error(const char *str, t_environment *env)
+int	check_syntax_error(const char *str)
 {
 	if (check_unclosed_quotes(str) == 1)
-		return (set_exit_status(env, 2),
-			printf("Syntax error : Unclosed quote\n"), 1);
+		return (puterr("Syntax error : Unclosed quote\n"), 1);
 	if (check_misplaced_operators(str) == 1)
-		return (set_exit_status(env, 2), 1);
+		return (1);
 	if (check_logical_operators(str) == 1)
-		return (set_exit_status(env, 2), 1);
+		return (1);
 	if (check_invalid_redirection(str) == 1)
-		return (set_exit_status(env, 2), 1);
+		return (1);
 	return (0);
 }
 
@@ -290,7 +311,7 @@ int	check_if_have_quotes(char *str)
 		i++;
 	}
 	if (single_quotes >= 1 || double_quotes >= 1)
-		return 0;
+		return (0);
 	return (1);
 }
 
@@ -377,15 +398,15 @@ char	*get_type_token(t_type_of_token type)
 
 void	print_tokens(t_token *tokens)
 {
+		printf("--------------------\n");
 	while (tokens)
 	{
-		printf("--------------------\n");
 		// printf("type: %d, value: %s\n", tokens->type, tokens->value);
-		printf("=======>type: %s, value: %s\n"
+		printf("=======>type: %s, value: [%s]\n"
 			, get_type_token(tokens->type), tokens->value);
-		printf("--------------------\n");
 		tokens = tokens->next;
 	}
+		printf("--------------------\n");
 }
 
 void	handle_operator(t_token **head, const char *str, int *i)
@@ -504,6 +525,25 @@ void	free_tokens(t_token *tokens)
 //     }
 // }
 
+
+int check_syntax_error_tokens_helper(t_token *temp)
+{
+	if (temp->type == T_HERDOC && (temp->next->value[0] == '\0'
+			|| temp->next->type != T_WORD))
+		return (puterr("Syntax error: Expected a limiter after '<<'\n"), 1);
+	if (temp->type == T_REDIRECTION_IN && temp->next->type != T_WORD)
+		return (puterr("Syntax error: Expected a file after '<'\n"), 1);
+	if (temp->type == T_REDIRECTION_OUT && temp->next->type != T_WORD)
+		return (puterr("Syntax error: Expected a file after '>'\n"), 1);
+	if (temp->type == T_REDIRECTION_APPEND && temp->next->type != T_WORD)
+		return (puterr("Syntax error : Expected a file after '>>'\n"), 1);
+	if (temp->type == T_PIPE && !temp->next)
+		return (puterr("Syntax error : Expected a command after '|'\n"), 1);
+	if (temp->type == T_PIPE && temp->next->type == T_PIPE)
+		return (puterr("Error: Logical operators not supported YET.\n"), 1);
+	return (0);
+}
+
 int	check_syntax_error_tokens(t_token *tokens)
 {
 	t_token	*temp;
@@ -513,26 +553,14 @@ int	check_syntax_error_tokens(t_token *tokens)
 	temp = tokens;
 	while (temp)
 	{
-		if (temp->type == T_HERDOC && temp->next->type != T_WORD)
-			return (printf("Syntax error : \
-				Expected a limiter after '<<'\n"), 1);
-		if (temp->type == T_REDIRECTION_IN && temp->next->type != T_WORD)
-			return (printf("Syntax error : Expected a file after '<'\n"), 1);
-		if (temp->type == T_REDIRECTION_OUT && temp->next->type != T_WORD)
-			return (printf("Syntax error : Expected a file after '>'\n"), 1);
-		if (temp->type == T_REDIRECTION_APPEND && temp->next->type != T_WORD)
-			return (printf("Syntax error : Expected a file after '>>'\n"), 1);
-		if (temp->type == T_PIPE && !temp->next)
-			return (printf("Syntax error : Expected a command after '|'\n"), 1);
-		if (temp->type == T_PIPE && temp->next->type == T_PIPE)
-			return (printf("Error: Logical operators '&&'\
-				and '||' are not supported YET.\n"), 1);
+		if (check_syntax_error_tokens_helper(temp) == 1)
+			return (1);
 		if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_IN)
-			return (printf("Syntax error : Expected a command after '|'\n"), 1);
+			return (puterr("Syntax error : Expected a command after '|'\n"), 1);
 		if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_OUT)
-			return (printf("Syntax error : Expected a command after '|'\n"), 1);
+			return (puterr("Syntax error : Expected a command after '|'\n"), 1);
 		if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_APPEND)
-			return (printf("Syntax error : Expected a command after '|'\n"), 1);
+			return (puterr("Syntax error : Expected a command after '|'\n"), 1);
 		temp = temp->next;
 	}
 	return (0);
@@ -649,7 +677,10 @@ static char	**ft_free(char **strs)
 	free(strs);
 	return (0);
 }
-static char	**do_it2(char **res, char const *s, char c, int i)
+
+
+
+static char	**ft_split2_helper(char **res, char const *s, char c, int i)
 {
 	int		start;
 	int		end;
@@ -697,7 +728,7 @@ char	**ft_split2(char const *s, char c)
 	res = (char **)malloc((ft_count_words(s, c) + 1) * sizeof(char *));
 	if (!res)
 		return (NULL);
-	res = do_it2(res, s, c, i);
+	res = ft_split2_helper(res, s, c, i);
 	if (!res)
 		return (ft_free(res));
 	return (res);
@@ -1115,6 +1146,7 @@ void	handle_ctrl_c(int signal)
 		rl_on_new_line();
 		// redrws the readline line
 		rl_redisplay();
+		set_exit_status(env, 130);
 		return;
 	}
 }
@@ -1702,7 +1734,6 @@ void	execution(t_minishell *minishell, t_environment **env)
 
 int main(int argc, char **argv, char **base_env)
 {
-	t_environment	*env;
 	t_token			*tokens;
 	t_minishell		*minishell;
 	char			*str;
@@ -1742,7 +1773,14 @@ int main(int argc, char **argv, char **base_env)
 		tokens = expand(tokens, env);
 		// print_tokens(tokens);
 		// printf("after expand ======================\n");
-		if (check_syntax_error(str, env) == 1 ||  ft_strlen(str) == 0 || ft_strncmp(str, ":", ft_strlen(str)) == 0 || check_syntax_error_tokens(tokens) == 1)
+		if (check_syntax_error(str) == 1 || check_syntax_error_tokens(tokens) == 1)
+		{
+			set_exit_status(env, 2);
+			free(str);
+			free_tokens(tokens);
+			continue ;
+		}
+		if (ft_strlen(str) == 0 || ft_strncmp(str, ":", ft_strlen(str)) == 0)
 		{
 			add_history(str);
 			free(str);
@@ -1753,13 +1791,13 @@ int main(int argc, char **argv, char **base_env)
 		// print_minishell(minishell);
 		// printf("minishell after deleting quotes\n");
 		minishell = delete_quotes(minishell);
-		if (minishell->command != NULL && is_empty(minishell->command) == 1)
-		{
-			free(str);
-			free_tokens(tokens);
-			free_minishell(minishell);
-			continue ;
-		}
+		// if (minishell->command != NULL && is_empty(minishell->command) == 1)
+		// {
+		// 	free(str);
+		// 	free_tokens(tokens);
+		// 	free_minishell(minishell);
+		// 	continue ;
+		// }
 		// print_minishell(minishell);
 		// printf("%s\n", str);
 		execution(minishell, &env);
