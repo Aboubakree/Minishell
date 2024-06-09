@@ -55,26 +55,32 @@ void	update_nb_quote(char c, int *nb_quote_single, int *nb_quote_double)
 int	check_logical_operators(const char *str)
 {
 	int	i;
+	int	in_single_quote;
+	int	in_double_quote;
 
 	i = 0;
+	in_single_quote = 0;
+	in_double_quote = 0;
 	if (!str)
 		return (0);
-
-	while (str[i] && is_whitespace(str[i]))
-		i++;
-	if (str[i] == '&')
-		return (printf("Syntax error : Misplaced \
-			Operator at first of line\n"), 1);
-	while (str[i] && str[i] != '&')
-		i++;
-	if (str[i] == '&')
+	while (str[i])
 	{
-		if (str[i + 1] == '&')
-			return (printf("Error: Logical operators '&&'\
-				 and '||' are not supported YET.\n"), 1);
+		if (str[i] == '\'' && !in_double_quote)
+			in_single_quote = !in_single_quote;
+		else if (str[i] == '\"' && !in_single_quote)
+			in_double_quote = !in_double_quote;
+		else if (str[i] == '&' && !in_single_quote && !in_double_quote)
+		{
+			while (str[i] && is_whitespace(str[i]))
+				i++;
+			if (str[i] == '&')
+				return (puterr("Error: Logical Operators not supported.\n"), 1);
+		}
+		i++;
 	}
 	return (0);
 }
+
 void skip_whitespaces(const char *str, int *i)
 {
 	while (str[*i] && is_whitespace(str[*i]))
@@ -744,20 +750,20 @@ char	**ft_split2(char const *s, char c)
 
 void check_quote(const char *str, int *in_single_quotes, int *in_double_quotes, int *i)
 {
-		if (str[*i] == '\'' && *in_single_quotes == 0 && *in_double_quotes == 0)
-			*in_single_quotes = 1;
-		else if (str[*i] == '\'' && *in_single_quotes == 1)
-			*in_single_quotes = 0;
-		else if (str[*i] == '\"' && *in_double_quotes == 0
-			&& *in_single_quotes == 0)
-			*in_double_quotes = 1;
-		else if (str[*i] == '\"' && *in_double_quotes == 1)
-			*in_double_quotes = 0;
+	if (str[*i] == '\'' && *in_single_quotes == 0 && *in_double_quotes == 0)
+		*in_single_quotes = 1;
+	else if (str[*i] == '\'' && *in_single_quotes == 1)
+		*in_single_quotes = 0;
+	else if (str[*i] == '\"' && *in_double_quotes == 0
+		&& *in_single_quotes == 0)
+		*in_double_quotes = 1;
+	else if (str[*i] == '\"' && *in_double_quotes == 1)
+		*in_double_quotes = 0;
 }
 
-void handle_quotes_after_dollar(char *str)
+void	handle_quotes_after_dollar(char *str)
 {
-	int i;
+	int	i;
 
 	if (str[0] == '$' && (str[1] == '\'' || str[1] == '\"'))
 	{
@@ -772,12 +778,12 @@ void handle_quotes_after_dollar(char *str)
 
 char *change_value(char *str, int *i, int *index)
 {
-	char *new_value;
-	t_environment *get_env;
-	char *value;
-	char *first;
-	char *last;
-	char *env_variable;
+	char			*new_value;
+	t_environment	*get_env;
+	char			*value;
+	char			*first;
+	char			*last;
+	char			*env_variable;
 
 	env_variable = ft_substr(str, *i + 1, *index - *i - 1);
 	get_env = env_get_bykey(env, env_variable);
@@ -796,7 +802,28 @@ char *change_value(char *str, int *i, int *index)
 	free(first);
 	free(env_variable);
 	free(str);
-	return new_value;
+	return (new_value);
+}
+
+int expand_helper(int index, int *i, char *str)
+{
+	index = *i;
+	index++;
+	if (str[index] == '?' || is_number(str[index]))
+		index++;
+	else
+	{
+		while (str[index] && is_word(str[index]))
+			index++;
+	}
+	return (index);
+}
+
+void initialize_expand_string(int *i, int *in_single_quotes, int *in_double_quotes)
+{
+	*i = 0;
+	*in_single_quotes = 0;
+	*in_double_quotes = 0;
 }
 
 char	*expand_string(char *str, int from_heredoc)
@@ -806,36 +833,25 @@ char	*expand_string(char *str, int from_heredoc)
 	int		in_double_quotes;
 	int		index;
 
-	i = 0;
-	in_single_quotes = 0;
-	in_double_quotes = 0;
+	initialize_expand_string(&i, &in_single_quotes, &in_double_quotes);
 	while (str[i])
 	{
 		check_quote(str, &in_single_quotes, &in_double_quotes, &i);
-		if ((str[i] == '$' && in_single_quotes == 0 && from_heredoc == 0
-				&& is_word(str[i + 1])) || (str[i] == '$' && from_heredoc == 1))
+		if ((str[i] == '$' && ((in_single_quotes == 0 && from_heredoc == 0
+						&& is_word(str[i + 1])) || from_heredoc == 1)))
 		{
 			if (is_whitespace(str[i + 1]) || str[i + 1] == '\0')
 			{
 				i++;
 				continue ;
 			}
-			index = i;
-			index++;
-			if (str[index] == '?' || is_number(str[index]))
-				index++;
-			else
-			{
-				while (str[index] && is_word(str[index]))
-					index++;
-			}
+			index = expand_helper(index, &i, str);
 			str = change_value(str, &i, &index);
 		}
 		else
 			i++;
 	}
-	handle_quotes_after_dollar(str);
-	return (str);
+	return (handle_quotes_after_dollar(str), str);
 }
 
 
@@ -878,6 +894,8 @@ int	ft_remove_char(char *str, int index)
 	str[j] = '\0';
 	return (1);
 }
+
+
 
 t_minishell	*delete_quotes(t_minishell *minishell)
 {
