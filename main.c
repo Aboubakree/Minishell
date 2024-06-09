@@ -1017,9 +1017,100 @@ int	check_if_have_space(const char *str)
 	}
 	return (0);
 }
+t_token *add_redirection_in(t_token *temp, t_file_redirection **files)
+{
+	temp = temp->next;
+	if (check_if_have_space(temp->value) == 1 && in_quote(temp->value) == 0)
+	{
+		puterr("bash: [");
+		puterr(temp->value);
+		puterr("]: ambiguous redirect\n");
+	}
+	else 
+	{
+		add_file_redirection_back(files, new_file_redirection(ft_strdup(temp->value)
+			,T_REDIRECTION_IN));
+	}
+	return (temp);
+}
 
+t_token *add_redirection_out(t_token *temp, t_file_redirection **files)
+{
+	temp = temp->next;
+	if (check_if_have_space(temp->value) == 1 && in_quote(temp->value) == 0)
+	{
+		puterr("bash: [");
+		puterr(temp->value);
+		puterr("]: ambiguous redirect\n");
+	}
+	else
+		add_file_redirection_back(files, new_file_redirection(ft_strdup(temp->value)
+			,T_REDIRECTION_OUT));
+	return (temp);
+}
 
+t_token *add_redirection_append(t_token *temp, t_file_redirection **files)
+{
+	temp = temp->next;
+	if (check_if_have_space(temp->value) == 1 && in_quote(temp->value) == 0)
+	{
+		puterr("bash: [");
+		puterr(temp->value);
+		puterr("]: ambiguous redirect\n");
+	}
+	else
+		add_file_redirection_back(files, new_file_redirection(ft_strdup(temp->value)
+			,T_REDIRECTION_APPEND));
+	return (temp);
+}
 
+t_token *add_heredoc(t_token *temp, t_file_redirection **files)
+{
+	temp = temp->next;
+	add_file_redirection_back(files, new_file_redirection(ft_strdup(temp->value)
+		,T_HERDOC));
+	return (temp);
+}
+
+int initialize_and_free(char ***args, char **args1, char **command, t_file_redirection **files)
+{
+	*command = NULL;
+	free(*args1);
+	*args = NULL;
+	*args1 = NULL;
+	*files = NULL;
+	return (1);
+}
+
+int handle_word_new_command(char **command ,t_token *temp, char **args1, char ***args)
+{
+	char *temp_args1;
+
+	temp_args1 = ft_strjoin(*args1, temp->value);
+	free(*args1);
+	*args1 = temp_args1;
+	*command = ft_strdup(temp->value);
+	temp_args1 = ft_strjoin(*args1, "\r");
+	free(*args1);
+	*args1 = temp_args1;
+	free_args(*args);
+	*args = ft_split2(*args1, '\r');
+	return (0);
+}
+
+void join_args(t_token *temp, char **args1, char ***args)
+{
+	char *temp_args1;
+
+	temp_args1 = ft_strjoin(*args1, temp->value);
+	free(*args1);
+	*args1 = temp_args1;
+	temp_args1 = ft_strjoin(*args1, "\r");
+	free(*args1);
+	*args1 = temp_args1;
+	free_args(*args);
+	*args = ft_split2(*args1, '\r');
+}
 
 t_minishell	*token_to_minishell(t_token *tokens)
 {
@@ -1027,7 +1118,6 @@ t_minishell	*token_to_minishell(t_token *tokens)
 	char				*command;
 	char				*args1;
 	char				**args;
-	char				*temp_args1;
 	t_file_redirection	*files;
 	t_token				*temp;
 	int					new_command;
@@ -1045,75 +1135,29 @@ t_minishell	*token_to_minishell(t_token *tokens)
 		if (temp->type == T_PIPE)
 		{
 			add_minishell_back(&minishell, new_minishell(command, args, files));
-			command = NULL;
-			free(args1);
-			args = NULL;
-			args1 = NULL;
-			files = NULL;
+			new_command = initialize_and_free(&args, &args1, &command, &files);
 			temp = temp->next;
-			new_command = 1;
 			continue ;
 		}
 		if (temp->type == T_WORD)
 		{
 			if (new_command == 1)
-			{
-				temp_args1 = ft_strjoin(args1, temp->value);
-				free(args1);
-				args1 = temp_args1;
-				command = ft_strdup(temp->value);
-				temp_args1 = ft_strjoin(args1, "\r");
-				free(args1);
-				args1 = temp_args1;
-				free_args(args);
-				args = ft_split2(args1, '\r');
-				new_command = 0;
-			}
+				new_command = handle_word_new_command(&command, temp, &args1, &args);
 			else
-			{
-				temp_args1 = ft_strjoin(args1, temp->value);
-				free(args1);
-				args1 = temp_args1;
-				temp_args1 = ft_strjoin(args1, "\r");
-				free(args1);
-				args1 = temp_args1;
-				free_args(args);
-				args = ft_split2(args1, '\r');
-			}
+				join_args(temp, &args1, &args);
 		}
 		else if (temp->type == T_REDIRECTION_IN)
-		{
-			temp = temp->next;
-			if (check_if_have_space(temp->value) == 1 && in_quote(temp->value) == 0)
-				printf("%sbash: [%s]: ambiguous redirect\n%s",RED,  temp->value, RESET);
-			add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_IN));
-		}
+			temp = add_redirection_in(temp, &files);
 		else if (temp->type == T_REDIRECTION_OUT)
-		{
-			temp = temp->next;
-			if (check_if_have_space(temp->value) == 1 && in_quote(temp->value) == 0)
-				printf("%sbash: [%s]: ambiguous redirect\n%s",RED,  temp->value, RESET);
-			else
-				add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_OUT));
-		}
+			temp = add_redirection_out(temp, &files);
 		else if (temp->type == T_REDIRECTION_APPEND)
-		{
-			temp = temp->next;
-			if (check_if_have_space(temp->value) == 1 && in_quote(temp->value) == 0)
-				printf("%sbash: [%s]: ambiguous redirect\n%s",RED,  temp->value, RESET);
-			else
-				add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_APPEND));
-		}
+			temp = add_redirection_append(temp, &files);
 		else if (temp->type == T_HERDOC)
-		{
-			temp = temp->next;
-			add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_HERDOC));
-		}
+			temp = add_heredoc(temp, &files);
 		temp = temp->next;
 	}
 	add_minishell_back(&minishell, new_minishell(command, args, files));
-	free(args1);
-	return (minishell);
+	return (free(args1), minishell);
 }
 
 int	is_empty(char *str)
