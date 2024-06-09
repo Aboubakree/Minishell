@@ -895,18 +895,58 @@ int	ft_remove_char(char *str, int index)
 	return (1);
 }
 
-
-
-t_minishell	*delete_quotes(t_minishell *minishell)
+void delete_quotes_from_string(char *str)
 {
-	t_minishell			*temp;
-	t_file_redirection	*temp_files;
-	int					in_single_quote;
-	int					in_double_quote;
-	int					i;
-	int					j;
-	int					k;
+	int in_single_quote;
+	int in_double_quote;
+	int j;
+	int k;
 
+	in_single_quote = 0;
+	in_double_quote = 0;
+	j = 0;
+	k = 0;
+	while (str[j])
+	{
+		if (str[j] == '\'' && !in_double_quote)
+			in_single_quote = !in_single_quote;
+		else if (str[j] == '\"' && !in_single_quote)
+			in_double_quote = !in_double_quote;
+		else
+		{
+			str[k] = str[j];
+			k++;
+		}
+		j++;
+	}
+	str[k] = '\0';
+}
+void delete_quotes_from_files(t_minishell *minishell)
+{
+	t_minishell *temp;
+	t_file_redirection *files;
+
+	temp = minishell;
+	if (temp!= NULL && temp->files != NULL)
+	{
+		while (temp)
+		{
+			files = temp->files;
+			while (files)
+			{
+				delete_quotes_from_string(files->filename);
+				files = files->next;
+			}
+			temp = temp->next;
+		}
+	}
+}
+void delete_quotes_from_args(t_minishell *minishell)
+{
+	t_minishell *temp;
+	int i;
+
+	i = 0;
 	temp = minishell;
 	if (temp->args != NULL)
 	{
@@ -915,24 +955,7 @@ t_minishell	*delete_quotes(t_minishell *minishell)
 			i = 0;
 			while (temp->args[i])
 			{
-				in_single_quote = 0;
-				in_double_quote = 0;
-				j = 0;
-				k = 0;
-				while (temp->args[i][j])
-				{
-					if (temp->args[i][j] == '\'' && !in_double_quote)
-						in_single_quote = !in_single_quote;
-					else if (temp->args[i][j] == '\"' && !in_single_quote)
-						in_double_quote = !in_double_quote;
-					else
-					{
-						temp->args[i][k] = temp->args[i][j];
-						k++;
-					}
-					j++;
-				}
-				temp->args[i][k] = '\0';
+				delete_quotes_from_string(temp->args[i]);
 				i++;
 			}
 			temp = temp->next;
@@ -944,39 +967,16 @@ t_minishell	*delete_quotes(t_minishell *minishell)
 		}
 		if (minishell->args[0])
 			minishell->command = ft_strdup(minishell->args[0]);
-		temp = minishell;
-	}
-	if (temp != NULL && temp->files != NULL)
-	{
-		temp = minishell;
-		while (temp)
-		{
-			temp_files = temp->files;
-			while (temp_files)
-			{
-				in_single_quote = 0;
-				in_double_quote = 0;
-				j = 0;
-				k = 0;
-				while (temp_files->filename[j])
-				{
-					if (temp_files->filename[j] == '\'' && !in_double_quote)
-						in_single_quote = !in_single_quote;
-					else if (temp_files->filename[j] == '\"' && !in_single_quote)
-						in_double_quote = !in_double_quote;
-					else
-					{
-						temp_files->filename[k] = temp_files->filename[j];
-						k++;
-					}
-					j++;
-				}
-				temp_files->filename[k] = '\0';
-				temp_files = temp_files->next;
-			}
-			temp = temp->next;
-		}
-	}
+	}	
+}
+
+t_minishell	*delete_quotes(t_minishell *minishell)
+{
+	t_minishell			*temp;
+
+	delete_quotes_from_args(minishell);
+	temp = minishell;
+	delete_quotes_from_files(temp);
 	return (minishell);
 }
 
@@ -1018,6 +1018,21 @@ int	check_if_have_space(const char *str)
 	return (0);
 }
 
+void join_and_free_args(t_token *temp, char *args1, char **args)
+{
+	char *temp_args1;
+
+	temp_args1 = ft_strjoin(args1, temp->value);
+	free(args1);
+	args1 = temp_args1;
+	temp_args1 = ft_strjoin(args1, "\r");
+	free(args1);
+	args1 = temp_args1;
+	free_args(args);
+	args = ft_split2(args1, '\r');
+
+}
+
 t_minishell	*token_to_minishell(t_token *tokens)
 {
 	t_minishell			*minishell;
@@ -1053,6 +1068,7 @@ t_minishell	*token_to_minishell(t_token *tokens)
 		}
 		if (temp->type == T_WORD)
 		{
+			// handle_word_token_to_minishell(temp, &new_command, args1, args);
 			if (new_command == 1)
 			{
 				temp_args1 = ft_strjoin(args1, temp->value);
@@ -1068,6 +1084,7 @@ t_minishell	*token_to_minishell(t_token *tokens)
 			}
 			else
 			{
+				// join_and_free_args(temp, args1, args);
 				temp_args1 = ft_strjoin(args1, temp->value);
 				free(args1);
 				args1 = temp_args1;
@@ -1839,9 +1856,9 @@ int main(int argc, char **argv, char **base_env)
 		// 	free_minishell(minishell);
 		// 	continue ;
 		// }
-		// print_minishell(minishell);
+		print_minishell(minishell);
 		// printf("%s\n", str);
-		execution(minishell, &env);
+		// execution(minishell, &env);
 		free(str);
 		free_tokens(tokens);
 		free_minishell(minishell);

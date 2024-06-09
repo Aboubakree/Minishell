@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   echo.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 10:41:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/04 16:54:08 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/09 14:47:27 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ void echo(t_minishell *single_mini, t_environment *env)
             j =+ 2;
             while(single_mini->args[i][j] == 'n')
                 j++;
-            if (single_mini->args[i][j] == '\0' || (single_mini->args[i][j] == '-' && single_mini->args[i][j + 1] == 'n'))
+            if (single_mini->args[i][j] == '\0')
                 i++;
             else 
                 break;
