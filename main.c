@@ -1072,29 +1072,31 @@ t_token *add_heredoc(t_token *temp, t_file_redirection **files)
 	return (temp);
 }
 
-int initialize_and_free(char ***args, char **args1, char **command, t_file_redirection **files)
+// int initialize_and_free(char ***args, char **args1, char **command, t_file_redirection **files)
+int initialize_and_free(t_minishell_data_help *data)
 {
-	*command = NULL;
-	free(*args1);
-	*args = NULL;
-	*args1 = NULL;
-	*files = NULL;
+	data->command = NULL;
+	free(data->args1);
+	data->args = NULL;
+	data->args1 = NULL;
+	data->files = NULL;
 	return (1);
 }
 
-int handle_word_new_command(char **command ,t_token *temp, char **args1, char ***args)
+// int handle_word_new_command(char **command ,t_token *temp, char **args1, char ***args)
+int handle_word_new_command(t_minishell_data_help *data, t_token *temp)
 {
 	char *temp_args1;
 
-	temp_args1 = ft_strjoin(*args1, temp->value);
-	free(*args1);
-	*args1 = temp_args1;
-	*command = ft_strdup(temp->value);
-	temp_args1 = ft_strjoin(*args1, "\r");
-	free(*args1);
-	*args1 = temp_args1;
-	free_args(*args);
-	*args = ft_split2(*args1, '\r');
+	temp_args1 = ft_strjoin(data->args1, temp->value);
+	free(data->args1);
+	data->args1 = temp_args1;
+	data->command = ft_strdup(temp->value);
+	temp_args1 = ft_strjoin(data->args1, "\r");
+	free(data->args1);
+	data->args1 = temp_args1;
+	free_args(data->args);
+	data->args = ft_split2(data->args1, '\r');
 	return (0);
 }
 
@@ -1111,15 +1113,6 @@ void join_args(t_token *temp, char **args1, char ***args)
 	free_args(*args);
 	*args = ft_split2(*args1, '\r');
 }
-typedef struct s_minishell_data_help
-{
-	char	*command;
-	char	*args1;
-	char	**args;
-	t_file_redirection	*files;
-	int	new_command;
-} t_minishell_data_help;
-
 t_minishell	*token_to_minishell(t_token *tokens)
 {
 	t_minishell			*minishell;
@@ -1138,14 +1131,15 @@ t_minishell	*token_to_minishell(t_token *tokens)
 		if (temp->type == T_PIPE)
 		{
 			add_minishell_back(&minishell, new_minishell(data.command, data.args, data.files));
-			data.new_command = initialize_and_free(&data.args, &data.args1, &data.command, &data.files);
+			data.new_command = initialize_and_free(&data);
 			temp = temp->next;
 			continue ;
 		}
 		if (temp->type == T_WORD)
 		{
 			if (data.new_command == 1)
-				data.new_command = handle_word_new_command(&data.command, temp, &data.args1, &data.args);
+				// data.new_command = handle_word_new_command(&data.command, temp, &data.args1, &data.args);
+				data.new_command = handle_word_new_command(&data, temp);
 			else
 				join_args(temp, &data.args1, &data.args);
 		}

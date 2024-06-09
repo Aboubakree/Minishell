@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/09 21:37:45 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/06/09 22:11:46 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,14 +91,14 @@ typedef struct s_minishell
     struct s_minishell *next;
 } t_minishell;
 
-typedef struct s_minishell_data_helper
+typedef struct s_minishell_data_help
 {
-    t_file_redirection *files;
-    char *args1;
-    char *command;
-    char **args;
-    int  *new_command;
-} t_minishell_data_helper;
+	char	*command;
+	char	*args1;
+	char	**args;
+	t_file_redirection	*files;
+	int	new_command;
+} t_minishell_data_help;
 
 
 
