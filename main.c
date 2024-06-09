@@ -1018,20 +1018,8 @@ int	check_if_have_space(const char *str)
 	return (0);
 }
 
-void join_and_free_args(t_token *temp, char *args1, char **args)
-{
-	char *temp_args1;
 
-	temp_args1 = ft_strjoin(args1, temp->value);
-	free(args1);
-	args1 = temp_args1;
-	temp_args1 = ft_strjoin(args1, "\r");
-	free(args1);
-	args1 = temp_args1;
-	free_args(args);
-	args = ft_split2(args1, '\r');
 
-}
 
 t_minishell	*token_to_minishell(t_token *tokens)
 {
@@ -1068,7 +1056,6 @@ t_minishell	*token_to_minishell(t_token *tokens)
 		}
 		if (temp->type == T_WORD)
 		{
-			// handle_word_token_to_minishell(temp, &new_command, args1, args);
 			if (new_command == 1)
 			{
 				temp_args1 = ft_strjoin(args1, temp->value);
@@ -1084,7 +1071,6 @@ t_minishell	*token_to_minishell(t_token *tokens)
 			}
 			else
 			{
-				// join_and_free_args(temp, args1, args);
 				temp_args1 = ft_strjoin(args1, temp->value);
 				free(args1);
 				args1 = temp_args1;
