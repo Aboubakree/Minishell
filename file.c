@@ -5,7 +5,7 @@
 
 int main() {
     char *t = "";
-    printf("'%s'\n",t);
+    printf("hello dhayach\n");
 
     return 0;
 }

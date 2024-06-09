@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 09:11:41 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/08 11:24:51 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/08 21:14:49 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@ int check_digits(char *str)
     int i;
 
     i = 0;
+    if (str && (str[i] == '-' || str[i] == '+'))
+        i ++;
     while (str && str[i])
     {
         if (ft_isdigit(str[i]) == 0)
@@ -24,6 +26,22 @@ int check_digits(char *str)
         i ++;
     }
     return (1);
+}
+
+void print_error(char *arg, int flag)
+{
+    if (flag == 0)
+    {
+        write(2, "exit\nbash: exit: ", ft_strlen("exit\nbash: exit: "));
+        write(2, arg, ft_strlen(arg));
+        write(2, ": numeric argument required\n", ft_strlen(": numeric argument required\n"));
+        free_at_exit();
+        exit(2);   
+    }
+    if (flag == 1)
+    {
+        write(2, "exit\nbash: exit: too many arguments\n", ft_strlen("exit\nbash: exit: too many arguments\n"));
+    }
 }
 
 
@@ -38,15 +56,11 @@ void fake_exit(t_minishell *singl_mini, t_environment *env)
     if (singl_mini->args && singl_mini->args[1])
     {
         if (check_digits(singl_mini->args[1]) == 0)
-        {
-            printf("exit\nbash: exit: %s: numeric argument required\n", singl_mini->args[1]);
-            free_at_exit();
-            exit(2);
-        }
+            print_error(singl_mini->args[1], 0);
         if (singl_mini->args[2] != NULL)
         {
             set_exit_status(env, 1);
-            return (printf("exit\nbash: exit: too many arguments\n"), (void)0);
+            return (print_error(singl_mini->args[1], 0), (void)0);
         }
         exit_status = ft_atoi(singl_mini->args[1]);
     }

@@ -4,7 +4,7 @@ NC=\033[0m # No Color
 CC = @gcc
 NAME = minishell
 
-CFLAGS = -Wall -Werror -Wextra -g3 #-fsanitize=address
+CFLAGS = -Wall -Werror -Wextra -fPIC -g3 #-fsanitize=address
 
 SRC = main.c minishell.c environment.c environment_2.c environment_3.c\
 	builtin/cd.c builtin/pwd.c builtin/env.c builtin/exit.c builtin/unset.c\

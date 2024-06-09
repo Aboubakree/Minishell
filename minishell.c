@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 10:47:20 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/08 11:18:36 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/08 18:32:57 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,8 @@ int is_directory(char *cmd)
 {
     struct stat path_stat;
 
- 	stat(cmd, &path_stat);
+    if (stat(cmd, &path_stat) != 0) 
+        return 0; // or handle error as appropriate
     // Check if it is a directory
     return (S_ISDIR(path_stat.st_mode));
 }
@@ -40,7 +41,7 @@ int empty_cmd(char *cmd)
 
 int	parse_cmds(char *command)
 {
-	if (ft_strchr(command, '/') != NULL)
+	if (command && ft_strchr(command, '/') != NULL)
 	{
 		if (is_directory(command))
 		{
