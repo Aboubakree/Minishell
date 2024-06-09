@@ -1111,53 +1111,56 @@ void join_args(t_token *temp, char **args1, char ***args)
 	free_args(*args);
 	*args = ft_split2(*args1, '\r');
 }
+typedef struct s_minishell_data_help
+{
+	char	*command;
+	char	*args1;
+	char	**args;
+	t_file_redirection	*files;
+	int	new_command;
+} t_minishell_data_help;
 
 t_minishell	*token_to_minishell(t_token *tokens)
 {
 	t_minishell			*minishell;
-	char				*command;
-	char				*args1;
-	char				**args;
-	t_file_redirection	*files;
+	t_minishell_data_help data;
 	t_token				*temp;
-	int					new_command;
 
-	args1 = NULL;
-	args = NULL;
-	command = NULL;
-	files = NULL;
-	new_command = 1;
-
+	data.args1 = NULL;
+	data.args = NULL;
+	data.command = NULL;
+	data.files = NULL;
+	data.new_command = 1;
 	minishell = NULL;
 	temp = tokens;
 	while (temp)
 	{
 		if (temp->type == T_PIPE)
 		{
-			add_minishell_back(&minishell, new_minishell(command, args, files));
-			new_command = initialize_and_free(&args, &args1, &command, &files);
+			add_minishell_back(&minishell, new_minishell(data.command, data.args, data.files));
+			data.new_command = initialize_and_free(&data.args, &data.args1, &data.command, &data.files);
 			temp = temp->next;
 			continue ;
 		}
 		if (temp->type == T_WORD)
 		{
-			if (new_command == 1)
-				new_command = handle_word_new_command(&command, temp, &args1, &args);
+			if (data.new_command == 1)
+				data.new_command = handle_word_new_command(&data.command, temp, &data.args1, &data.args);
 			else
-				join_args(temp, &args1, &args);
+				join_args(temp, &data.args1, &data.args);
 		}
 		else if (temp->type == T_REDIRECTION_IN)
-			temp = add_redirection_in(temp, &files);
+			temp = add_redirection_in(temp, &data.files);
 		else if (temp->type == T_REDIRECTION_OUT)
-			temp = add_redirection_out(temp, &files);
+			temp = add_redirection_out(temp, &data.files);
 		else if (temp->type == T_REDIRECTION_APPEND)
-			temp = add_redirection_append(temp, &files);
+			temp = add_redirection_append(temp, &data.files);
 		else if (temp->type == T_HERDOC)
-			temp = add_heredoc(temp, &files);
+			temp = add_heredoc(temp, &data.files);
 		temp = temp->next;
 	}
-	add_minishell_back(&minishell, new_minishell(command, args, files));
-	return (free(args1), minishell);
+	add_minishell_back(&minishell, new_minishell(data.command, data.args, data.files));
+	return (free(data.args1), minishell);
 }
 
 int	is_empty(char *str)
