@@ -22,6 +22,7 @@ void	puterr(char *str)
 {
 	ft_putstr_fd(str, 2);
 }
+
 int	count_char_occurence(char *str, int c)
 {
 	int	i;
@@ -342,7 +343,8 @@ t_file_redirection	*new_file_redirection(char *filename, t_type_of_token type)
 	return (file);
 }
 
-void	add_file_redirection_back(t_file_redirection **head, t_file_redirection *new_file)
+void	add_file_redirection_back(t_file_redirection **head
+	, t_file_redirection *new_file)
 {
 	t_file_redirection	*temp;
 
@@ -410,15 +412,14 @@ char	*get_type_token(t_type_of_token type)
 
 void	print_tokens(t_token *tokens)
 {
-		printf("--------------------\n");
+	printf("--------------------\n");
 	while (tokens)
 	{
-		// printf("type: %d, value: %s\n", tokens->type, tokens->value);
 		printf("=======>type: %s, value: [%s]\n"
 			, get_type_token(tokens->type), tokens->value);
 		tokens = tokens->next;
 	}
-		printf("--------------------\n");
+	printf("--------------------\n");
 }
 void	handle_operator(t_token **head, const char *str, int *i)
 {
@@ -521,23 +522,8 @@ void	free_tokens(t_token *tokens)
 		current = next;
 	}
 }
-// void free_tokens(t_token *tokens)
-// {
-//     t_token *temp;
 
-//     if (!tokens)
-//         return ;
-//     while(tokens)
-//     {
-//         temp = tokens;
-//         tokens = tokens->next;
-//         free(temp->value);
-//         free(temp);
-//     }
-// }
-
-
-int check_syntax_error_tokens_helper(t_token *temp)
+int	check_syntax_error_tokens_helper(t_token *temp)
 {
 	if (temp->type == T_HERDOC && (temp->next->value[0] == '\0'
 			|| temp->next->type != T_WORD))
@@ -776,14 +762,13 @@ void	handle_quotes_after_dollar(char *str)
 	}
 }
 
-char *change_value(char *str, int *i, int *index)
+char *change_value(char *str, int *i, int *index, char *env_variable)
 {
 	char			*new_value;
 	t_environment	*get_env;
 	char			*value;
 	char			*first;
 	char			*last;
-	char			*env_variable;
 
 	env_variable = ft_substr(str, *i + 1, *index - *i - 1);
 	get_env = env_get_bykey(env, env_variable);
@@ -819,25 +804,27 @@ int expand_helper(int index, int *i, char *str)
 	return (index);
 }
 
-void initialize_expand_string(int *i, int *in_single_quotes, int *in_double_quotes)
+void initialize_expand_string(int *i, int *in_single_quotes, int *in_double_quotes, char **env_variable)
 {
 	*i = 0;
 	*in_single_quotes = 0;
 	*in_double_quotes = 0;
+	*env_variable = NULL;
 }
 
 char	*expand_string(char *str, int from_heredoc)
 {
 	int		i;
-	int		in_single_quotes;
-	int		in_double_quotes;
+	int		in_s_quotes;
+	int		in_d_quotes;
 	int		index;
+	char	*env_variable;
 
-	initialize_expand_string(&i, &in_single_quotes, &in_double_quotes);
+	initialize_expand_string(&i, &in_s_quotes, &in_d_quotes, &env_variable);
 	while (str[i])
 	{
-		check_quote(str, &in_single_quotes, &in_double_quotes, &i);
-		if ((str[i] == '$' && ((in_single_quotes == 0 && from_heredoc == 0
+		check_quote(str, &in_s_quotes, &in_d_quotes, &i);
+		if ((str[i] == '$' && ((in_s_quotes == 0 && from_heredoc == 0
 						&& is_word(str[i + 1])) || from_heredoc == 1)))
 		{
 			if (is_whitespace(str[i + 1]) || str[i + 1] == '\0')
@@ -846,7 +833,7 @@ char	*expand_string(char *str, int from_heredoc)
 				continue ;
 			}
 			index = expand_helper(index, &i, str);
-			str = change_value(str, &i, &index);
+			str = change_value(str, &i, &index, env_variable);
 		}
 		else
 			i++;
@@ -967,7 +954,7 @@ void delete_quotes_from_args(t_minishell *minishell)
 		}
 		if (minishell->args[0])
 			minishell->command = ft_strdup(minishell->args[0]);
-	}	
+	}
 }
 
 t_minishell	*delete_quotes(t_minishell *minishell)
@@ -1072,7 +1059,6 @@ t_token *add_heredoc(t_token *temp, t_file_redirection **files)
 	return (temp);
 }
 
-// int initialize_and_free(char ***args, char **args1, char **command, t_file_redirection **files)
 int initialize_and_free(t_minishell_data_help *data)
 {
 	data->command = NULL;
@@ -1083,10 +1069,9 @@ int initialize_and_free(t_minishell_data_help *data)
 	return (1);
 }
 
-// int handle_word_new_command(char **command ,t_token *temp, char **args1, char ***args)
 int handle_word_new_command(t_minishell_data_help *data, t_token *temp)
 {
-	char *temp_args1;
+	char	*temp_args1;
 
 	temp_args1 = ft_strjoin(data->args1, temp->value);
 	free(data->args1);
@@ -1113,47 +1098,60 @@ void join_args(t_token *temp, char **args1, char ***args)
 	free_args(*args);
 	*args = ft_split2(*args1, '\r');
 }
+
+void token_to_minishell_helper(t_minishell_data_help *data, t_token *temp)
+{
+	if (temp->type == T_WORD)
+	{
+		if (data->new_command == 1)
+			data->new_command = handle_word_new_command(data, temp);
+		else
+			join_args(temp, &data->args1, &data->args);
+	}
+	else if (temp->type == T_REDIRECTION_IN)
+		temp = add_redirection_in(temp, &data->files);
+	else if (temp->type == T_REDIRECTION_OUT)
+		temp = add_redirection_out(temp, &data->files);
+	else if (temp->type == T_REDIRECTION_APPEND)
+		temp = add_redirection_append(temp, &data->files);
+	else if (temp->type == T_HERDOC)
+		temp = add_heredoc(temp, &data->files);
+}
+
+void initialize_token_to_minishell_data(t_minishell_data_help *data)
+{
+	data->args1 = NULL;
+	data->args = NULL;
+	data->command = NULL;
+	data->files = NULL;
+	data->new_command = 1;
+}
+
+
 t_minishell	*token_to_minishell(t_token *tokens)
 {
-	t_minishell			*minishell;
-	t_minishell_data_help data;
-	t_token				*temp;
+	t_minishell				*minishell;
+	t_minishell_data_help	data;
+	t_token					*temp;
 
-	data.args1 = NULL;
-	data.args = NULL;
-	data.command = NULL;
-	data.files = NULL;
-	data.new_command = 1;
+	initialize_token_to_minishell_data(&data);
 	minishell = NULL;
 	temp = tokens;
 	while (temp)
 	{
 		if (temp->type == T_PIPE)
 		{
-			add_minishell_back(&minishell, new_minishell(data.command, data.args, data.files));
+			add_minishell_back(&minishell,
+				new_minishell(data.command, data.args, data.files));
 			data.new_command = initialize_and_free(&data);
 			temp = temp->next;
 			continue ;
 		}
-		if (temp->type == T_WORD)
-		{
-			if (data.new_command == 1)
-				// data.new_command = handle_word_new_command(&data.command, temp, &data.args1, &data.args);
-				data.new_command = handle_word_new_command(&data, temp);
-			else
-				join_args(temp, &data.args1, &data.args);
-		}
-		else if (temp->type == T_REDIRECTION_IN)
-			temp = add_redirection_in(temp, &data.files);
-		else if (temp->type == T_REDIRECTION_OUT)
-			temp = add_redirection_out(temp, &data.files);
-		else if (temp->type == T_REDIRECTION_APPEND)
-			temp = add_redirection_append(temp, &data.files);
-		else if (temp->type == T_HERDOC)
-			temp = add_heredoc(temp, &data.files);
+		token_to_minishell_helper(&data, temp);
 		temp = temp->next;
 	}
-	add_minishell_back(&minishell, new_minishell(data.command, data.args, data.files));
+	add_minishell_back(&minishell,
+		new_minishell(data.command, data.args, data.files));
 	return (free(data.args1), minishell);
 }
 
@@ -1172,12 +1170,46 @@ int	is_empty(char *str)
 
 }
 
+void print_args(t_minishell *temp)
+{
+	int i;
+
+	i = 0;
+	if (temp->args)
+	{
+		printf("args: ");
+		while (temp->args[i])
+		{
+			printf("[%s]", temp->args[i]);
+			i++;
+		}
+	}
+	printf("\n");
+}
+
+void print_files(t_minishell *temp)
+{
+	t_file_redirection *temp_files;
+
+	if (temp->files)
+	{
+		temp_files = temp->files;
+		printf("files :\n");
+		while (temp_files)
+		{
+			printf(" file: [%s] \n", temp_files->filename);
+			printf("  type: %s \n", get_type_token(temp_files->type));
+			temp_files = temp_files->next;
+		}
+		printf("\n");
+	}
+
+}
+
 void	print_minishell(t_minishell *minishell)
 {
 	t_minishell			*temp;
-	t_file_redirection	*temp_files;
 	int					i;
-	int					j;
 
 	i = 0;
 	temp = minishell;
@@ -1185,33 +1217,9 @@ void	print_minishell(t_minishell *minishell)
 	{
 		printf("--------------------\n");
 		if (temp->command)
-			printf("command [%d]: [%s] ====> empty : %d\n",i,  temp->command, is_empty(temp->command));
-		if (temp->args)
-		{
-			printf("args: ");
-			j = 0;
-			if (temp->args)
-			{
-				while (temp->args[j])
-				{
-					printf("[%s]", temp->args[j]);
-					j++;
-				}
-			}
-			printf("\n");
-		}
-		if (temp->files)
-		{
-			temp_files = temp->files;
-			printf("files :\n");
-			while (temp_files)
-			{
-				printf(" file: [%s] \n", temp_files->filename);
-				printf("  type: %s \n", get_type_token(temp_files->type));
-				temp_files = temp_files->next;
-			}
-			printf("\n");
-		}
+			printf("command [%d]: [%s]\n", i, temp->command);
+		print_args(temp);
+		print_files(temp);
 		printf("--------------------\n");
 		temp = temp->next;
 		i++;
@@ -1261,13 +1269,27 @@ void	free_environment(t_environment *env)
 		free(temp);
 	}
 }
+void free_files(t_file_redirection *files)
+{
+	t_file_redirection	*temp_files;
+	t_file_redirection *temp_files_next;
 
+	if (files)
+	{
+		temp_files = files;
+		while (temp_files)
+		{
+			temp_files_next = temp_files->next;
+			free(temp_files->filename);
+			free(temp_files);
+			temp_files = temp_files_next;
+		}
+	}
+}
 void	free_minishell(t_minishell *minishell)
 {
 	t_minishell			*temp;
 	char				**temp_args;
-	t_file_redirection	*temp_files;
-	t_file_redirection	*temp_files_next;
 
 	if (!minishell)
 		return ;
@@ -1288,17 +1310,7 @@ void	free_minishell(t_minishell *minishell)
 			temp_args = temp->args;
 			free_args(temp_args);
 		}
-		if (temp->files)
-		{
-			temp_files = temp->files;
-			while (temp_files)
-			{
-				temp_files_next = temp_files->next;
-				free(temp_files->filename);
-				free(temp_files);
-				temp_files = temp_files_next;
-			}
-		}
+		free_files(temp->files);
 		free(temp);
 	}
 }
