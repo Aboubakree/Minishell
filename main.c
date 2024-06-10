@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/10 19:05:11 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/06/10 20:13:09 rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -836,7 +836,8 @@ char	*expand_string(char *str, int from_heredoc)
 		else
 			i++;
 	}
-	return (handle_quotes_after_dollar(str), str);
+	// return (handle_quotes_after_dollar(str), str);
+	return (str);
 }
 
 
@@ -897,6 +898,13 @@ void delete_quotes_from_string(char *str)
 			in_single_quote = !in_single_quote;
 		else if (str[j] == '\"' && !in_single_quote)
 			in_double_quote = !in_double_quote;
+		else if (str[j] == '$' && in_double_quote == 0 && in_single_quote == 0)
+		{
+			if (str[j] == '\'' && !in_double_quote)
+				in_single_quote = !in_single_quote;
+			else if (str[j] == '\"' && !in_single_quote)
+				in_double_quote = !in_double_quote;
+		}
 		else
 		{
 			str[k] = str[j];
@@ -1097,23 +1105,23 @@ void join_args(t_token *temp, char **args1, char ***args)
 	*args = ft_split2(*args1, '\r');
 }
 
-void token_to_minishell_helper(t_minishell_data_help *data, t_token *temp)
+void token_to_minishell_helper(t_minishell_data_help *data, t_token **temp)
 {
-	if (temp->type == T_WORD)
+	if ((*temp)->type == T_WORD)
 	{
 		if (data->new_command == 1)
-			data->new_command = handle_word_new_command(data, temp);
+			data->new_command = handle_word_new_command(data, (*temp));
 		else
-			join_args(temp, &data->args1, &data->args);
+			join_args((*temp), &data->args1, &data->args);
 	}
-	else if (temp->type == T_REDIRECTION_IN)
-		temp = add_redirection_in(temp, &data->files);
-	else if (temp->type == T_REDIRECTION_OUT)
-		temp = add_redirection_out(temp, &data->files);
-	else if (temp->type == T_REDIRECTION_APPEND)
-		temp = add_redirection_append(temp, &data->files);
-	else if (temp->type == T_HERDOC)
-		temp = add_heredoc(temp, &data->files);
+	else if ((*temp)->type == T_REDIRECTION_IN)
+		(*temp) = add_redirection_in((*temp), &data->files);
+	else if ((*temp)->type == T_REDIRECTION_OUT)
+		(*temp) = add_redirection_out((*temp), &data->files);
+	else if ((*temp)->type == T_REDIRECTION_APPEND)
+		(*temp) = add_redirection_append((*temp), &data->files);
+	else if ((*temp)->type == T_HERDOC)
+		(*temp) = add_heredoc((*temp), &data->files);
 }
 
 void initialize_token_to_minishell_data(t_minishell_data_help *data)
@@ -1145,7 +1153,7 @@ t_minishell	*token_to_minishell(t_token *tokens)
 			temp = temp->next;
 			continue ;
 		}
-		token_to_minishell_helper(&data, temp);
+			token_to_minishell_helper(&data, &temp);
 		temp = temp->next;
 	}
 	add_minishell_back(&minishell,
@@ -1929,7 +1937,7 @@ int main(int argc, char **argv, char **base_env)
         //     free_minishell(minishell);
         //     continue;
         // }
-        //print_minishell(minishell);
+        // print_minishell(minishell);
         // printf("%s\n", str);
         execution(minishell, &env);
         free(str);
