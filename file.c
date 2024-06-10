@@ -4,8 +4,11 @@
 
 
 int main() {
-    char *t = "";
-    printf("hello dhayach\n");
+    unsigned long long test;
+
+    test = (unsigned long long)9223372036854775807;
+
+    printf("%llu\n", test);
 
     return 0;
 }

@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/08 17:28:40 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/10 17:39:42 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1193,6 +1193,24 @@ void handle_heredoc_signals(int signal)
 }
 
 
+int check_delemeter(char *str, char *filename, int fd)
+{
+    if (str == NULL)
+    {
+        write(2, "bash: warning: here-document delimited by end-of-file\n",
+            ft_strlen("bash: warning: here-document delimited by end-of-file\n"));
+        close(fd);
+        return (1);
+    }
+    if (ft_strncmp(filename, str, ft_strlen(str) + 1) == 0)
+    {
+        free(str);
+        close(fd);
+        return (1);
+    }
+    return (0);
+}
+
 
 void fill_heredoc(t_minishell *temp, t_file_redirection *files, t_environment *env)
 {
@@ -1204,22 +1222,10 @@ void fill_heredoc(t_minishell *temp, t_file_redirection *files, t_environment *e
         perror("open");
     while (1)
     {
-        
         signal(SIGINT, handle_heredoc_signals);
         str = readline(">");
-        if (str == NULL)
-        {
-            write(2, "bash: warning: here-document delimited by end-of-file\n",
-                ft_strlen("bash: warning: here-document delimited by end-of-file\n"));
-            close(fd);
+        if (check_delemeter(str, files->filename, fd) == 1)
             break;
-        }
-        if (ft_strncmp(files->filename, str, ft_strlen(str) + 1) == 0)
-        {
-            free(str);
-            close(fd);
-            break;
-        }
         if (files->should_expand_heredoc == 1 && ft_strchr(str, '$') != NULL)
             str = expand_string(str, env, 1);
         write(fd, str, ft_strlen(str));
@@ -1496,6 +1502,18 @@ void wait_childs(t_minishell *mini, t_environment *env, int num_cmd)
     unlink_files(mini);
 }
 
+void get_in_out_extended(t_minishell *singl_mini)
+{
+    if (singl_mini->infile == 0)
+        dup2(singl_mini->pipe[(singl_mini->cmd_order - 1) * 2], 0);
+    else
+        dup2(singl_mini->infile, 0);
+    if (singl_mini->outfile == 1)
+        dup2(singl_mini->pipe[singl_mini->cmd_order * 2 + 1], 1);
+    else
+        dup2(singl_mini->outfile, 1);
+}
+
 void get_in_out_priorities(t_minishell *singl_mini)
 {
     if (singl_mini->cmd_order == 0)
@@ -1515,16 +1533,7 @@ void get_in_out_priorities(t_minishell *singl_mini)
         dup2(singl_mini->outfile, 1);
     }
     else
-    {
-        if (singl_mini->infile == 0)
-            dup2(singl_mini->pipe[(singl_mini->cmd_order - 1) * 2], 0);
-        else
-            dup2(singl_mini->infile, 0);
-        if (singl_mini->outfile == 1)
-            dup2(singl_mini->pipe[singl_mini->cmd_order * 2 + 1], 1);
-        else
-            dup2(singl_mini->outfile, 1);
-    }
+        get_in_out_extended(singl_mini);
     close_pipes(singl_mini->pipe, singl_mini->nbr_cmd);
 }
 
@@ -1548,10 +1557,10 @@ void final_execution(t_minishell *singl_mini, t_environment **env)
     }
     env_conv = convert_env(*env);
     execve(singl_mini->path, singl_mini->args, env_conv );
-    perror("execve");
+    perror("bash");
     free_split(env_conv);
     free_at_exit();
-    exit(1);
+    exit(126);
 }
 
 void execute_all(t_minishell *minishell, t_environment **env)
@@ -1745,7 +1754,7 @@ int main(int argc, char **argv, char **base_env)
         //     free_minishell(minishell);
         //     continue;
         // }
-        // print_minishell(minishell);
+        //print_minishell(minishell);
         // printf("%s\n", str);
         execution(minishell, &env);
         free(str);

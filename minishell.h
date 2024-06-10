@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/08 21:25:36 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/09 09:09:07 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,6 @@
 #include <readline/history.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-void set_exit_status(t_environment *env, int new_value);
 #include "lib/libft/libft.h"
 
 // colors 
@@ -108,6 +107,7 @@ extern t_lists_collecter *lists_collecter;
 
 
 // -------------- common function ---------------
+void set_exit_status(t_environment *env, int new_value);
 int args_count(char **args);
 void free_split(char **splited);
 void free_at_exit();
