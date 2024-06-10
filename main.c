@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
 /*   Updated: 2024/06/10 17:39:42 by akrid            ###   ########.fr       */
@@ -11,590 +11,637 @@
 /* ************************************************************************** */
 
 #include "minishell.h"
-
+#include <readline/readline.h>
+#include <readline/history.h>
 // syntax error checking/
 
 t_lists_collecter *lists_collecter;
 
-int count_char_occurence(char *str, int c)
+t_environment	*env;
+
+void	puterr(char *str)
 {
-    int i;
-    int count;
-    
-    i = 0;
-    count = 0;
-    while (str[i])
-    {
-        if (str[i] == c)
-            count++;
-        i++;
-    }
-    return (count);
+	ft_putstr_fd(str, 2);
 }
 
-int is_whitespace(char c)
+int	count_char_occurence(char *str, int c)
 {
-    return (c == ' ' || c == '\t' || c == '\n' || c == '\v' || c == '\f' || c == '\r');
+	int	i;
+	int	count;
+
+	i = 0;
+	count = 0;
+	while (str[i])
+	{
+		if (str[i] == c)
+			count++;
+		i++;
+	}
+	return (count);
 }
 
-void update_nb_quote(char c, int *nb_quote_single, int *nb_quote_double)
+int	is_whitespace(char c)
 {
-    if (c == '\'')
-        *nb_quote_single += 1;
-    if (c == '\"')
-        *nb_quote_double += 1;
+	return (c == ' ' || c == '\t'
+		|| c == '\n' || c == '\v' || c == '\f' || c == '\r');
 }
 
-int check_logical_operators(const char *str)
+void	update_nb_quote(char c, int *nb_quote_single, int *nb_quote_double)
 {
-    int i;
-
-    i = 0;
-    if(!str)
-        return (0);
-
-    while(str[i] && is_whitespace(str[i]))
-        i++;
-    if (str[i] == '&')
-        return (printf("Syntax error : Misplaced Operator at first of line\n"), 1);
-    while (str[i] && str[i] != '&')
-        i++;
-    if (str[i] == '&')
-    {
-        if (str[i + 1] == '&')
-            return (printf("Error: Logical operators '&&' and '||' are not supported YET.\n"), 1);
-    }
-    return (0);
+	if (c == '\'')
+		*nb_quote_single += 1;
+	if (c == '\"')
+		*nb_quote_double += 1;
 }
 
-int check_misplaced_operators(const char *str)
+int	check_logical_operators(const char *str)
 {
-    int i;
-    int nb_quote_single;
-    int nb_quote_double;
-    int expect_operator;
-    
-    i = 0;
-    nb_quote_single = 0;
-    nb_quote_double = 0;
-    expect_operator = 0;
-    while(str[i] && is_whitespace(str[i]))
-        i++;
-    if (str[i] == '|')
-        return (printf("Syntax error : Misplaced Operator at first of line\n"), 1);
-    i = 0;
-    while(str[i])
-    {
-        update_nb_quote(str[i], &nb_quote_single, &nb_quote_double);
-        if (str[i] == '|' && nb_quote_single % 2 == 0 && nb_quote_double % 2 == 0)
-        {
-            if (expect_operator == 1)
-                return (printf("Syntax error : Misplaced Operator\n"), 1);
-            expect_operator = 1;
-        }
-        else if (!is_whitespace(str[i]))
-            expect_operator = 0;
-        i++;
-    }
-    if (expect_operator == 1)
-        return(printf("Syntax error : Misplaced Operator at end of line\n"), 1);
-    else
-        return (0);
+	int	i;
+	int	in_single_quote;
+	int	in_double_quote;
+
+	i = 0;
+	in_single_quote = 0;
+	in_double_quote = 0;
+	if (!str)
+		return (0);
+	while (str[i])
+	{
+		if (str[i] == '\'' && !in_double_quote)
+			in_single_quote = !in_single_quote;
+		else if (str[i] == '\"' && !in_single_quote)
+			in_double_quote = !in_double_quote;
+		else if (str[i] == '&' && !in_single_quote && !in_double_quote)
+		{
+			while (str[i] && is_whitespace(str[i]))
+				i++;
+			if (str[i] == '&')
+				return (puterr("Error: Logical Operators not supported.\n"), 1);
+		}
+		i++;
+	}
+	return (0);
 }
 
-int check_unclosed_quotes(const char *str)
+void skip_whitespaces(const char *str, int *i)
 {
-    int i;
-    int in_single_quotes;
-    int in_double_quotes;
-
-    i = 0;
-    if (!str)
-        return (0);
-    in_single_quotes = 0;
-    in_double_quotes = 0;
-    while(str[i])
-    {
-        if (str[i] == '\'' && in_double_quotes == 0)
-            in_single_quotes = !in_single_quotes;
-        if (str[i] == '\"' && in_single_quotes == 0)
-            in_double_quotes = !in_double_quotes;
-        i++;
-    }
-    return (in_single_quotes || in_double_quotes);
+	while (str[*i] && is_whitespace(str[*i]))
+		(*i)++;
 }
 
-int check_invalid_redirection(const char *str)
+int	check_misplaced_operators_helper(const char *str, int *nb_quote_single
+	, int *nb_quote_double,int *expect_operator)
 {
-    int i;
-    int nb_quote_single;
-    int nb_quote_double;
-    
-    i = 0;
-    nb_quote_single = 0;
-    nb_quote_double = 0;
-    while(str[i])
-    {
-        update_nb_quote(str[i], &nb_quote_single, &nb_quote_double);
-        if ((str[i] == '>' || str[i] == '<') && nb_quote_single % 2 == 0 && nb_quote_double % 2 == 0)
-        {
-            if ((str[i] == '>' && str[i + 1] == '>') || (str[i] == '<' && str[i + 1] == '<'))
-                i++;
-            if (str[i + 1] == '\0')
-                return (printf("Syntax error : Invalid redirection\n"), 1);
-            else if (str[i + 1] == '>' || str[i + 1] == '<')
-                return (printf("Syntax error : Misplaced Operator\n"), 1);
-        }
-        i++;
-    }
-    return (0);
+	int	i;
+
+	i = 0;
+	while (str[i])
+	{
+		update_nb_quote(str[i], nb_quote_single, nb_quote_double);
+		if (str[i] == '|' && *nb_quote_single % 2 == 0
+			&& *nb_quote_double % 2 == 0)
+		{
+			if (*expect_operator == 1)
+				return (ft_putstr_fd(\
+					"Syntax error : Misplaced Operator\n", 2), 1);
+			*expect_operator = 1;
+		}
+		else if (!is_whitespace(str[i]))
+			*expect_operator = 0;
+		i++;
+	}
+	return (0);
 }
 
-int check_syntax_error(const char *str, t_environment *env)
+int	check_misplaced_operators(const char *str)
 {
-    if (check_unclosed_quotes(str) == 1)
-        return (set_exit_status(env, 2), printf("Syntax error : Unclosed quote\n"), 1);
-    if (check_misplaced_operators(str) == 1)
-        return (set_exit_status(env, 2), 1);
-    if (check_logical_operators(str) == 1)
-        return (set_exit_status(env, 2), 1);
-    if (check_invalid_redirection(str) == 1)
-        return (set_exit_status(env, 2), 1);
-    return (0);
+	int	i;
+	int	nb_quote_single;
+	int	nb_quote_double;
+	int	expect_operator;
+
+	i = 0;
+	nb_quote_single = 0;
+	nb_quote_double = 0;
+	expect_operator = 0;
+	skip_whitespaces(str, &i);
+	if (str[i] == '|')
+		return (ft_putstr_fd(\
+			"Syntax error : Misplaced Operator at first of line\n", 2), 1);
+	if (check_misplaced_operators_helper(str, &nb_quote_single
+			, &nb_quote_double, &expect_operator) == 1)
+		return (1);
+	if (expect_operator == 1)
+		return (ft_putstr_fd(\
+			"Syntax error : Misplaced Operator at end of line\n", 2), 1);
+	else
+		return (0);
+}
+
+int	check_unclosed_quotes(const char *str)
+{
+	int	i;
+	int	in_single_quotes;
+	int	in_double_quotes;
+
+	i = 0;
+	if (!str)
+		return (0);
+	in_single_quotes = 0;
+	in_double_quotes = 0;
+	while (str[i])
+	{
+		if (str[i] == '\'' && in_double_quotes == 0)
+			in_single_quotes = !in_single_quotes;
+		if (str[i] == '\"' && in_single_quotes == 0)
+			in_double_quotes = !in_double_quotes;
+		i++;
+	}
+	return (in_single_quotes || in_double_quotes);
+}
+
+int	check_invalid_redirection(const char *str)
+{
+	int	i;
+	int	nb_quote_single;
+	int	nb_quote_double;
+
+	i = 0;
+	nb_quote_single = 0;
+	nb_quote_double = 0;
+	while (str[i])
+	{
+		update_nb_quote(str[i], &nb_quote_single, &nb_quote_double);
+		if ((str[i] == '>' || str[i] == '<')
+			&& nb_quote_single % 2 == 0 && nb_quote_double % 2 == 0)
+		{
+			if ((str[i] == '>' && str[i + 1] == '>')
+				|| (str[i] == '<' && str[i + 1] == '<'))
+				i++;
+			if (str[i + 1] == '\0')
+				return (printf("Syntax error : Invalid redirection\n"), 1);
+			else if (str[i + 1] == '>' || str[i + 1] == '<')
+				return (printf("Syntax error : Misplaced Operator\n"), 1);
+		}
+		i++;
+	}
+	return (0);
+}
+
+int	check_syntax_error(const char *str)
+{
+	if (check_unclosed_quotes(str) == 1)
+		return (puterr("Syntax error : Unclosed quote\n"), 1);
+	if (check_misplaced_operators(str) == 1)
+		return (1);
+	if (check_logical_operators(str) == 1)
+		return (1);
+	if (check_invalid_redirection(str) == 1)
+		return (1);
+	return (0);
 }
 
 // syntax error check
 // tokenization
 
-int is_operator(char c)
+int	is_operator(char c)
 {
-    return (c == '|' || c == '>' || c == '<');
+	return (c == '|' || c == '>' || c == '<');
 }
-int is_pipe(char c)
+int	is_pipe(char c)
 {
-    return (c == '|');
+	return (c == '|');
 }
-int is_redirection_in(char c)
+int	is_redirection_in(char c)
 {
-    return (c == '<');
+	return (c == '<');
 }
-int is_redirection_out(char c)
+int	is_redirection_out(char c)
 {
-    return (c == '>');
-}
-
-
-int is_quote(char c)
-{
-    return (c == '\'' || c == '\"');
+	return (c == '>');
 }
 
 
-int is_env_variable(char c)
+int	is_quote(char c)
 {
-    return (c == '$');
-}
-
-int is_arithmetic_operator(char c)
-{
-    return (c == '+' || c == '-' || c == '*' || c == '/' || c == '=');
-}
-int is_colone(char c)
-{
-    return (c == ':');
-}
-int is_number(char c)
-{
-    return (c >= '0' && c <= '9');
-}
-
-int is_word(char c)
-{
-    return (!is_arithmetic_operator(c) 
-        && !is_colone(c) 
-        && !is_operator(c)
-        && !is_quote(c)
-        && !is_whitespace(c)
-        && !is_env_variable(c)
-        && c != '['
-        && c != '%'
-        && c != ']');
-}
-int s_minishell_size(t_minishell *minishell)
-{
-    int size;
-
-    size = 0;
-    if (!minishell)
-        return (0);
-    while(minishell)
-    {
-        size++;
-        minishell = minishell->next;
-    }
-    return (size);
+	return (c == '\'' || c == '\"');
 }
 
 
-int tokens_size(t_token *tokens)
+int	is_env_variable(char c)
 {
-    int size;
-
-    size = 0;
-    if (!tokens)
-        return (0);
-    while(tokens)
-    {
-        size++;
-        tokens = tokens->next;
-    }
-    return (size);
-}
-t_token get_last_token(t_token *tokens)
-{
-    t_token *temp;
-
-    temp = tokens;
-    if (!temp)
-        return (t_token){0, NULL, NULL};
-    while(temp->next)
-        temp = temp->next;
-    return (*temp);
+	return (c == '$');
 }
 
-int check_if_have_quotes(char *str)
+int	is_arithmetic_operator(char c)
 {
-    int i;
-    int single_quotes;
-    int double_quotes;
-    single_quotes = 0;
-    double_quotes = 0;
-
-    i = 0;
-    while(str[i])
-    {
-        if (str[i] == '\"')
-            double_quotes++;
-        else if (str[i] == '\'')
-            single_quotes++;
-        i++;
-    }
-    if (single_quotes >= 1 || double_quotes >= 1)
-        return 0;
-    return (1);
+	return (c == '+' || c == '-' || c == '*' || c == '/' || c == '=');
+}
+int	is_colone(char c)
+{
+	return (c == ':');
+}
+int	is_number(char c)
+{
+	return (c >= '0' && c <= '9');
+}
+int is_alpha(char c)
+{
+	return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
+}
+int not_alpha_numeric(char c)
+{
+	return (!is_alpha(c) && !is_number(c));
 }
 
-t_file_redirection *new_file_redirection(char *filename, t_type_of_token type)
+int	is_word(char c)
 {
-    t_file_redirection *file;
-   
-
-    file = (t_file_redirection *)malloc(sizeof(t_file_redirection));
-    if(!file)
-        return (NULL);
-    file->filename = filename;
-    file->should_expand_heredoc = 1;
-    file->should_expand_heredoc = check_if_have_quotes(filename);
-    file->type = type;
-    file->next = NULL;
-    return (file);
+	return (!is_arithmetic_operator(c) 
+		&& !is_colone(c) 
+		&& !is_operator(c)
+		&& !is_quote(c)
+		&& !is_whitespace(c)
+		&& !is_env_variable(c)
+		&& !not_alpha_numeric(c));
 }
-void add_file_redirection_back(t_file_redirection **head, t_file_redirection *new_file)
+int	s_minishell_size(t_minishell *minishell)
 {
-    t_file_redirection *temp;
+	int	size;
 
-    if (!*head)
-        *head = new_file;
-    else
-    {
-        temp = *head;
-        while(temp->next)
-            temp = temp->next;
-        temp->next = new_file;
-    }
-}
-
-t_token *new_token(t_type_of_token type, char *value)
-{
-    t_token *token;
-
-    token = (t_token *)malloc(sizeof(t_token));
-    if(!token)
-        return (NULL);
-    token->type = type;
-    token->value = value;
-    token->next = NULL;
-    return (token);
-}
-
-void add_token_front(t_token **head, t_token *new_token)
-{
-    new_token->next = *head;
-    *head= new_token;
-}
-void add_token_back(t_token **head, t_token *new_token)
-{
-    t_token *temp;
-
-    if (!*head)
-        *head = new_token;
-    else
-    {
-        temp = *head;
-        while(temp->next)
-            temp = temp->next;
-        temp->next = new_token;
-    }
-}
-char *get_type_token(t_type_of_token type)
-{
-    if (type == T_WORD)
-        return ("T_WORD");
-    else if (type == T_PIPE)
-        return ("T_PIPE");
-    else if (type == T_REDIRECTION_IN)
-        return ("T_REDIRECTION_IN");
-    else if (type == T_REDIRECTION_OUT)
-        return ("T_REDIRECTION_OUT");
-    else if (type == T_REDIRECTION_APPEND)
-        return ("T_REDIRECTION_APPEND");
-    else if (type == T_HERDOC)
-        return ("T_HERDOC");
-    return ("UNKNOWN");
-}
-void print_tokens(t_token *tokens)
-{
-    while(tokens)
-    {
-        printf("--------------------\n");
-        // printf("type: %d, value: %s\n", tokens->type, tokens->value);
-        printf("=======>type: %s, value: %s\n", get_type_token(tokens->type), tokens->value);
-        printf("--------------------\n");
-        tokens = tokens->next;
-    }
-}
-
-void handle_operator(t_token **head, const char *str, int *i)
-{
-    if (is_pipe(str[*i]))
-        add_token_back(head, new_token(T_PIPE, ft_strdup("|")));
-    else if (is_redirection_in(str[*i]))
-    {
-        if (str[*i + 1] == '<')
-        {
-            add_token_back(head, new_token(T_HERDOC, ft_strdup("<<")));
-            (*i) ++;
-        }
-        else
-            add_token_back(head, new_token(T_REDIRECTION_IN, ft_strdup("<")));
-    }
-    else if (is_redirection_out(str[*i]))
-    {
-        if (str[*i + 1] == '>')
-        {
-            add_token_back(head, new_token(T_REDIRECTION_APPEND, ft_strdup(">>")));
-            (*i) ++;
-        }
-        else
-            add_token_back(head, new_token(T_REDIRECTION_OUT, ft_strdup(">")));
-    }
-}
-
-void    update_quote_state(int *in_quote, char *quote, char c)
-{
-    if (*in_quote == 0 && (c == '\'' || c == '\"'))
-    {
-        *in_quote = 1;
-        *quote = c;
-    }
-    else if (*in_quote == 1 && c == *quote)
-        *in_quote = 0;
-}
-
-void    handle_word(t_token **head, const char *str, int *i)
-{
-    int in_quote;
-    char quote;
-    char *temp;
-
-    in_quote = 0;
-    int j = *i;
-    quote = '\0';
-    while(str[*i])
-    {
-        update_quote_state(&in_quote, &quote, str[*i]);
-        if (in_quote == 0)
-        {
-            if (is_operator(str[*i]) || is_whitespace(str[*i]))
-                break;
-        }
-        (*i)++;
-    }
-    temp = ft_substr(str, j, *i - j);
-    add_token_back(head, new_token(T_WORD, temp));
-    (*i)--;
-}
-
-t_token *tokenize_input(const char *str)
-{
-    t_token *head;
-    int i;
-
-    head = NULL;
-    i = 0;
-    while(str[i])
-    {
-        while(str[i]  &&  ft_strchr(" \t\n\v\f\r", str[i]))
-            i++;
-        if (str[i] && ft_strchr("<>|", str[i]))
-            handle_operator(&head, str, &i);
-        else
-            handle_word(&head, str, &i);
-        i++;
-    }
-    return (head);
-}
-
-void free_tokens(t_token *tokens)
-{
-    t_token *current, *next;
-
-    current = tokens;
-    while(current != NULL)
-    {
-        next = current->next;
-        if (current->value != NULL)
-        {
-            free(current->value);
-            current->value = NULL;
-        }
-        free(current);
-        current = next;
-    }
-}
-// void free_tokens(t_token *tokens)
-// {
-//     t_token *temp;
-
-//     if (!tokens)
-//         return ;
-//     while(tokens)
-//     {
-//         temp = tokens;
-//         tokens = tokens->next;
-//         free(temp->value);
-//         free(temp);
-//     }
-// }
-
-int check_syntax_error_tokens(t_token *tokens)
-{
-    t_token *temp;
-
-    if (!tokens)
-        return (0);
-    temp = tokens;
-    while(temp)
-    {
-        if (temp->type == T_HERDOC && temp->next->type != T_WORD)
-            return (printf("Syntax error : Expected a limiter after '<<'\n"), 1);
-        if (temp->type == T_REDIRECTION_IN && temp->next->type != T_WORD)
-            return (printf("Syntax error : Expected a file after '<'\n"), 1);
-        if (temp->type == T_REDIRECTION_OUT && temp->next->type != T_WORD)
-            return (printf("Syntax error : Expected a file after '>'\n"), 1);
-        if (temp->type == T_REDIRECTION_APPEND && temp->next->type != T_WORD)
-            return (printf("Syntax error : Expected a file after '>>'\n"), 1);
-        if (temp->type == T_PIPE && !temp->next)
-            return (printf("Syntax error : Expected a command after '|'\n"), 1);
-        if (temp->type == T_PIPE && temp->next->type == T_PIPE)
-            return (printf("Error: Logical operators '&&' and '||' are not supported YET.\n"), 1);
-        if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_IN)
-            return (printf("Syntax error : Expected a command after '|'\n"), 1);
-        if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_OUT)
-            return (printf("Syntax error : Expected a command after '|'\n"), 1);
-        if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_APPEND)
-            return (printf("Syntax error : Expected a command after '|'\n"), 1);
-       
-        temp = temp->next;
-    }
-    return (0);
-}
-t_minishell *new_minishell(char *command, char **args, t_file_redirection *files)
-{
-    t_minishell *minishell;
-
-    minishell = (t_minishell *)malloc(sizeof(t_minishell));
-    if (!minishell)
-    {
-        free(command);
-        free(args);
-        return (NULL);
-    }
-    minishell->heredoc_path = NULL;
-    minishell->infile = 0;
-    minishell->outfile = 0;
-    minishell->pipe = 0;
-    minishell->path = NULL;
-    minishell->command = command;
-    minishell->args = args;
-    minishell->files = files;
-    minishell->next = NULL;
-    return (minishell);
-}
-void add_minishell_back(t_minishell **head, t_minishell *new_minishell)
-{
-    t_minishell *temp;
-
-    if (!*head)
-        *head = new_minishell;
-    else
-    {
-        temp = *head;
-        while(temp->next)
-            temp = temp->next;
-        temp->next = new_minishell;
-    }
+	size = 0;
+	if (!minishell)
+		return (0);
+	while (minishell)
+	{
+		size++;
+		minishell = minishell->next;
+	}
+	return (size);
 }
 
 
-void *new_arg(char *arg)
+int	tokens_size(t_token *tokens)
 {
-    t_args *args;
+	int	size;
 
-    args = (t_args *)malloc(sizeof(t_args));
-    if (!args)
-        return (NULL);
-    args->args = arg;
-    args->next = NULL;
-    return (args);
+	size = 0;
+	if (!tokens)
+		return (0);
+	while (tokens)
+	{
+		size++;
+		tokens = tokens->next;
+	}
+	return (size);
 }
 
-int check_whitespaces(const char *str)
+t_token	get_last_token(t_token *tokens)
 {
-    int i;
+	t_token	*temp;
 
-    i = 0;
-    while(str[i])
-    {
-        if (is_whitespace(str[i]) != 1)
-            return (1);
-        i++;
-    }
-    return (0);
+	temp = tokens;
+	if (!temp)
+		return (t_token){0, NULL, NULL};
+	while (temp->next)
+		temp = temp->next;
+	return (*temp);
 }
-void add_arg_back(t_args **head, t_args *new_arg)
-{
-    t_args *temp;
 
-    if (!*head)
-        *head = new_arg;
-    else
-    {
-        temp = *head;
-        while(temp->next)
-            temp = temp->next;
-        temp->next = new_arg;
-    }
+int	check_if_have_quotes(char *str)
+{
+	int	i;
+	int	single_quotes;
+	int	double_quotes;
+
+	single_quotes = 0;
+	double_quotes = 0;
+	i = 0;
+	while (str[i])
+	{
+		if (str[i] == '\"')
+			double_quotes++;
+		else if (str[i] == '\'')
+			single_quotes++;
+		i++;
+	}
+	if (single_quotes >= 1 || double_quotes >= 1)
+		return (0);
+	return (1);
+}
+
+t_file_redirection	*new_file_redirection(char *filename, t_type_of_token type)
+{
+	t_file_redirection	*file;
+
+	file = (t_file_redirection *)malloc(sizeof(t_file_redirection));
+	if (!file)
+		return (NULL);
+	file->filename = filename;
+	file->should_expand_heredoc = 1;
+	file->should_expand_heredoc = check_if_have_quotes(filename);
+	file->type = type;
+	file->next = NULL;
+	return (file);
+}
+
+void	add_file_redirection_back(t_file_redirection **head
+	, t_file_redirection *new_file)
+{
+	t_file_redirection	*temp;
+
+	if (!*head)
+		*head = new_file;
+	else
+	{
+		temp = *head;
+		while (temp->next)
+			temp = temp->next;
+		temp->next = new_file;
+	}
+}
+
+t_token	*new_token(t_type_of_token type, char *value)
+{
+	t_token	*token;
+
+	token = (t_token *)malloc(sizeof(t_token));
+	if (!token)
+		return (NULL);
+	token->type = type;
+	token->value = value;
+	token->next = NULL;
+	return (token);
+}
+
+void	add_token_front(t_token **head, t_token *new_token)
+{
+	new_token->next = *head;
+	*head = new_token;
+}
+
+void	add_token_back(t_token **head, t_token *new_token)
+{
+	t_token	*temp;
+
+	if (!*head)
+		*head = new_token;
+	else
+	{
+		temp = *head;
+		while (temp->next)
+			temp = temp->next;
+		temp->next = new_token;
+	}
+}
+
+char	*get_type_token(t_type_of_token type)
+{
+	if (type == T_WORD)
+		return ("T_WORD");
+	else if (type == T_PIPE)
+		return ("T_PIPE");
+	else if (type == T_REDIRECTION_IN)
+		return ("T_REDIRECTION_IN");
+	else if (type == T_REDIRECTION_OUT)
+		return ("T_REDIRECTION_OUT");
+	else if (type == T_REDIRECTION_APPEND)
+		return ("T_REDIRECTION_APPEND");
+	else if (type == T_HERDOC)
+		return ("T_HERDOC");
+	return ("UNKNOWN");
+}
+
+void	print_tokens(t_token *tokens)
+{
+	printf("--------------------\n");
+	while (tokens)
+	{
+		printf("=======>type: %s, value: [%s]\n"
+			, get_type_token(tokens->type), tokens->value);
+		tokens = tokens->next;
+	}
+	printf("--------------------\n");
+}
+void	handle_operator(t_token **head, const char *str, int *i)
+{
+	if (is_pipe(str[*i]))
+		add_token_back(head, new_token(T_PIPE, ft_strdup("|")));
+	else if (is_redirection_in(str[*i]))
+	{
+		if (str[*i + 1] == '<')
+		{
+			add_token_back(head, new_token(T_HERDOC, ft_strdup("<<")));
+			(*i)++;
+		}
+		else
+			add_token_back(head, new_token(T_REDIRECTION_IN, ft_strdup("<")));
+	}
+	else if (is_redirection_out(str[*i]))
+	{
+		if (str[*i + 1] == '>')
+		{
+			add_token_back(head, new_token(T_REDIRECTION_APPEND, \
+				ft_strdup(">>")));
+			(*i)++;
+		}
+		else
+			add_token_back(head, new_token(T_REDIRECTION_OUT, ft_strdup(">")));
+	}
+}
+
+void	update_quote_state(int *in_quote, char *quote, char c)
+{
+	if (*in_quote == 0 && (c == '\'' || c == '\"'))
+	{
+		*in_quote = 1;
+		*quote = c;
+	}
+	else if (*in_quote == 1 && c == *quote)
+		*in_quote = 0;
+}
+
+void	handle_word(t_token **head, const char *str, int *i)
+{
+	int		in_quote;
+	char	quote;
+	char	*temp;
+	int		j;
+
+	in_quote = 0;
+	j = *i;
+	quote = '\0';
+	while (str[*i])
+	{
+		update_quote_state(&in_quote, &quote, str[*i]);
+		if (in_quote == 0)
+		{
+			if (is_operator(str[*i]) || is_whitespace(str[*i]))
+				break ;
+		}
+		(*i)++;
+	}
+	temp = ft_substr(str, j, *i - j);
+	add_token_back(head, new_token(T_WORD, temp));
+	(*i)--;
+}
+
+t_token	*tokenize_input(const char *str)
+{
+	t_token	*head;
+	int		i;
+
+	head = NULL;
+	i = 0;
+	while (str[i])
+	{
+		while (str[i]  &&  ft_strchr(" \t\n\v\f\r", str[i]))
+			i++;
+		if (str[i] && ft_strchr("<>|", str[i]))
+			handle_operator(&head, str, &i);
+		else
+			handle_word(&head, str, &i);
+		i++;
+	}
+	return (head);
+}
+
+void	free_tokens(t_token *tokens)
+{
+	t_token	*current;
+	t_token	*next;
+
+	current = tokens;
+	while (current != NULL)
+	{
+		next = current->next;
+		if (current->value != NULL)
+		{
+			free(current->value);
+			current->value = NULL;
+		}
+		free(current);
+		current = next;
+	}
+}
+
+int	check_syntax_error_tokens_helper(t_token *temp)
+{
+	if (temp->type == T_HERDOC && (temp->next->value[0] == '\0'
+			|| temp->next->type != T_WORD))
+		return (puterr("Syntax error: Expected a limiter after '<<'\n"), 1);
+	if (temp->type == T_REDIRECTION_IN && temp->next->type != T_WORD)
+		return (puterr("Syntax error: Expected a file after '<'\n"), 1);
+	if (temp->type == T_REDIRECTION_OUT && temp->next->type != T_WORD)
+		return (puterr("Syntax error: Expected a file after '>'\n"), 1);
+	if (temp->type == T_REDIRECTION_APPEND && temp->next->type != T_WORD)
+		return (puterr("Syntax error : Expected a file after '>>'\n"), 1);
+	if (temp->type == T_PIPE && !temp->next)
+		return (puterr("Syntax error : Expected a command after '|'\n"), 1);
+	if (temp->type == T_PIPE && temp->next->type == T_PIPE)
+		return (puterr("Error: Logical operators not supported YET.\n"), 1);
+	return (0);
+}
+
+int	check_syntax_error_tokens(t_token *tokens)
+{
+	t_token	*temp;
+
+	if (!tokens)
+		return (0);
+	temp = tokens;
+	while (temp)
+	{
+		if (check_syntax_error_tokens_helper(temp) == 1)
+			return (1);
+		if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_IN)
+			return (puterr("Syntax error : Expected a command after '|'\n"), 1);
+		if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_OUT)
+			return (puterr("Syntax error : Expected a command after '|'\n"), 1);
+		if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_APPEND)
+			return (puterr("Syntax error : Expected a command after '|'\n"), 1);
+		temp = temp->next;
+	}
+	return (0);
+}
+
+t_minishell	*new_minishell(char *command, char **args, t_file_redirection *files)
+{
+	t_minishell	*minishell;
+
+	minishell = (t_minishell *)malloc(sizeof(t_minishell));
+	if (!minishell)
+	{
+		free(command);
+		free(args);
+		return (NULL);
+	}
+	minishell->heredoc_path = NULL;
+	minishell->infile = 0;
+	minishell->outfile = 0;
+	minishell->pipe = 0;
+	minishell->path = NULL;
+	minishell->command = command;
+	minishell->args = args;
+	minishell->files = files;
+	minishell->next = NULL;
+	return (minishell);
+}
+
+void	add_minishell_back(t_minishell **head, t_minishell *new_minishell)
+{
+	t_minishell	*temp;
+
+	if (!*head)
+		*head = new_minishell;
+	else
+	{
+		temp = *head;
+		while (temp->next)
+			temp = temp->next;
+		temp->next = new_minishell;
+	}
+}
+
+
+void	*new_arg(char *arg)
+{
+	t_args	*args;
+
+	args = (t_args *)malloc(sizeof(t_args));
+	if (!args)
+		return (NULL);
+	args->args = arg;
+	args->next = NULL;
+	return (args);
+}
+
+int	check_whitespaces(const char *str)
+{
+	int	i;
+
+	i = 0;
+	while (str[i])
+	{
+		if (is_whitespace(str[i]) != 1)
+			return (1);
+		i++;
+	}
+	return (0);
+}
+
+void	add_arg_back(t_args **head, t_args *new_arg)
+{
+	t_args	*temp;
+
+	if (!*head)
+		*head = new_arg;
+	else
+	{
+		temp = *head;
+		while (temp->next)
+			temp = temp->next;
+		temp->next = new_arg;
+	}
 }
 
 static int	ft_count_words(char const *str, char sep)
@@ -628,38 +675,44 @@ static char	**ft_free(char **strs)
 	free(strs);
 	return (0);
 }
-static char	**do_it2(char **res, char const *s, char c, int i)
-{
-	int	start;
-	int	end;
-    char quote;
-    int in_quote;
-	int	j;
 
-	j = 0;
-    quote = '\0';
-    in_quote = 0;
-    update_quote_state(&in_quote, &quote, s[i]);
+void initialize_value_split2(int *j, char *quote, int *in_quote)
+{
+	*j = 0;
+	*quote = '\0';
+	*in_quote = 0;
+}
+
+void ft_skip2(int *i, int in_quote, const char *s, char c)
+{
+	if (in_quote == 0 && s[*i] == c)
+		(*i)++;
+}
+
+char	**ft_split2_helper(char **res, char const *s, char c, int i)
+{
+	int		start;
+	char	quote;
+	int		in_quote;
+	int		j;
+
+	initialize_value_split2(&j, &quote, &in_quote);
+	update_quote_state(&in_quote, &quote, s[i]);
 	while (s[i])
 	{
-        update_quote_state(&in_quote, &quote, s[i]);
-        if (in_quote == 0 && s[i] == c)
-            i++;
-        start = i;
-        while (s[i] && (s[i] != c || in_quote == 1))
-        {
-            update_quote_state(&in_quote, &quote, s[i]);
-            i++;
-        }
-        end = i;
-        if (end > start)
-        {
-            res[j] = (char *)malloc((end - start + 1) * sizeof(char));
-            if (!res[j])
-                return (ft_free(res));
-            ft_strlcpy(res[j], &s[start], end - start + 1);
-            j++;
-        }
+		update_quote_state(&in_quote, &quote, s[i]);
+		ft_skip2(&i, in_quote, s, c);
+		start = i;
+		i--;
+		while (s[++i] && (s[i] != c || in_quote == 1))
+			update_quote_state(&in_quote, &quote, s[i]);
+		if (i <= start)
+			continue ;
+		res[j] = (char *)malloc((i - start + 1) * sizeof(char));
+		if (!res[j])
+			return (ft_free(res));
+		ft_strlcpy(res[j], &s[start], i - start + 1);
+		j++;
 	}
 	res[j] = NULL;
 	return (res);
@@ -676,520 +729,651 @@ char	**ft_split2(char const *s, char c)
 	res = (char **)malloc((ft_count_words(s, c) + 1) * sizeof(char *));
 	if (!res)
 		return (NULL);
-    res = do_it2(res, s, c, i);
-    if (!res)
-        return (ft_free(res));
-    return (res);
+	res = ft_split2_helper(res, s, c , i);
+	if (!res)
+		return (ft_free(res));
+	return (res);
 }
 
-char *expand_string(char *str, t_environment *env, int from_heredoc)
+void check_quote(const char *str, int *in_single_quotes, int *in_double_quotes, int *i)
 {
-    int i = 0;
-    char *value;
-    char *first;
-    char *new_value;
-    char *last;
-    int in_single_quotes = 0;
-    int in_double_quotes = 0;
-    while(str[i])
-    {
-        if (str[i] == '\'' && in_single_quotes == 0 && in_double_quotes == 0)
-            in_single_quotes = 1;
-        else if (str[i] == '\'' && in_single_quotes == 1)
-            in_single_quotes = 0;
-        else if (str[i] == '\"' && in_double_quotes == 0 && in_single_quotes == 0)
-            in_double_quotes = 1;
-        else if (str[i] == '\"' && in_double_quotes == 1)
-                 in_double_quotes = 0;
-        if ((str[i] == '$' && in_single_quotes == 0 && from_heredoc == 0 && is_word(str[i + 1])) || (str[i] == '$' && from_heredoc == 1))
-        {
-            if (is_whitespace(str[i + 1]) || str[i + 1] == '\0')
-            {
-                i++;
-                continue;
-            }
-            int index = i;
-            index++;
-            if (str[index] == '?' || is_number(str[index]))
-                index++;
-            else
-            {
-                while(str[index] && is_word(str[index]))
-                    index++;
-            }
-            char *env_variable = ft_substr(str, i + 1, index - i - 1);
-            // printf("env_variable: %s\n", env_variable);
-            t_environment *get_env = env_get_bykey(env, env_variable);
-            if(get_env == NULL)
-            {
-                value = ft_strdup("");
-            }
-            else
-                value = ft_strdup(get_env->value);
-            first = ft_substr(str, 0, i);
-            last = ft_strdup(&str[index]);
-            new_value = ft_strjoin(first, value);
-            free(value);
-            char *temp2 = new_value;
-            new_value = ft_strjoin(temp2, last);
-            free(temp2);
-            free(last);
-            free(first);
-            free(env_variable);
-            free(str);
-            str = new_value;
-        }
-        else
-            i++;
-    }
-    if (str[0] == '$' && (str[1] == '\'' || str[1] == '\"'))
-    {
-        i = 0;
-        while(str[i])
-        {
-            str[i] = str[i + 1];
-            i++;
-        }
-    }
-    return (str);
+	if (str[*i] == '\'' && *in_single_quotes == 0 && *in_double_quotes == 0)
+		*in_single_quotes = 1;
+	else if (str[*i] == '\'' && *in_single_quotes == 1)
+		*in_single_quotes = 0;
+	else if (str[*i] == '\"' && *in_double_quotes == 0
+		&& *in_single_quotes == 0)
+		*in_double_quotes = 1;
+	else if (str[*i] == '\"' && *in_double_quotes == 1)
+		*in_double_quotes = 0;
 }
 
-t_token *expand(t_token *tokens, t_environment *env)
+void	handle_quotes_after_dollar(char *str)
 {
-    t_token *temp = tokens;
-    while(temp)
-    {
-        if (temp->type == T_WORD)
-        {
-            if (ft_strchr(temp->value, '$') == NULL)
-            {
-                temp = temp->next;
-                continue;
-            }
-            temp->value  = expand_string(temp->value, env, 0);
-        }
-        temp = temp->next;
-    }
-    return (tokens);
+	int	i;
+
+	if (str[0] == '$' && (str[1] == '\'' || str[1] == '\"'))
+	{
+		i = 0;
+		while (str[i])
+		{
+			str[i] = str[i + 1];
+			i++;
+		}
+  }
 }
 
-int ft_remove_char(char *str, int index)
+char *change_value(char *str, int *i, int *index, char *env_variable)
 {
-    int i;
-    int j;
+	char			*new_value;
+	t_environment	*get_env;
+	char			*value;
+	char			*first;
+	char			*last;
 
-    i = 0;
-    j = 0;
-    while(str[i])
-    {
-        if (i == index)
-            i++;
-        str[j] = str[i];
-        i++;
-        j++;
-    }
-    str[j] = '\0';
-    return (1);
+	env_variable = ft_substr(str, *i + 1, *index - *i - 1);
+	get_env = env_get_bykey(env, env_variable);
+	if (get_env == NULL)
+		value = ft_strdup("");
+	else
+		value = ft_strdup(get_env->value);
+	first = ft_substr(str, 0, *i);
+	last = ft_strdup(&str[*index]);
+	new_value = ft_strjoin(first, value);
+	free(value);
+	value = new_value;
+	new_value = ft_strjoin(value, last);
+	free(value);
+	free(last);
+	free(first);
+	free(env_variable);
+	free(str);
+	return (new_value);
 }
 
-t_minishell *delete_quotes(t_minishell *minishell)
+int expand_helper(int index, int *i, char *str)
 {
-    t_minishell *temp;
-    int in_single_quote, in_double_quote;
-    int i, j, k;
-
-    temp = minishell;
-    if (temp->args != NULL)
-    {
-        while (temp)
-        {
-            i = 0;
-            while (temp->args[i])
-            {
-                in_single_quote = 0;
-                in_double_quote = 0;
-                j = 0;
-                k = 0;
-                while (temp->args[i][j])
-                {
-                    if (temp->args[i][j] == '\'' && !in_double_quote)
-                        in_single_quote = !in_single_quote;
-                    else if (temp->args[i][j] == '\"' && !in_single_quote)
-                        in_double_quote = !in_double_quote;
-                    else
-                    {
-                        temp->args[i][k] = temp->args[i][j];
-                        k++;
-                    }
-                    j++;
-                }
-                temp->args[i][k] = '\0';
-                i++;
-            }
-            temp = temp->next;
-        }
-        if (minishell->command)
-        {
-            free(minishell->command);
-            minishell->command = NULL;            
-        }
-        if (minishell->args[0])
-            minishell->command = ft_strdup(minishell->args[0]);
-    temp = minishell;
-    }
-    if(temp!= NULL && temp->files != NULL)
-    {
-        t_file_redirection *temp_files;
-        temp = minishell;
-        while(temp)
-        {
-            temp_files = temp->files;
-            while(temp_files)
-            {
-                in_single_quote = 0;
-                in_double_quote = 0;
-                j = 0;
-                k = 0;
-                while(temp_files->filename[j])
-                {
-                    if (temp_files->filename[j] == '\'' && !in_double_quote)
-                        in_single_quote = !in_single_quote;
-                    else if (temp_files->filename[j] == '\"' && !in_single_quote)
-                        in_double_quote = !in_double_quote;
-                    else
-                    {
-                        temp_files->filename[k] = temp_files->filename[j];
-                        k++;
-                    }
-                    j++;
-                }
-                temp_files->filename[k] = '\0';
-                temp_files = temp_files->next;
-            }
-            temp = temp->next;
-        }
-    }
-    return (minishell);
+	index = *i;
+	index++;
+	if (str[index] == '?' || is_number(str[index]))
+		index++;
+	else
+	{
+		while (str[index] && is_word(str[index]))
+			index++;
+	}
+	return (index);
 }
-void free_args(char **args)
+
+void initialize_expand_string(int *i, int *in_single_quotes, int *in_double_quotes, char **env_variable)
 {
-    int i = 0;
-    if (args)
-    {
-        while(args[i])
-        {
-            free(args[i]);
-            i++;
-        }
-        free(args);
-    }
+	*i = 0;
+	*in_single_quotes = 0;
+	*in_double_quotes = 0;
+	*env_variable = NULL;
 }
-int in_quote(const char *str)
+
+char	*expand_string(char *str, int from_heredoc)
 {
-    size_t len;
+	int		i;
+	int		in_s_quotes;
+	int		in_d_quotes;
+	int		index;
+	char	*env_variable;
 
-    len = ft_strlen(str);
-    return (len >= 2 && str[0] == '"' && str[len - 1] == '"');
+	initialize_expand_string(&i, &in_s_quotes, &in_d_quotes, &env_variable);
+	while (str[i])
+	{
+		check_quote(str, &in_s_quotes, &in_d_quotes, &i);
+		if ((str[i] == '$' && ((in_s_quotes == 0 && from_heredoc == 0
+						&& is_word(str[i + 1])) || from_heredoc == 1)))
+		{
+			if (is_whitespace(str[i + 1]) || str[i + 1] == '\0')
+			{
+				i++;
+				continue ;
+			}
+			index = expand_helper(index, &i, str);
+			str = change_value(str, &i, &index, env_variable);
+		}
+		else
+			i++;
+	}
+	return (handle_quotes_after_dollar(str), str);
 }
 
-int check_if_have_space(const char *str)
+
+t_token	*expand(t_token *tokens)
 {
-    int i;
+	t_token	*temp;
 
-    i = 0;
-    while(str[i])
-    {
-        if (is_whitespace(str[i]) == 1)
-            return (1);
-        i++;
-    }
-    return (0);
+	temp = tokens;
+	while (temp)
+	{
+		if (temp->type == T_WORD)
+		{
+			if (ft_strchr(temp->value, '$') == NULL)
+			{
+				temp = temp->next;
+				continue ;
+			}
+			temp->value = expand_string(temp->value, 0);
+		}
+		temp = temp->next;
+	}
+	return (tokens);
 }
-t_minishell *token_to_minishell(t_token *tokens)
+
+int	ft_remove_char(char *str, int index)
 {
-    t_minishell *minishell;
-    char *command = NULL;
-    char *args1 = NULL;
-    char **args = NULL;
-    char *temp_args1;
-    t_file_redirection *files = NULL;
-    int new_command = 1;
+	int	i;
+	int	j;
 
-    minishell = NULL;
-    t_token *temp = tokens;
-    while(temp)
-    {
-        if (temp->type == T_PIPE)
-        {
-            add_minishell_back(&minishell, new_minishell(command, args, files));
-            command = NULL;
-            free(args1);
-            args = NULL;
-            args1 = NULL;
-            files = NULL;
-            temp = temp->next;
-            new_command = 1;
-            continue;
-        }
-        if (temp->type == T_WORD)
-        {
-            // printf("temp->value = [[%s]]\n", temp->value);
-            if (new_command == 1)
-            {
-                temp_args1 = ft_strjoin(args1, temp->value);
-                free(args1);
-                args1 = temp_args1;
-                command = ft_strdup(temp->value);
-                temp_args1 = ft_strjoin(args1, "\r");
-                free(args1);
-                args1 = temp_args1;
-                free_args(args);
-                args = ft_split2(args1, '\r');
-                new_command = 0;
-            }
-            else
-            {
-                temp_args1 = ft_strjoin(args1, temp->value);
-                free(args1);
-                args1 = temp_args1;
-                temp_args1 = ft_strjoin(args1, "\r");
-                free(args1);
-                args1 = temp_args1;
-                free_args(args);
-                args = ft_split2(args1, '\r');
-            }
-        }
-        else if (temp->type == T_REDIRECTION_IN)
-        {
-            temp = temp->next;
-            if (check_if_have_space(temp->value) == 1 && in_quote(temp->value) == 0)
-                printf("%sbash: [%s]: ambiguous redirect\n%s",RED,  temp->value, RESET);
-            add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_IN));
-        }
-        else if (temp->type == T_REDIRECTION_OUT)
-        {
-            temp = temp->next;
-            if (check_if_have_space(temp->value) == 1 && in_quote(temp->value) == 0)
-                printf("%sbash: [%s]: ambiguous redirect\n%s",RED,  temp->value, RESET);
-            else
-                add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_OUT));
-        }
-        else if (temp->type == T_REDIRECTION_APPEND)
-        {
-            temp = temp->next;
-            if (check_if_have_space(temp->value) == 1 && in_quote(temp->value) == 0)
-                printf("%sbash: [%s]: ambiguous redirect\n%s",RED,  temp->value, RESET);
-            else
-                add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_REDIRECTION_APPEND));
-        }
-        else if (temp->type == T_HERDOC)
-        {
-            temp = temp->next;
-            add_file_redirection_back(&files, new_file_redirection(ft_strdup(temp->value), T_HERDOC));
-        }
-        temp = temp->next;
-    }
-    add_minishell_back(&minishell, new_minishell(command, args, files));
-    free(args1);
-    return (minishell);
+	i = 0;
+	j = 0;
+	while (str[i])
+	{
+		if (i == index)
+			i++;
+		str[j] = str[i];
+		i++;
+		j++;
+	}
+	str[j] = '\0';
+	return (1);
 }
-int is_empty(char *str)
+
+void delete_quotes_from_string(char *str)
 {
-    int i;
+	int in_single_quote;
+	int in_double_quote;
+	int j;
+	int k;
 
-    i = 0;
-    while(str[i])
-    {
-        if (is_whitespace(str[i]) == 0)
-            return (0);
-        i++;
-    }
-    return (1);
-
+	in_single_quote = 0;
+	in_double_quote = 0;
+	j = 0;
+	k = 0;
+	while (str[j])
+	{
+		if (str[j] == '\'' && !in_double_quote)
+			in_single_quote = !in_single_quote;
+		else if (str[j] == '\"' && !in_single_quote)
+			in_double_quote = !in_double_quote;
+		else
+		{
+			str[k] = str[j];
+			k++;
+		}
+		j++;
+	}
+	str[k] = '\0';
 }
-void print_minishell(t_minishell *minishell)
+void delete_quotes_from_files(t_minishell *minishell)
 {
-    t_minishell *temp;
-    temp = minishell;
-    int i = 0;
-    while(temp)
-    {
-        printf("--------------------\n");
-        if (temp->command)
-            printf("command [%d]: [%s] ====> empty : %d\n",i,  temp->command, is_empty(temp->command));
-        if (temp->args)
-        {
-            printf("args: ");
-        int j = 0;
-        if (temp->args)
-        {
-            while(temp->args[j])
-            {
-                printf("[%s]", temp->args[j]);
-                j++;
-            }
-        }
-        printf("\n");
-        }
-        if (temp->files)
-        {
-            t_file_redirection *temp_files = temp->files;
-            printf("files :\n");
-            while(temp_files)
-            {
-                printf(" file: [%s] \n", temp_files->filename);
-                printf("  type: %s \n", get_type_token(temp_files->type));
-                temp_files = temp_files->next;
-            }
-            printf("\n");
-        }
-        printf("--------------------\n");
-        temp = temp->next;
-        i++;
-    }
+	t_minishell *temp;
+	t_file_redirection *files;
+
+	temp = minishell;
+	if (temp!= NULL && temp->files != NULL)
+	{
+		while (temp)
+		{
+			files = temp->files;
+			while (files)
+			{
+				delete_quotes_from_string(files->filename);
+				files = files->next;
+			}
+			temp = temp->next;
+		}
+	}
 }
+void delete_quotes_from_args(t_minishell *minishell)
+{
+	t_minishell *temp;
+	int i;
+
+	i = 0;
+	temp = minishell;
+	if (temp->args != NULL)
+	{
+		while (temp && temp->args != NULL)
+		{
+			i = 0;
+			while (temp->args[i])
+			{
+				delete_quotes_from_string(temp->args[i]);
+				i++;
+			}
+			temp = temp->next;
+		}
+		if (minishell->command)
+		{
+			free(minishell->command);
+			minishell->command = NULL;            
+		}
+		if (minishell->args[0])
+			minishell->command = ft_strdup(minishell->args[0]);
+	}
+}
+
+t_minishell	*delete_quotes(t_minishell *minishell)
+{
+	t_minishell			*temp;
+
+	delete_quotes_from_args(minishell);
+	temp = minishell;
+	delete_quotes_from_files(temp);
+	return (minishell);
+}
+
+void	free_args(char **args)
+{
+	int	i;
+
+	i = 0;
+	if (args)
+	{
+		while (args[i])
+		{
+			free(args[i]);
+			i++;
+		}
+		free(args);
+	}
+}
+
+int	in_quote(const char *str)
+{
+	size_t	len;
+
+	len = ft_strlen(str);
+	return (len >= 2 && str[0] == '"' && str[len - 1] == '"');
+}
+
+int	check_if_have_space(const char *str)
+{
+	int	i;
+
+	i = 0;
+	while (str[i])
+	{
+		if (is_whitespace(str[i]) == 1)
+			return (1);
+		i++;
+	}
+	return (0);
+}
+t_token *add_redirection_in(t_token *temp, t_file_redirection **files)
+{
+	temp = temp->next;
+	if (check_if_have_space(temp->value) == 1 && in_quote(temp->value) == 0)
+	{
+		puterr("bash: [");
+		puterr(temp->value);
+		puterr("]: ambiguous redirect\n");
+	}
+	else 
+	{
+		add_file_redirection_back(files, new_file_redirection(ft_strdup(temp->value)
+			,T_REDIRECTION_IN));
+	}
+	return (temp);
+}
+
+t_token *add_redirection_out(t_token *temp, t_file_redirection **files)
+{
+	temp = temp->next;
+	if (check_if_have_space(temp->value) == 1 && in_quote(temp->value) == 0)
+	{
+		puterr("bash: [");
+		puterr(temp->value);
+		puterr("]: ambiguous redirect\n");
+	}
+	else
+		add_file_redirection_back(files, new_file_redirection(ft_strdup(temp->value)
+			,T_REDIRECTION_OUT));
+	return (temp);
+}
+
+t_token *add_redirection_append(t_token *temp, t_file_redirection **files)
+{
+	temp = temp->next;
+	if (check_if_have_space(temp->value) == 1 && in_quote(temp->value) == 0)
+	{
+		puterr("bash: [");
+		puterr(temp->value);
+		puterr("]: ambiguous redirect\n");
+	}
+	else
+		add_file_redirection_back(files, new_file_redirection(ft_strdup(temp->value)
+			,T_REDIRECTION_APPEND));
+	return (temp);
+}
+
+t_token *add_heredoc(t_token *temp, t_file_redirection **files)
+{
+	temp = temp->next;
+	add_file_redirection_back(files, new_file_redirection(ft_strdup(temp->value)
+		,T_HERDOC));
+	return (temp);
+}
+
+int initialize_and_free(t_minishell_data_help *data)
+{
+	data->command = NULL;
+	free(data->args1);
+	data->args = NULL;
+	data->args1 = NULL;
+	data->files = NULL;
+	return (1);
+}
+
+int handle_word_new_command(t_minishell_data_help *data, t_token *temp)
+{
+	char	*temp_args1;
+
+	temp_args1 = ft_strjoin(data->args1, temp->value);
+	free(data->args1);
+	data->args1 = temp_args1;
+	data->command = ft_strdup(temp->value);
+	temp_args1 = ft_strjoin(data->args1, "\r");
+	free(data->args1);
+	data->args1 = temp_args1;
+	free_args(data->args);
+	data->args = ft_split2(data->args1, '\r');
+	return (0);
+}
+
+void join_args(t_token *temp, char **args1, char ***args)
+{
+	char *temp_args1;
+
+	temp_args1 = ft_strjoin(*args1, temp->value);
+	free(*args1);
+	*args1 = temp_args1;
+	temp_args1 = ft_strjoin(*args1, "\r");
+	free(*args1);
+	*args1 = temp_args1;
+	free_args(*args);
+	*args = ft_split2(*args1, '\r');
+}
+
+void token_to_minishell_helper(t_minishell_data_help *data, t_token *temp)
+{
+	if (temp->type == T_WORD)
+	{
+		if (data->new_command == 1)
+			data->new_command = handle_word_new_command(data, temp);
+		else
+			join_args(temp, &data->args1, &data->args);
+	}
+	else if (temp->type == T_REDIRECTION_IN)
+		temp = add_redirection_in(temp, &data->files);
+	else if (temp->type == T_REDIRECTION_OUT)
+		temp = add_redirection_out(temp, &data->files);
+	else if (temp->type == T_REDIRECTION_APPEND)
+		temp = add_redirection_append(temp, &data->files);
+	else if (temp->type == T_HERDOC)
+		temp = add_heredoc(temp, &data->files);
+}
+
+void initialize_token_to_minishell_data(t_minishell_data_help *data)
+{
+	data->args1 = NULL;
+	data->args = NULL;
+	data->command = NULL;
+	data->files = NULL;
+	data->new_command = 1;
+}
+
+
+t_minishell	*token_to_minishell(t_token *tokens)
+{
+	t_minishell				*minishell;
+	t_minishell_data_help	data;
+	t_token					*temp;
+
+	initialize_token_to_minishell_data(&data);
+	minishell = NULL;
+	temp = tokens;
+	while (temp)
+	{
+		if (temp->type == T_PIPE)
+		{
+			add_minishell_back(&minishell,
+				new_minishell(data.command, data.args, data.files));
+			data.new_command = initialize_and_free(&data);
+			temp = temp->next;
+			continue ;
+		}
+		token_to_minishell_helper(&data, temp);
+		temp = temp->next;
+	}
+	add_minishell_back(&minishell,
+		new_minishell(data.command, data.args, data.files));
+	return (free(data.args1), minishell);
+}
+
+int	is_empty(char *str)
+{
+	int	i;
+
+	i = 0;
+	while (str[i])
+	{
+		if (is_whitespace(str[i]) == 0)
+			return (0);
+		i++;
+	}
+	return (1);
+
+}
+
+void print_args(t_minishell *temp)
+{
+	int i;
+
+	i = 0;
+	if (temp->args)
+	{
+		printf("args: ");
+		while (temp->args[i])
+		{
+			printf("[%s]", temp->args[i]);
+			i++;
+		}
+	}
+	printf("\n");
+}
+
+void print_files(t_minishell *temp)
+{
+	t_file_redirection *temp_files;
+
+	if (temp->files)
+	{
+		temp_files = temp->files;
+		printf("files :\n");
+		while (temp_files)
+		{
+			printf(" file: [%s] \n", temp_files->filename);
+			printf("  type: %s \n", get_type_token(temp_files->type));
+			temp_files = temp_files->next;
+		}
+		printf("\n");
+	}
+
+}
+
+void	print_minishell(t_minishell *minishell)
+{
+	t_minishell			*temp;
+	int					i;
+
+	i = 0;
+	temp = minishell;
+	while (temp)
+	{
+		printf("--------------------\n");
+		if (temp->command)
+			printf("command [%d]: [%s]\n", i, temp->command);
+		print_args(temp);
+		print_files(temp);
+		printf("--------------------\n");
+		temp = temp->next;
+		i++;
+	}
+}
+
 // end tokenization
-#include <readline/readline.h>
-#include <readline/history.h>
-void handle_ctrl_c(int signal)
+void	handle_ctrl_c(int signal)
 {
-    if (signal == SIGINT)
-    {
-        // clear the current line
-        rl_replace_line("", 0);
-        // move to a new line
-        printf("\n");
-        //display the prmmpt on the new line
-        rl_on_new_line();
-        // redrws the readline line
-        rl_redisplay();
-        return;
-    }
-}
-void handle_sigquit(int signal)
-{
-    if (signal == SIGQUIT)
-    {
-        // ignore signal
-        return;
-    }
+	if (signal == SIGINT)
+	{
+		// clear the current line
+		rl_replace_line("", 0);
+		// move to a new line
+		printf("\n");
+		//display the prmmpt on the new line
+		rl_on_new_line();
+		// redrws the readline line
+		rl_redisplay();
+		set_exit_status(env, 130);
+		return;
+	}
 }
 
-
-void free_environment(t_environment *env)
+void	handle_sigquit(int signal)
 {
-    t_environment *temp;
-
-    if (!env)
-        return ;
-    while(env)
-    {
-        temp = env;
-        env = env->next;
-        free(temp->key);
-        free(temp->value);
-        free(temp);
-    }
+	if (signal == SIGQUIT)
+	{
+		// ignore signal
+		return ;
+	}
 }
-void free_minishell(t_minishell *minishell)
-{
-    t_minishell *temp;
-    char **temp_args;
-    t_file_redirection *temp_files, *temp_files_next;
 
-    if (!minishell)
-        return;
-    if (minishell->pipe)
-        free(minishell->pipe);
-    while (minishell)
-    {
-        temp = minishell;
-        minishell = minishell->next;
-        if (temp->command)
-            free(temp->command);
-        if (temp->heredoc_path)
-            free(temp->heredoc_path);
-        if (temp->path)
-            free(temp->path);
-        if (temp->args)
-        {
-            temp_args = temp->args;
-            free_args(temp_args);
-        }
-        if (temp->files)
-        {
-            temp_files = temp->files;
-            while (temp_files)
-            {
-                temp_files_next = temp_files->next;
-                free(temp_files->filename);
-                free(temp_files);
-                temp_files = temp_files_next;
-            }
-        }
-        free(temp);
-    }
+
+void	free_environment(t_environment *env)
+{
+	t_environment	*temp;
+
+	if (!env)
+		return ;
+	while (env)
+	{
+		temp = env;
+		env = env->next;
+		free(temp->key);
+		free(temp->value);
+		free(temp);
+	}
+}
+void free_files(t_file_redirection *files)
+{
+	t_file_redirection	*temp_files;
+	t_file_redirection *temp_files_next;
+
+	if (files)
+	{
+		temp_files = files;
+		while (temp_files)
+		{
+			temp_files_next = temp_files->next;
+			free(temp_files->filename);
+			free(temp_files);
+			temp_files = temp_files_next;
+		}
+	}
+}
+void	free_minishell(t_minishell *minishell)
+{
+	t_minishell			*temp;
+	char				**temp_args;
+
+	if (!minishell)
+		return ;
+	if (minishell->pipe)
+		free(minishell->pipe);
+	while (minishell)
+	{
+		temp = minishell;
+		minishell = minishell->next;
+		if (temp->command)
+			free(temp->command);
+		if (temp->heredoc_path)
+			free(temp->heredoc_path);
+		if (temp->path)
+			free(temp->path);
+		if (temp->args)
+		{
+			temp_args = temp->args;
+			free_args(temp_args);
+		}
+		free_files(temp->files);
+		free(temp);
+	}
 }
 
 // -------------------------------- start by exe one cmd -------------------------------------------
 
-int args_count(char **args)
+int	args_count(char **args)
 {
-    int i;
+	int	i;
 
-    i = 0;
-    while (args && args[i])
-        i ++;
-    return (i);
+	i = 0;
+	while (args && args[i])
+		i ++;
+	return (i);
 }
 
-int    check_builtin(t_minishell *singl_mini, t_environment **env)
+int	check_builtin(t_minishell *singl_mini, t_environment **env)
 {
-    if (singl_mini->command == NULL)
-        return (1);
-    if (ft_strncmp("cd", singl_mini->command, 3) == 0)
-        return (cd(singl_mini, *env), 0);
-    if (ft_strncmp("echo", singl_mini->command, 5) == 0)
-       return (echo(singl_mini, *env), 0);
-    if (ft_strncmp("env", singl_mini->command, 4) == 0)
-        return (envi(singl_mini, *env), 0);
-    if (ft_strncmp("pwd", singl_mini->command, 4) == 0 )
-        return (pwd(singl_mini, *env), 0);
-    if (ft_strncmp("export", singl_mini->command, 7) == 0)
-        return (export(singl_mini, env), 0);
-    if (ft_strncmp("unset", singl_mini->command, 6) == 0)
-        return (unset(singl_mini, env), 0);
-    if (strncmp("exit", singl_mini->command, 5) == 0)
-        return (fake_exit(singl_mini, *env), 0);
-    return (1);
+	if (singl_mini->command == NULL)
+		return (1);
+	if (ft_strncmp("cd", singl_mini->command, 3) == 0)
+		return (cd(singl_mini, *env), 0);
+	if (ft_strncmp("echo", singl_mini->command, 5) == 0)
+		return (echo(singl_mini, *env), 0);
+	if (ft_strncmp("env", singl_mini->command, 4) == 0)
+		return (envi(singl_mini, *env), 0);
+	if (ft_strncmp("pwd", singl_mini->command, 4) == 0 )
+		return (pwd(singl_mini, *env), 0);
+	if (ft_strncmp("export", singl_mini->command, 7) == 0)
+		return (export(singl_mini, env), 0);
+	if (ft_strncmp("unset", singl_mini->command, 6) == 0)
+		return (unset(singl_mini, env), 0);
+	if (strncmp("exit", singl_mini->command, 5) == 0)
+		return (fake_exit(singl_mini, *env), 0);
+	return (1);
 }
 
-int cmd_count(t_minishell *minishell)
+int	cmd_count(t_minishell *minishell)
 {
-    int count;
+	int count;
 
-    count = 0;
-    while (minishell)
-    {
-        count ++;
-        minishell = minishell->next;
-    }
-    return (count);
+	count = 0;
+	while (minishell)
+	{
+		count ++;
+		minishell = minishell->next;
+	}
+	return (count);
 }
 
 
-void handle_heredoc_signals(int signal)
+void	handle_heredoc_signals(int signal)
 {
-    if (signal == SIGINT)
-    {
-        // Clear the current line and move to a new line
-        rl_replace_line("", 0);
-        printf("\n");
-        rl_on_new_line();
-        // rl_redisplay();
-        free_at_exit();
-        exit(130);
-    }
+	if (signal == SIGINT)
+	{
+		// Clear the current line and move to a new line
+		rl_replace_line("", 0);
+		printf("\n");
+		rl_on_new_line();
+		// rl_redisplay();
+		exit(130);
+	}
 }
 
 
@@ -1212,10 +1396,10 @@ int check_delemeter(char *str, char *filename, int fd)
 }
 
 
-void fill_heredoc(t_minishell *temp, t_file_redirection *files, t_environment *env)
+void	fill_heredoc(t_minishell *temp, t_file_redirection *files)
 {
-    int     fd;
-    char    *str;
+	int		fd;
+	char	*str;
 
     fd = open(temp->heredoc_path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (fd < 0)
@@ -1236,191 +1420,185 @@ void fill_heredoc(t_minishell *temp, t_file_redirection *files, t_environment *e
     close(fd);
 }
 
-void loop_heredoc(t_minishell *minishell, t_environment *env)
+void	loop_heredoc(t_minishell *minishell)
 {
-    t_file_redirection *files;
-    t_minishell *temp;
+	t_file_redirection	*files;
+	t_minishell	*temp;
 
-    temp = minishell;
-    while (temp)
-    {
-        files = temp->files;
-        while (files)
-        {
-            if (files->type == T_HERDOC)
-                fill_heredoc(temp, files, env);
-            files = files->next;
-        }
-        temp = temp->next;
-    }
-    free_at_exit();
-    exit(0);
+	temp = minishell;
+	while (temp)
+	{
+		files = temp->files;
+		while (files)
+		{
+			if (files->type == T_HERDOC)
+				fill_heredoc(temp, files);
+			files = files->next;
+		}
+		temp = temp->next;
+	}
+	exit(0);
 }
 
-int  fork_heredoc(t_minishell *minishell , t_environment *env)
+int	fork_heredoc(t_minishell *minishell , t_environment *env)
 {
-    pid_t   pid;
-    int     status;
+	pid_t	pid;
+	int		status;
 
-    status = 0;
-    pid = fork();
-    if (pid == 0)
-        loop_heredoc(minishell, env);
-    wait(&status);
-    status = status >> 8;
-    set_exit_status(env, status);
-    return (status);
+	status = 0;
+	pid = fork();
+	if (pid == 0)
+		loop_heredoc(minishell);
+	wait(&status);
+	status = status >> 8;
+	set_exit_status(env, status);
+	return (status);
 }
 
-int check_heredoc(t_minishell *minishell , t_environment *env, int i)
+int	check_heredoc(t_minishell *minishell , t_environment *env, int i)
 {
-    t_file_redirection *files;
-    t_minishell *temp;
+	t_file_redirection	*files;
+	t_minishell			*temp;
 
-    temp = minishell;
-    while (temp)
-    {
-        files = minishell->files;
-        while (files)
-        {
-            if (files->type == T_HERDOC)
-                i ++;
-            files = files->next;
-        }
-        temp = temp->next;
-    }
-    if (i > 0 && i < 17)
-        return (fork_heredoc(minishell, env));
-    else if (i > 16)
-    {
-        write(2, "bash: maximum here-document count exceeded\n", 43);
-        free_at_exit();
-        exit(2);
-    }
-    return (0);
+	temp = minishell;
+	while (temp)
+	{
+		files = minishell->files;
+		while (files)
+		{
+			if (files->type == T_HERDOC)
+				i ++;
+			files = files->next;
+		}
+		temp = temp->next;
+	}
+	if (i > 0 && i < 17)
+		return (fork_heredoc(minishell, env));
+	else if (i > 16)
+	{
+		write(2, "bash: maximum here-document count exceeded\n", 43);
+		// free_lists_collector();
+		exit(2);
+	}
+	return (0);
 }
 
-int is_builtin(char *cmd)
+int	is_builtin(char *cmd)
 {
-    if (cmd == NULL)
-        return (0);
-    if (ft_strncmp("cd", cmd, 3) == 0)
-        return (1);
-    if (ft_strncmp("echo", cmd, 5) == 0)
-       return (1);
-    if (ft_strncmp("env", cmd, 4) == 0)
-        return (1);
-    if (ft_strncmp("pwd", cmd, 4) == 0 )
-        return (1);
-    if (ft_strncmp("export", cmd, 7) == 0)
-        return (1);
-    if (ft_strncmp("unset", cmd, 6) == 0)
-        return (1);
-    if (strncmp("exit", cmd, 5) == 0)
-        return (1);
-    return (0);
+	if (cmd == NULL)
+		return (0);
+	if (ft_strncmp("cd", cmd, 3) == 0)
+		return (1);
+	if (ft_strncmp("echo", cmd, 5) == 0)
+		return (1);
+	if (ft_strncmp("env", cmd, 4) == 0)
+		return (1);
+	if (ft_strncmp("pwd", cmd, 4) == 0 )
+		return (1);
+	if (ft_strncmp("export", cmd, 7) == 0)
+		return (1);
+	if (ft_strncmp("unset", cmd, 6) == 0)
+		return (1);
+	if (strncmp("exit", cmd, 5) == 0)
+		return (1);
+	return (0);
 }
 
-int file_error(t_minishell *minishell, t_environment *env, char *filename)
+int	file_error(t_minishell *minishell, t_environment *env, char *filename)
 {
-    write(2, "bash: ",6);
-    write(2, filename, ft_strlen(filename));
-    write(2, ": ", 2);
-    perror("");
-    if (minishell->nbr_cmd == 1 && is_builtin(minishell->command))
-    {
-        set_exit_status(env, 1);
-        return (1);
-    }
-    set_exit_status(env, 1);
-    free_at_exit();
-    exit(1);
+	write(2, "bash: ", 6);
+	write(2, filename, ft_strlen(filename));
+	write(2, ": ", 2);
+	perror("");
+	if (minishell->nbr_cmd == 1 && is_builtin(minishell->command))
+	{
+		set_exit_status(env, 1);
+		return (1);
+	}
+	set_exit_status(env, 1);
+	//free_lists_collector
+	exit(1);
 }
 
-
-int open_file_extended(t_minishell *minishell, t_environment *env, t_file_redirection *files)
+int	open_file_extended(t_minishell *minishell, t_environment *env, t_file_redirection *files)
 {
-    if (files->type == T_REDIRECTION_APPEND)
-    {
-        if (minishell->outfile != 1)
-            close(minishell->outfile);
-        minishell->outfile = open(files->filename, O_WRONLY | O_APPEND | O_CREAT, 0664);
-        if (minishell->outfile < 0)
-            return (file_error(minishell, env, files->filename));
-    }
-    else if (files->type == T_HERDOC)
-    {
-        if (minishell->infile != 0)
-            close(minishell->infile);
-        minishell->infile = open(minishell->heredoc_path, O_RDONLY, 0644);
-        if (minishell->infile < 0)
-            return (file_error(minishell, env, minishell->heredoc_path));
-    }
-    return (0);
+	if (files->type == T_REDIRECTION_APPEND)
+	{
+		if (minishell->outfile != 1)
+			close(minishell->outfile);
+		minishell->outfile = open(files->filename, O_WRONLY | O_APPEND | O_CREAT, 0664);
+		if (minishell->outfile < 0)
+			return (file_error(minishell, env, files->filename));
+	}
+	else if (files->type == T_HERDOC)
+	{
+		if (minishell->infile != 0)
+			close(minishell->infile);
+		minishell->infile = open(minishell->heredoc_path, O_RDONLY, 0644);
+		if (minishell->infile < 0)
+			return (file_error(minishell, env, "heredoc_buffer"));
+	}
+	return (0);
 }
 
-int open_files(t_minishell *minishell, t_environment *env, t_file_redirection *files)
+int	open_files(t_minishell *minishell, t_environment *env, t_file_redirection *files)
 {
-    files = minishell->files;
-    while (files)
-    {
-        if (files->type == T_REDIRECTION_IN)
-        {
-            if (minishell->infile != 0)
-                close(minishell->infile);
-            minishell->infile = open(files->filename, O_RDONLY, 0644);
-            if (minishell->infile < 0)
-                return (file_error(minishell, env, files->filename));
-        }
-        else if (files->type == T_REDIRECTION_OUT)
-        {
-            if (minishell->outfile != 1)
-                close(minishell->outfile);
-            minishell->outfile = open(files->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-            if (minishell->outfile < 0)
-                return (file_error(minishell, env, files->filename));
-        }
-        else if (open_file_extended(minishell, env, files))
-            return (1);
-        files = files->next;
-    }
-    return (0);
+	files = minishell->files;
+	while (files)
+	{
+		if (files->type == T_REDIRECTION_IN)
+		{
+			if (minishell->infile != 0)
+				close(minishell->infile);
+			minishell->infile = open(files->filename, O_RDONLY, 0644);
+			if (minishell->infile < 0)
+				return (file_error(minishell, env, files->filename));
+		}
+		else if (files->type == T_REDIRECTION_OUT)
+		{
+			if (minishell->outfile != 1)
+				close(minishell->outfile);
+			minishell->outfile = open(files->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+			if (minishell->outfile < 0)
+				return (file_error(minishell, env, files->filename));
+		}
+		else if (open_file_extended(minishell, env, files))
+			return (1);
+		files = files->next;
+	}
+	return (0);
 }
-
 
 void    start_execute_one(t_minishell *minishell, t_environment **env)
 {
-    char **env_conv;
+	char **env_conv;
 
-    open_files(minishell, *env, minishell->files);
-    minishell->path = get_cmd_path(minishell->command, *env, 0);
-    if (minishell->path == NULL)
-    {
-        free_at_exit();
-        exit(127);
-    }
-    dup2(minishell->infile, 0);
-    dup2(minishell->outfile, 1);
-    env_conv = convert_env(*env);
-    execve(minishell->path, minishell->args, env_conv);
-    perror("bash");
-    free_split(env_conv);
-    free_at_exit();
-    exit(126);
+	env_conv = convert_env(*env);
+	open_files(minishell, *env, minishell->files);
+	if (minishell->command == NULL || ft_strncmp(minishell->command, "", 1) == 0)
+		exit(0);
+	minishell->path = get_cmd_path(minishell->command, *env, 0);
+	if (minishell->path == NULL)
+		exit(127);
+	dup2(minishell->infile, 0);
+	dup2(minishell->outfile, 1);
+	execve(minishell->path, minishell->args, env_conv);
+	perror("execve");
+	exit(126);
 }
 
 void    execute_one(t_minishell *minishell, t_environment **env)
 {
-    pid_t   pid;
-    int     status;
+	pid_t	pid;
+	int		status;
 
-    pid = fork();
-    if (pid == 0)
-        start_execute_one(minishell, env);
-    wait(&status);
-    unlink_files(minishell);
-    status = status >> 8;
-    set_exit_status(*env, status);
+	pid = fork();
+	if (pid == 0)
+		start_execute_one(minishell, env);
+	wait(&status);
+	unlink_files(minishell);
+	status = status >> 8;
+	set_exit_status(*env, status);
 }
 
 
@@ -1428,7 +1606,6 @@ void    execute_one(t_minishell *minishell, t_environment **env)
 
 
 //----------------------------------------- multiple commands --------------------------------------
-
 
 void    pipe_init(t_minishell *mini)
 {
