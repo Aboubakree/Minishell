@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/07 19:30:07by rtamouss         ###   ########.fr       */
+/*   Created: 2024/04/24 10:18:34 by akrid            #+#    #+#              */
+/*   Updated: 2024/06/07 19:30:07by rtamouss         ###   ########.fr        */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include <readline/history.h>
 // syntax error checking/
 
+t_lists_collecter *lists_collecter;
 
 t_environment	*env;
 
@@ -759,7 +760,7 @@ void	handle_quotes_after_dollar(char *str)
 			str[i] = str[i + 1];
 			i++;
 		}
-	}
+  }
 }
 
 char *change_value(char *str, int *i, int *index, char *env_variable)
@@ -1599,234 +1600,267 @@ void    execute_one(t_minishell *minishell, t_environment **env)
 
 //----------------------------------------- multiple commands --------------------------------------
 
-
-void	pipe_init(t_minishell *mini)
+void    pipe_init(t_minishell *mini)
 {
-	int			i;
-	int			*pip;
-	t_minishell	*temp;
+    int i;
+    int *pip;
+    t_minishell *temp;
 
-	i = 0;
-	pip = malloc(sizeof(int) * 2 * (mini->nbr_cmd - 1));
-	while (i < mini->nbr_cmd - 1)
-	{
-		if (pipe(pip + i * 2))
-		{
-			perror("pipe");
-			//free_lists_collector();
-			exit(1);
-		}
-		i ++;
-	}
-	temp = mini;
-	while (temp )
-	{
-		temp->pipe = pip;
-		temp = temp->next;
-	}
+    i = 0;
+    pip = malloc(sizeof(int) * 2 * (mini->nbr_cmd - 1));
+    while (i < mini->nbr_cmd - 1)
+    {
+        if (pipe(pip + i * 2))
+        {
+            perror("pipe");
+            free_at_exit();
+            exit(1);
+        }
+        i ++;
+    }
+    temp = mini;
+    while (temp )
+    {
+        temp->pipe = pip;
+        temp = temp->next;
+    }
 }
 
-void	close_pipes(int *pipe, int nbr_cmd)
+void close_pipes(int *pipe, int nbr_cmd)
 {
-	int	i;
+    int i;
 
-	i = 0;
-	while (i < 2 * (nbr_cmd - 1))
-		close(pipe[i ++]);
+    i = 0;
+    while (i < 2 * (nbr_cmd - 1))
+        close(pipe[i ++]);
 }
 
-void	unlink_files(t_minishell *minishell)
+void unlink_files(t_minishell *minishell)
 {
-	while (minishell)
-	{
-		if (access(minishell->heredoc_path, F_OK) == 0)
-		{
-			if (unlink(minishell->heredoc_path))
-				perror("unlink");
-		}
-		minishell = minishell->next;
-	}
+    while (minishell)
+    {
+        if (access(minishell->heredoc_path, F_OK) == 0)
+        {
+            if (unlink(minishell->heredoc_path))
+                perror("unlink");
+        }
+        minishell = minishell->next;
+    }
 }
 
-void	wait_childs(t_minishell *mini, t_environment *env, int num_cmd)
+void wait_childs(t_minishell *mini, t_environment *env, int num_cmd)
 {
-	int	i;
-	int	status;
+    int i;
+    int status;
 
-	i = 0;
-	close_pipes(mini->pipe, mini->nbr_cmd);
-	while (i < num_cmd)
-	{
-		if (wait(&status) > 0)
-		{
-			status = status >> 8;
-			set_exit_status(env, status);
-			i ++;
-		}
-		else
-		{
-			perror("wait");
-			i ++;
-		}
-	}
-	unlink_files(mini);
+    i = 0;
+    close_pipes(mini->pipe, mini->nbr_cmd);
+    while (i < num_cmd)
+    {
+        if (wait(&status) > 0)
+        {
+            status = status >> 8;
+            set_exit_status(env, status);
+            i ++;
+        }
+        else
+        {
+            perror("wait");
+            i ++;
+        }
+    }
+    unlink_files(mini);
 }
 
-void	get_in_out_priorities(t_minishell *singl_mini)
+void get_in_out_priorities(t_minishell *singl_mini)
 {
-	if (singl_mini->cmd_order == 0)
-	{
-		dup2(singl_mini->infile, STDIN_FILENO);
-		if (singl_mini->outfile == STDOUT_FILENO)
-			dup2(singl_mini->pipe[1], STDOUT_FILENO);
-		else
-			dup2(singl_mini->outfile, 1);
-	}
-	else if (singl_mini->cmd_order == singl_mini->nbr_cmd - 1)
-	{
-		if (singl_mini->infile == 0)
-			dup2(singl_mini->pipe[(singl_mini->cmd_order - 1) * 2], 0);
-		else
-			dup2(singl_mini->infile, 0);
-		dup2(singl_mini->outfile, 1);
-	}
-	else
-	{
-		if (singl_mini->infile == 0)
-			dup2(singl_mini->pipe[(singl_mini->cmd_order - 1) * 2], 0);
-		else
-			dup2(singl_mini->infile, 0);
-		if (singl_mini->outfile == 1)
-			dup2(singl_mini->pipe[singl_mini->cmd_order * 2 + 1], 1);
-		else
-			dup2(singl_mini->outfile, 1);
-	}
-	close_pipes(singl_mini->pipe, singl_mini->nbr_cmd);
+    if (singl_mini->cmd_order == 0)
+    {
+        dup2(singl_mini->infile, STDIN_FILENO);
+        if (singl_mini->outfile == STDOUT_FILENO)
+            dup2(singl_mini->pipe[1], STDOUT_FILENO);
+        else
+            dup2(singl_mini->outfile, 1);
+    }
+    else if (singl_mini->cmd_order == singl_mini->nbr_cmd - 1)
+    {
+        if (singl_mini->infile == 0)
+            dup2(singl_mini->pipe[(singl_mini->cmd_order - 1) * 2], 0);
+        else
+            dup2(singl_mini->infile, 0);
+        dup2(singl_mini->outfile, 1);
+    }
+    else
+    {
+        if (singl_mini->infile == 0)
+            dup2(singl_mini->pipe[(singl_mini->cmd_order - 1) * 2], 0);
+        else
+            dup2(singl_mini->infile, 0);
+        if (singl_mini->outfile == 1)
+            dup2(singl_mini->pipe[singl_mini->cmd_order * 2 + 1], 1);
+        else
+            dup2(singl_mini->outfile, 1);
+    }
+    close_pipes(singl_mini->pipe, singl_mini->nbr_cmd);
 }
 
 
-void	final_execution(t_minishell *singl_mini, t_environment **env)
+void final_execution(t_minishell *singl_mini, t_environment **env)
 {
-	char	**env_conv;
+    char **env_conv;
 
-	env_conv = convert_env(*env);
-	open_files(singl_mini, *env, singl_mini->files);
-	get_in_out_priorities(singl_mini);
-	if (check_builtin(singl_mini, env) == 0)
-		exit (0);
-	if (singl_mini->command == NULL || ft_strncmp(singl_mini->command, "", 1) == 0)
-		exit(0);
-	singl_mini->path = get_cmd_path(singl_mini->command, *env, 0);
-	if (singl_mini->path == NULL)
-		exit(127);
-	execve(singl_mini->path, singl_mini->args, env_conv);
-	perror("execve");
-	exit(1);
+    open_files(singl_mini, *env, singl_mini->files);
+    get_in_out_priorities(singl_mini);
+    if (check_builtin(singl_mini, env) == 0)
+    {
+        free_at_exit();
+        exit (0);
+    }
+    singl_mini->path = get_cmd_path(singl_mini->command, *env, 0);
+    if (singl_mini->path == NULL)
+    {
+        free_at_exit();
+        exit(127);
+    }
+    env_conv = convert_env(*env);
+    execve(singl_mini->path, singl_mini->args, env_conv );
+    perror("execve");
+    free_split(env_conv);
+    free_at_exit();
+    exit(1);
 }
 
-void	execute_all(t_minishell *minishell, t_environment **env)
+void execute_all(t_minishell *minishell, t_environment **env)
 {
-	pid_t		pid;
-	t_minishell	*temp;
-
-	pipe_init(minishell);
-	temp = minishell;
-	while (temp)
-	{
-		pid = fork();
-		if (pid == 0)
-			final_execution(temp, env);
-		temp = temp->next;
-	}
-	wait_childs(minishell, *env, minishell->nbr_cmd);
+    pid_t       pid;
+    t_minishell *temp;
+    
+    pipe_init(minishell);
+    temp = minishell;
+    while (temp)
+    {
+        pid = fork();
+        if (pid == 0)
+            final_execution(temp, env);
+        temp = temp->next;
+    }
+    wait_childs(minishell, *env, minishell->nbr_cmd);
 }
+
 
 //----------------------------------------- end of multiple command --------------------------------
-void	restore_STD_IN_OUT(int stdout, int stdin)
+void    restore_STD_IN_OUT(int stdout, int stdin)
 {
-	dup2(stdin, STDIN_FILENO);
-	dup2(stdout, STDOUT_FILENO);
-	close(stdin);
-	close(stdout);
+    dup2(stdin, STDIN_FILENO);
+    dup2(stdout, STDOUT_FILENO);
+    close(stdin);
+    close(stdout);
 }
 
-char	*get_herdoc_path(int i)
+char    *get_herdoc_path(int i)
 {
-	char	*heredoc_path;
+    char *heredoc_path;
 
-	heredoc_path = malloc(sizeof(char) * (ft_strlen("/tmp/herdoc_buffer_") + 2));
-	ft_strlcpy(heredoc_path, "/tmp/herdoc_buffer_", 16);
-	heredoc_path[14] = i + 'a';
-	heredoc_path[15] = '\0';
-	return (heredoc_path);
+    heredoc_path = malloc(sizeof(char) * (ft_strlen("/tmp/herdoc_buffer_") + 2));
+    ft_strlcpy(heredoc_path, "/tmp/herdoc_buffer_", 19);
+    heredoc_path[ft_strlen("/tmp/herdoc_buffer_")] = i + 'a';
+    heredoc_path[ft_strlen("/tmp/herdoc_buffer_") + 1] = '\0';
+    return (heredoc_path);
 }
 
-void	minishell_init(t_minishell *minishell, int count_cmds)
+void    minishell_init(t_minishell *minishell, int count_cmds)
 {
-	int			i;
-	t_minishell	*temp;
+    int i;
+    t_minishell *temp;
 
-	i = 0;
-	temp = minishell;
-	while (temp)
-	{
-		temp->cmd_order = i;
-		temp->path = NULL;
-		temp->pipe = NULL;
-		temp->infile = 0;
-		temp->outfile = 1;
-		temp->nbr_cmd = count_cmds;
-		temp->heredoc_path = get_herdoc_path(i);
-		i ++;
-		temp = temp->next;
-	}
+    i = 0;
+    temp = minishell;
+    while(temp)
+    {
+        temp->cmd_order = i;
+        temp->path = NULL;
+        temp->pipe = NULL;
+        temp->infile = 0;
+        temp->outfile = 1;
+        temp->nbr_cmd = count_cmds;
+        temp->heredoc_path = get_herdoc_path(i);
+        i ++;
+        temp = temp->next;
+    }
 }
 
-void	set_under_score(t_minishell *minishell, t_environment **env)
+void set_under_score(t_minishell *minishell, t_environment **env)
 {
-	t_environment	*env_under_score;
+    t_environment *env_under_score;
 
-	env_under_score = env_get_bykey(*env, "_");
-	if (env_under_score)
-	{
-		if (args_count(minishell->args) > 0)
-		{
-			free(env_under_score->value);
-			env_under_score->value = ft_strdup(minishell->args[args_count(minishell->args) - 1]);
-		}
-		else
-		{
-			free(env_under_score->value);
-			env_under_score->value = ft_strdup("");
-		}
-	}
+    env_under_score = env_get_bykey(*env, "_");
+    if (env_under_score)
+    {
+        if (args_count(minishell->args) > 0)
+        {
+            free(env_under_score->value);
+            env_under_score->value = ft_strdup(minishell->args[args_count(minishell->args) - 1]);
+        }
+        else
+        {
+            free(env_under_score->value);
+            env_under_score->value = ft_strdup("");
+        }
+    }
 }
 
-void	execution(t_minishell *minishell, t_environment **env)
+void    execution(t_minishell *minishell, t_environment **env)
 {
-	int	stdout;
-	int stdin;
+    int stdout;
+    int stdin;
 
-	stdout = dup(STDOUT_FILENO);
-	stdin = dup(STDIN_FILENO);
-	minishell_init(minishell, cmd_count(minishell));
-	if (check_heredoc(minishell, *env, 0))
-		return ;
-	if (cmd_count(minishell) == 1)
-	{
-		if (check_builtin(minishell, env) == 0)
-		{
-			set_under_score(minishell, env);
-			restore_STD_IN_OUT(stdout, stdin);
-			return ;
-		}
-		else
-			execute_one(minishell, env);
-		set_under_score(minishell, env);
-	}
-	else
-		execute_all(minishell, env);
-	restore_STD_IN_OUT(stdout, stdin);
+    stdout = dup(STDOUT_FILENO);
+    stdin = dup(STDIN_FILENO);
+    minishell_init(minishell, cmd_count(minishell));
+    if (check_heredoc(minishell, *env, 0))
+        return;
+    if (cmd_count(minishell) == 1)
+    {
+        if (check_builtin(minishell, env) == 0)
+        {
+            set_under_score(minishell, env);
+            restore_STD_IN_OUT(stdout, stdin);
+            return ;
+        }
+        else
+            execute_one(minishell, env);
+        set_under_score(minishell, env);
+    }
+    else
+        execute_all(minishell, env);
+    restore_STD_IN_OUT(stdout, stdin);
+}
+
+void collecter_init(t_minishell **minishell, t_environment **env, t_token **tokens)
+{
+    lists_collecter = malloc(sizeof(t_lists_collecter));
+    if (lists_collecter == NULL)
+    {
+        perror("malloc");
+        exit(1);
+    }
+    *env = NULL;
+    *tokens = NULL;
+    *minishell = NULL;
+    lists_collecter->minishell = minishell;
+    lists_collecter->env = env;
+    lists_collecter->tokens = tokens;
+}
+
+void free_at_exit()
+{
+    if (*lists_collecter->env )
+        free_environment(*lists_collecter->env);
+    if (*lists_collecter->minishell )
+        free_minishell(*lists_collecter->minishell);
+    if (*lists_collecter->tokens )
+        free_tokens(*lists_collecter->tokens);
+    free(lists_collecter);
 }
 
 int main(int argc, char **argv, char **base_env)
