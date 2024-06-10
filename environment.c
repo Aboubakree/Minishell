@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 18:53:56 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/04 11:37:51 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/08 19:10:41 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,6 @@ t_environment *creat_env()
         exit(1);
     }
     env = NULL;
-    printf("%s\n", current_path);
     env_add_back(&env, env_node(ft_strdup("PATH"),
         ft_strdup("/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/snap/bin")));
     env_add_back(&env, env_node(ft_strdup("PWD"), ft_strdup(current_path)));

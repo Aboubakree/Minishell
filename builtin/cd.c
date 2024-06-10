@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 11:04:31 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/07 11:55:26 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/10 14:23:08 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,8 +39,7 @@ int cd_pars(t_minishell *singl_mini,char *path)
     if (chdir(path))
     {
         write(2, "bash: cd: ", ft_strlen("bash: cd: "));
-        write(2, path, ft_strlen(path));
-        write(2, ": No such file or directory\n", ft_strlen(": No such file or directory\n"));
+        perror(path);
         return (1);
     }
     return (0);

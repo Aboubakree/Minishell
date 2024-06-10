@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/09 22:11:46 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/06/09 09:09:07 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,12 +20,12 @@
 #include <string.h>
 #include <signal.h>
 #include <errno.h>
-#include "lib/libft/libft.h"
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <readline/history.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include "lib/libft/libft.h"
 
 // colors 
 #define RED "\033[0;31m"
@@ -115,11 +115,11 @@ extern t_lists_collecter *lists_collecter;
 
 
 // -------------- common function ---------------
+void set_exit_status(t_environment *env, int new_value);
 int args_count(char **args);
 void free_split(char **splited);
 void free_at_exit();
 char *ft_putnbr(int nbr);
-void set_exit_status(t_environment *env, int new_value);
 
 
 // --------------------------------------------------- parsing ---------------------------------------------------
@@ -129,6 +129,7 @@ void set_exit_status(t_environment *env, int new_value);
 //environment
 t_environment *env_node(char *key, char *value);
 void    env_add_back(t_environment **env, t_environment *node);
+int env_size(t_environment *env);
 t_environment *get_before_target(t_environment *env, t_environment *target);
 void  put_at_end(t_environment **env, char *target_key);
 void get_environment(t_environment **env, char **base_env);

@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 09:11:10 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/08 11:25:36 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/08 19:15:47 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,6 +78,15 @@ void free_copy(t_environment *env)
     }
 }
 
+void print(char *key, char *value)
+{
+    if (value != NULL)
+        printf("declare -x %s=\"%s\"\n",key, value);
+    else
+        printf("declare -x %s\n",key);
+}
+
+
 int    export_print( t_environment **env)
 {
     t_environment *copy_env;
@@ -88,13 +97,10 @@ int    export_print( t_environment **env)
     helper = copy_env;
     while (helper)
     {
-        if (strncmp(helper->key, "_", 2) != 0 && ft_strncmp(helper->key, "?", 2) != 0)
-        {
-            if (helper->value != NULL)
-                printf("declare -x %s=\"%s\"\n",helper->key, helper->value);
-            else
-                printf("declare -x %s\n",helper->key);
-        }
+        if (strncmp(helper->key, "_", 2) != 0 && ft_strncmp(helper->key, "?", 2) != 0 && ft_strncmp(helper->key, "PATH", 2) != 0)
+            print(helper->key, helper->value);
+        if (ft_strncmp(helper->key, "PATH", 2) == 0 && env_size(*env) > 10)
+            print(helper->key, helper->value);
         helper = helper->next;
     }
     free_copy(copy_env);
@@ -143,11 +149,15 @@ int pars_node(t_environment *new, char *arg)
                 return (parse_error(arg),1);
         if (new->key[i] == '+')
             plus ++;
-        if (plus > 1 || (new->key[0] >= '0' && new->key[0] <= '9'))
+        if (plus > 1 || new->key[0] == '+' 
+            || (new->key[0] >= '0' && new->key[0] <= '9'))
             return (parse_error(arg),1);
         i ++;
     }
-    if (new->key[ft_strlen(new->key) - 1] == '+' && new->value == NULL)
+    if ((new->key && new->key[0] == '\0') 
+        || (new->key[ft_strlen(new->key) - 1] == '+' 
+        && new->value == NULL)
+        || (plus == 1 && new->key[ft_strlen(new->key) - 1] != '+'))
         return (parse_error(arg),1);
     return (0);
 }
