@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 11:04:31 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/10 14:23:08 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/11 13:40:04 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ void cd(t_minishell *singl_mini, t_environment *env)
         path = get_home(env);
     else 
         path = singl_mini->args[1];
-    if (path && ft_strncmp(path, "", 1) == 0)
+    if (path && ft_strncmp(path, "", 1) == 0 && args_count(singl_mini->args) <= 2)
         return (handel_exit_status(env, singl_mini->nbr_cmd, 0));
     if (cd_pars(singl_mini, path))
         return (handel_exit_status(env, singl_mini->nbr_cmd, 1));

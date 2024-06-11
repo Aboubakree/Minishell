@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 18:53:56 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/08 19:10:41 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/11 11:37:47 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,44 +42,7 @@ void    env_add_back(t_environment **env, t_environment *node)
 }
 
 
-t_environment *creat_env()
-{
-    t_environment *env;
-    char            current_path[1024];
 
-    if (getcwd(current_path, 1024) == NULL)
-    {
-        perror("getcwd");
-        exit(1);
-    }
-    env = NULL;
-    env_add_back(&env, env_node(ft_strdup("PATH"),
-        ft_strdup("/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/snap/bin")));
-    env_add_back(&env, env_node(ft_strdup("PWD"), ft_strdup(current_path)));
-    env_add_back(&env, env_node(ft_strdup("SHLVL"), ft_strdup("1")));
-    env_add_back(&env, env_node(ft_strdup("?"), ft_strdup("0")));
-    env_add_back(&env, env_node(ft_strdup("OLDPWD"), NULL));
-    env_add_back(&env, env_node(ft_strdup("_"), ft_strdup("]")));
-    return (env);
-}
-
-void increment_shlvl(t_environment *env)
-{
-    t_environment *SHLVL;
-    char *new_lvl;
-    int lvl;
-
-    SHLVL = env_get_bykey(env, "SHLVL");
-    if (SHLVL == NULL || SHLVL->value == NULL)
-        return;
-    lvl = ft_atoi(SHLVL->value);
-    lvl ++;
-    new_lvl = malloc(sizeof(char) * 2);
-    new_lvl[0] = lvl + '0';
-    new_lvl[1] = '\0';
-    free(SHLVL->value);
-    SHLVL->value = new_lvl;
-} 
 
 void add_exit_status(t_environment **env)
 {
