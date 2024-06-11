@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/10 17:39:42 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/10 20:13:09 rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,6 @@
 // syntax error checking/
 
 t_lists_collecter *lists_collecter;
-
-t_environment	*env;
 
 void	puterr(char *str)
 {
@@ -251,7 +249,7 @@ int is_alpha(char c)
 }
 int not_alpha_numeric(char c)
 {
-	return (!is_alpha(c) && !is_number(c));
+	return (!is_alpha(c) && !is_number(c) && c != '_' && c != '?' && c != '`');
 }
 
 int	is_word(char c)
@@ -772,7 +770,7 @@ char *change_value(char *str, int *i, int *index, char *env_variable)
 	char			*last;
 
 	env_variable = ft_substr(str, *i + 1, *index - *i - 1);
-	get_env = env_get_bykey(env, env_variable);
+	get_env = env_get_bykey(*(lists_collecter->env), env_variable);
 	if (get_env == NULL)
 		value = ft_strdup("");
 	else
@@ -825,8 +823,7 @@ char	*expand_string(char *str, int from_heredoc)
 	while (str[i])
 	{
 		check_quote(str, &in_s_quotes, &in_d_quotes, &i);
-		if ((str[i] == '$' && ((in_s_quotes == 0 && from_heredoc == 0
-						&& is_word(str[i + 1])) || from_heredoc == 1)))
+		if ((str[i] == '$' && ((in_s_quotes == 0 && from_heredoc == 0 && is_word(str[i + 1])) || from_heredoc == 1)))
 		{
 			if (is_whitespace(str[i + 1]) || str[i + 1] == '\0')
 			{
@@ -839,7 +836,8 @@ char	*expand_string(char *str, int from_heredoc)
 		else
 			i++;
 	}
-	return (handle_quotes_after_dollar(str), str);
+	// return (handle_quotes_after_dollar(str), str);
+	return (str);
 }
 
 
@@ -900,6 +898,13 @@ void delete_quotes_from_string(char *str)
 			in_single_quote = !in_single_quote;
 		else if (str[j] == '\"' && !in_single_quote)
 			in_double_quote = !in_double_quote;
+		else if (str[j] == '$' && in_double_quote == 0 && in_single_quote == 0)
+		{
+			if (str[j] == '\'' && !in_double_quote)
+				in_single_quote = !in_single_quote;
+			else if (str[j] == '\"' && !in_single_quote)
+				in_double_quote = !in_double_quote;
+		}
 		else
 		{
 			str[k] = str[j];
@@ -1100,23 +1105,23 @@ void join_args(t_token *temp, char **args1, char ***args)
 	*args = ft_split2(*args1, '\r');
 }
 
-void token_to_minishell_helper(t_minishell_data_help *data, t_token *temp)
+void token_to_minishell_helper(t_minishell_data_help *data, t_token **temp)
 {
-	if (temp->type == T_WORD)
+	if ((*temp)->type == T_WORD)
 	{
 		if (data->new_command == 1)
-			data->new_command = handle_word_new_command(data, temp);
+			data->new_command = handle_word_new_command(data, (*temp));
 		else
-			join_args(temp, &data->args1, &data->args);
+			join_args((*temp), &data->args1, &data->args);
 	}
-	else if (temp->type == T_REDIRECTION_IN)
-		temp = add_redirection_in(temp, &data->files);
-	else if (temp->type == T_REDIRECTION_OUT)
-		temp = add_redirection_out(temp, &data->files);
-	else if (temp->type == T_REDIRECTION_APPEND)
-		temp = add_redirection_append(temp, &data->files);
-	else if (temp->type == T_HERDOC)
-		temp = add_heredoc(temp, &data->files);
+	else if ((*temp)->type == T_REDIRECTION_IN)
+		(*temp) = add_redirection_in((*temp), &data->files);
+	else if ((*temp)->type == T_REDIRECTION_OUT)
+		(*temp) = add_redirection_out((*temp), &data->files);
+	else if ((*temp)->type == T_REDIRECTION_APPEND)
+		(*temp) = add_redirection_append((*temp), &data->files);
+	else if ((*temp)->type == T_HERDOC)
+		(*temp) = add_heredoc((*temp), &data->files);
 }
 
 void initialize_token_to_minishell_data(t_minishell_data_help *data)
@@ -1148,7 +1153,7 @@ t_minishell	*token_to_minishell(t_token *tokens)
 			temp = temp->next;
 			continue ;
 		}
-		token_to_minishell_helper(&data, temp);
+			token_to_minishell_helper(&data, &temp);
 		temp = temp->next;
 	}
 	add_minishell_back(&minishell,
@@ -1232,7 +1237,7 @@ void	handle_ctrl_c(int signal)
 {
 	if (signal == SIGINT)
 	{
-		// clear the current line
+		// clear the current line	
 		rl_replace_line("", 0);
 		// move to a new line
 		printf("\n");
@@ -1240,7 +1245,8 @@ void	handle_ctrl_c(int signal)
 		rl_on_new_line();
 		// redrws the readline line
 		rl_redisplay();
-		set_exit_status(env, 130);
+		set_exit_status(*(lists_collecter->env), 130);
+		printf("exit status : %s\n", env_get_bykey(*(lists_collecter->env), "?")->value);
 		return;
 	}
 }
@@ -1411,7 +1417,7 @@ void	fill_heredoc(t_minishell *temp, t_file_redirection *files)
         if (check_delemeter(str, files->filename, fd) == 1)
             break;
         if (files->should_expand_heredoc == 1 && ft_strchr(str, '$') != NULL)
-            str = expand_string(str, env, 1);
+            str = expand_string(str, 1);
         write(fd, str, ft_strlen(str));
         write(fd, "\n", 1);
         if(str)
@@ -1910,10 +1916,10 @@ int main(int argc, char **argv, char **base_env)
         tokens = tokenize_input(str);
         // print_tokens(tokens);
         // printf("after expand ======================\n");
-        tokens = expand(tokens, env);
+        tokens = expand(tokens);
         // print_tokens(tokens);
         // printf("after expand ======================\n");
-        if (check_syntax_error(str, env) == 1 ||  ft_strlen(str) == 0 || ft_strncmp(str, ":", ft_strlen(str)) == 0 || check_syntax_error_tokens(tokens) == 1)
+        if (check_syntax_error(str) == 1 ||  ft_strlen(str) == 0 || ft_strncmp(str, ":", ft_strlen(str)) == 0 || check_syntax_error_tokens(tokens) == 1)
         {
             add_history(str);
             free(str);
@@ -1931,7 +1937,7 @@ int main(int argc, char **argv, char **base_env)
         //     free_minishell(minishell);
         //     continue;
         // }
-        //print_minishell(minishell);
+        // print_minishell(minishell);
         // printf("%s\n", str);
         execution(minishell, &env);
         free(str);
