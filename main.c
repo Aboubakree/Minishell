@@ -21,6 +21,24 @@ void	puterr(char *str)
 {
 	ft_putstr_fd(str, 2);
 }
+int	is_whitespace(char c)
+{
+	return (c == ' ' || c == '\t'
+		|| c == '\n' || c == '\v' || c == '\f' || c == '\r');
+}
+int	check_if_have_space(const char *str)
+{
+	int	i;
+
+	i = 0;
+	while (str[i])
+	{
+		if (is_whitespace(str[i]) == 1)
+			return (1);
+		i++;
+	}
+	return (0);
+}
 
 int	count_char_occurence(char *str, int c)
 {
@@ -38,11 +56,7 @@ int	count_char_occurence(char *str, int c)
 	return (count);
 }
 
-int	is_whitespace(char c)
-{
-	return (c == ' ' || c == '\t'
-		|| c == '\n' || c == '\v' || c == '\f' || c == '\r');
-}
+
 
 void	update_nb_quote(char c, int *nb_quote_single, int *nb_quote_double)
 {
@@ -156,6 +170,21 @@ int	check_unclosed_quotes(const char *str)
 		i++;
 	}
 	return (in_single_quotes || in_double_quotes);
+}
+void	free_args(char **args)
+{
+	int	i;
+
+	i = 0;
+	if (args)
+	{
+		while (args[i])
+		{
+			free(args[i]);
+			i++;
+		}
+		free(args);
+	}
 }
 
 int	check_invalid_redirection(const char *str)
@@ -299,7 +328,7 @@ t_token	get_last_token(t_token *tokens)
 
 	temp = tokens;
 	if (!temp)
-		return (t_token){0, NULL, NULL};
+		return (t_token){0,NULL,  NULL, NULL};
 	while (temp->next)
 		temp = temp->next;
 	return (*temp);
@@ -357,6 +386,65 @@ void	add_file_redirection_back(t_file_redirection **head
 		temp->next = new_file;
 	}
 }
+// void remove_token(t_token **head, t_token *target)
+// {
+// 	t_token	*temp;
+// 	t_token	*prev;
+
+// 	if (!*head)
+// 		return ;
+// 	if (*head == target)
+// 	{
+// 		*head = target->next;
+// 		free(target->value);
+// 		free(target);
+// 		return ;
+// 	}
+// 	temp = *head;
+// 	while (temp && temp != target)
+// 	{
+// 		prev = temp;
+// 		temp = temp->next;
+// 	}
+// 	if (temp)
+// 	{
+// 		prev->next = temp->next;
+// 		free(temp->value);
+// 		free(temp);
+// 	}
+// }
+
+void remove_token(t_token **head, t_token *target)
+{
+    t_token	*temp;
+    t_token	*prev;
+
+    if (!*head)
+        return ;
+    if (*head == target)
+    {
+        if (target->next)
+            target->next->prev = NULL;
+        *head = target->next;
+        free(target->value);
+        free(target);
+        return ;
+    }
+    temp = *head;
+    while (temp && temp != target)
+    {
+        prev = temp;
+        temp = temp->next;
+    }
+    if (temp)
+    {
+        if (temp->next)
+            temp->next->prev = prev;
+        prev->next = temp->next;
+        free(temp->value);
+        free(temp);
+    }
+}
 
 t_token	*new_token(t_type_of_token type, char *value)
 {
@@ -368,29 +456,80 @@ t_token	*new_token(t_type_of_token type, char *value)
 	token->type = type;
 	token->value = value;
 	token->next = NULL;
+	token->prev = NULL;
 	return (token);
 }
 
 void	add_token_front(t_token **head, t_token *new_token)
 {
+	new_token->prev = NULL;
 	new_token->next = *head;
 	*head = new_token;
 }
-
-void	add_token_back(t_token **head, t_token *new_token)
+void insert_token(t_token **head, t_token *new_token, t_token *target)
 {
-	t_token	*temp;
+    t_token	*temp;
 
-	if (!*head)
-		*head = new_token;
-	else
-	{
-		temp = *head;
-		while (temp->next)
-			temp = temp->next;
-		temp->next = new_token;
-	}
+    if (!*head)
+        *head = new_token;
+    else
+    {
+        temp = *head;
+        while (temp->next && temp->next != target)
+            temp = temp->next;
+        new_token->next = temp->next;
+        if (temp->next)
+            temp->next->prev = new_token;
+        new_token->prev = temp;
+        temp->next = new_token;
+    }
 }
+// void insert_token(t_token **head, t_token *new_token, t_token *target)
+// {
+// 	t_token	*temp;
+
+// 	if (!*head)
+// 		*head = new_token;
+// 	else
+// 	{
+// 		temp = *head;
+// 		while (temp->next && temp->next != target)
+// 			temp = temp->next;
+// 		new_token->next = temp->next;
+// 		temp->next = new_token;
+// 	}
+// }
+
+void add_token_back(t_token **head, t_token *new_token)
+{
+    t_token	*temp;
+
+    if (!*head)
+        *head = new_token;
+    else
+    {
+        temp = *head;
+        while (temp->next)
+            temp = temp->next;
+        temp->next = new_token;
+        new_token->prev = temp;
+    }
+}
+
+// void	add_token_back(t_token **head, t_token *new_token)
+// {
+// 	t_token	*temp;
+
+// 	if (!*head)
+// 		*head = new_token;
+// 	else
+// 	{
+// 		temp = *head;
+// 		while (temp->next)
+// 			temp = temp->next;
+// 		temp->next = new_token;
+// 	}
+// }
 
 char	*get_type_token(t_type_of_token type)
 {
@@ -414,8 +553,7 @@ void	print_tokens(t_token *tokens)
 	printf("--------------------\n");
 	while (tokens)
 	{
-		printf("=======>type: %s, value: [%s]\n"
-			, get_type_token(tokens->type), tokens->value);
+		printf("type: %s, value: [%s]\n" , get_type_token(tokens->type), tokens->value);
 		tokens = tokens->next;
 	}
 	printf("--------------------\n");
@@ -836,11 +974,18 @@ char	*expand_string(char *str, int from_heredoc)
 		else
 			i++;
 	}
-	// return (handle_quotes_after_dollar(str), str);
 	return (str);
 }
 
+int count_args(char **args)
+{
+	int	i;
 
+	i = 0;
+	while (args[i])
+		i++;
+	return (i);
+}
 t_token	*expand(t_token *tokens)
 {
 	t_token	*temp;
@@ -855,7 +1000,34 @@ t_token	*expand(t_token *tokens)
 				temp = temp->next;
 				continue ;
 			}
+			// char *old = ft_strdup(temp->value);
 			temp->value = expand_string(temp->value, 0);
+			if (check_if_have_space(temp->value) == 1)
+			{
+				if (temp->prev != NULL)
+				{
+					if (temp->prev->type == T_REDIRECTION_IN || temp->prev->type == T_REDIRECTION_OUT || temp->prev->type == T_REDIRECTION_APPEND)
+					{
+						puterr("bash: ");
+						puterr(temp->value);
+						// puterr(old);
+						// free(old);
+						puterr(": ambiguous redirect\n");
+						set_exit_status(*(lists_collecter->env), 1);
+						return (NULL);
+					}
+				}
+				char **args;
+				args = ft_split2(temp->value, ' ');
+				int i = 0;
+				while(args[i])
+				{
+					insert_token(&tokens, new_token(T_WORD, ft_strdup(args[i])), temp);
+					i++;
+				}
+				free_args(args);
+				remove_token(&tokens, temp);
+			}
 		}
 		temp = temp->next;
 	}
@@ -973,22 +1145,6 @@ t_minishell	*delete_quotes(t_minishell *minishell)
 	return (minishell);
 }
 
-void	free_args(char **args)
-{
-	int	i;
-
-	i = 0;
-	if (args)
-	{
-		while (args[i])
-		{
-			free(args[i]);
-			i++;
-		}
-		free(args);
-	}
-}
-
 int	in_quote(const char *str)
 {
 	size_t	len;
@@ -997,19 +1153,7 @@ int	in_quote(const char *str)
 	return (len >= 2 && str[0] == '"' && str[len - 1] == '"');
 }
 
-int	check_if_have_space(const char *str)
-{
-	int	i;
 
-	i = 0;
-	while (str[i])
-	{
-		if (is_whitespace(str[i]) == 1)
-			return (1);
-		i++;
-	}
-	return (0);
-}
 t_token *add_redirection_in(t_token *temp, t_file_redirection **files)
 {
 	temp = temp->next;
@@ -1246,7 +1390,6 @@ void	handle_ctrl_c(int signal)
 		// redrws the readline line
 		rl_redisplay();
 		set_exit_status(*(lists_collecter->env), 130);
-		printf("exit status : %s\n", env_get_bykey(*(lists_collecter->env), "?")->value);
 		return;
 	}
 }
@@ -1919,7 +2062,7 @@ int main(int argc, char **argv, char **base_env)
         tokens = expand(tokens);
         // print_tokens(tokens);
         // printf("after expand ======================\n");
-        if (check_syntax_error(str) == 1 ||  ft_strlen(str) == 0 || ft_strncmp(str, ":", ft_strlen(str)) == 0 || check_syntax_error_tokens(tokens) == 1)
+        if (tokens == NULL || check_syntax_error(str) == 1 ||  ft_strlen(str) == 0 || ft_strncmp(str, ":", ft_strlen(str)) == 0 || check_syntax_error_tokens(tokens) == 1)
         {
             add_history(str);
             free(str);
