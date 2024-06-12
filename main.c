@@ -1483,7 +1483,7 @@ int	check_heredoc(t_minishell *minishell , t_environment *env, int i)
 	else if (i > 16)
 	{
 		write(2, "bash: maximum here-document count exceeded\n", 43);
-		// free_lists_collector();
+		free_at_exit();
 		exit(2);
 	}
 	return (0);
@@ -1522,12 +1522,25 @@ int	file_error(t_minishell *minishell, t_environment *env, char *filename)
 		return (1);
 	}
 	set_exit_status(env, 1);
-	//free_lists_collector
+	free_at_exit();
 	exit(1);
 }
 
-int	open_file_extended(t_minishell *minishell, t_environment *env, t_file_redirection *files)
+int check_std_in_out(t_type_of_token type ,char *filename)
 {
+	if (ft_strncmp(filename, "/dev/stdout", ft_strlen(filename) + 1) == 0 
+		&& (type == T_REDIRECTION_OUT || type == T_REDIRECTION_APPEND) )
+		return (2);
+	if (ft_strncmp(filename, "/dev/stdin", ft_strlen(filename) + 1) == 0
+		&& type == T_REDIRECTION_IN)
+		return (2);
+	return (0);
+}
+
+int	open_file_extended_2(t_minishell *minishell, t_environment *env, t_file_redirection *files)
+{
+	if (check_std_in_out(files->type , files->filename))
+		return (2);
 	if (files->type == T_REDIRECTION_APPEND)
 	{
 		if (minishell->outfile != 1)
@@ -1547,29 +1560,45 @@ int	open_file_extended(t_minishell *minishell, t_environment *env, t_file_redire
 	return (0);
 }
 
+int	open_file_extended(t_minishell *minishell, t_environment *env, t_file_redirection *files)
+{
+	if (check_std_in_out(files->type, files->filename))
+		return (2);
+	if (files->type == T_REDIRECTION_IN)
+	{
+		if (minishell->infile != 0)
+			close(minishell->infile);
+		minishell->infile = open(files->filename, O_RDONLY, 0644);
+		if (minishell->infile < 0)
+			return (file_error(minishell, env, files->filename));
+	}
+	else if (files->type == T_REDIRECTION_OUT)
+	{
+		if (minishell->outfile != 1)
+			close(minishell->outfile);
+		minishell->outfile = open(files->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		if (minishell->outfile < 0)
+			return (file_error(minishell, env, files->filename));
+	}
+	return (0);
+}
+
 int	open_files(t_minishell *minishell, t_environment *env, t_file_redirection *files)
 {
 	files = minishell->files;
+	int return_value;
+
 	while (files)
 	{
-		if (files->type == T_REDIRECTION_IN)
-		{
-			if (minishell->infile != 0)
-				close(minishell->infile);
-			minishell->infile = open(files->filename, O_RDONLY, 0644);
-			if (minishell->infile < 0)
-				return (file_error(minishell, env, files->filename));
-		}
-		else if (files->type == T_REDIRECTION_OUT)
-		{
-			if (minishell->outfile != 1)
-				close(minishell->outfile);
-			minishell->outfile = open(files->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-			if (minishell->outfile < 0)
-				return (file_error(minishell, env, files->filename));
-		}
-		else if (open_file_extended(minishell, env, files))
+		return_value = open_file_extended(minishell, env, files);
+		if (return_value == 1)
 			return (1);
+		else if (return_value == 0)
+		{
+			return_value = open_file_extended_2(minishell, env, files);
+			if (return_value == 1)
+				return (1);
+		}
 		files = files->next;
 	}
 	return (0);
@@ -1589,7 +1618,7 @@ void    start_execute_one(t_minishell *minishell, t_environment **env)
 	dup2(minishell->infile, 0);
 	dup2(minishell->outfile, 1);
 	execve(minishell->path, minishell->args, env_conv);
-	perror("execve");
+	perror("bash");
 	exit(126);
 }
 

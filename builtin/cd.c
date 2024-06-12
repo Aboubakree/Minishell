@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 11:04:31 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/10 14:23:08 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/12 20:56:11 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,16 +28,23 @@ int cd_pars(t_minishell *singl_mini,char *path)
 {
     if (path == NULL)
     {
-        write(2, "bash: cd: HOME not set\n", ft_strlen("bash: cd: HOME not set\n"));
+        write(2, "bash: cd: HOME not set\n", 23);
         return (1);
     }
     if (args_count(singl_mini->args) > 2)
     {
-        write(2,"bash: cd: too many arguments\n",ft_strlen("bash: cd: too many arguments\n"));
+        write(2,"bash: cd: too many arguments\n",29);
         return (1);
     }
     if (chdir(path))
     {
+        if (errno == 116)
+        {
+            write(2, "bash: cd: ", ft_strlen("bash: cd: "));
+            write(2, path, ft_strlen(path));
+            write(2, ": No such file or directory\n", 28);
+            return (1);
+        }
         write(2, "bash: cd: ", ft_strlen("bash: cd: "));
         perror(path);
         return (1);
@@ -96,7 +103,7 @@ void cd(t_minishell *singl_mini, t_environment *env)
         path = get_home(env);
     else 
         path = singl_mini->args[1];
-    if (path && ft_strncmp(path, "", 1) == 0)
+    if (path && ft_strncmp(path, "", 1) == 0 && args_count(singl_mini->args) <= 2)
         return (handel_exit_status(env, singl_mini->nbr_cmd, 0));
     if (cd_pars(singl_mini, path))
         return (handel_exit_status(env, singl_mini->nbr_cmd, 1));
