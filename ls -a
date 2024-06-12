@@ -1,0 +1,22 @@
+$a
+builtin
+echo
+environment_2.c
+environment_2.o
+environment_3.c
+environment_3.o
+environment.c
+environment.o
+file
+file.c
+lib
+ls -a
+main.c
+main.o
+Makefile
+minishell
+minishell.c
+minishell.h
+minishell.o
+parsing.c
+readline.supp

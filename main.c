@@ -386,33 +386,7 @@ void	add_file_redirection_back(t_file_redirection **head
 		temp->next = new_file;
 	}
 }
-// void remove_token(t_token **head, t_token *target)
-// {
-// 	t_token	*temp;
-// 	t_token	*prev;
 
-// 	if (!*head)
-// 		return ;
-// 	if (*head == target)
-// 	{
-// 		*head = target->next;
-// 		free(target->value);
-// 		free(target);
-// 		return ;
-// 	}
-// 	temp = *head;
-// 	while (temp && temp != target)
-// 	{
-// 		prev = temp;
-// 		temp = temp->next;
-// 	}
-// 	if (temp)
-// 	{
-// 		prev->next = temp->next;
-// 		free(temp->value);
-// 		free(temp);
-// 	}
-// }
 
 void remove_token(t_token **head, t_token *target)
 {
@@ -484,22 +458,6 @@ void insert_token(t_token **head, t_token *new_token, t_token *target)
         temp->next = new_token;
     }
 }
-// void insert_token(t_token **head, t_token *new_token, t_token *target)
-// {
-// 	t_token	*temp;
-
-// 	if (!*head)
-// 		*head = new_token;
-// 	else
-// 	{
-// 		temp = *head;
-// 		while (temp->next && temp->next != target)
-// 			temp = temp->next;
-// 		new_token->next = temp->next;
-// 		temp->next = new_token;
-// 	}
-// }
-
 void add_token_back(t_token **head, t_token *new_token)
 {
     t_token	*temp;
@@ -516,20 +474,6 @@ void add_token_back(t_token **head, t_token *new_token)
     }
 }
 
-// void	add_token_back(t_token **head, t_token *new_token)
-// {
-// 	t_token	*temp;
-
-// 	if (!*head)
-// 		*head = new_token;
-// 	else
-// 	{
-// 		temp = *head;
-// 		while (temp->next)
-// 			temp = temp->next;
-// 		temp->next = new_token;
-// 	}
-// }
 
 char	*get_type_token(t_type_of_token type)
 {
@@ -961,6 +905,8 @@ char	*expand_string(char *str, int from_heredoc)
 	while (str[i])
 	{
 		check_quote(str, &in_s_quotes, &in_d_quotes, &i);
+		printf("in double quotes: %d\n", in_d_quotes);
+		printf("in single quotes: %d\n", in_s_quotes);	
 		if ((str[i] == '$' && ((in_s_quotes == 0 && from_heredoc == 0 && is_word(str[i + 1])) || from_heredoc == 1)))
 		{
 			if (is_whitespace(str[i + 1]) || str[i + 1] == '\0')
@@ -986,6 +932,7 @@ int count_args(char **args)
 		i++;
 	return (i);
 }
+
 t_token	*expand(t_token *tokens)
 {
 	t_token	*temp;
@@ -993,43 +940,51 @@ t_token	*expand(t_token *tokens)
 	temp = tokens;
 	while (temp)
 	{
-		if (temp->type == T_WORD)
+		if (temp && temp->value)
 		{
-			if (ft_strchr(temp->value, '$') == NULL)
+			if (temp->type == T_WORD)
 			{
-				temp = temp->next;
-				continue ;
-			}
-			// char *old = ft_strdup(temp->value);
-			temp->value = expand_string(temp->value, 0);
-			if (check_if_have_space(temp->value) == 1)
-			{
-				if (temp->prev != NULL)
+				if (ft_strchr(temp->value, '$') == NULL)
 				{
-					if (temp->prev->type == T_REDIRECTION_IN || temp->prev->type == T_REDIRECTION_OUT || temp->prev->type == T_REDIRECTION_APPEND)
+					temp = temp->next;
+					continue ;
+				}
+				char *old = ft_strdup(temp->value);
+				temp->value = expand_string(temp->value, 0);
+				if (check_if_have_space(temp->value) == 1)
+				{
+					if (temp->prev != NULL)
 					{
-						puterr("bash: ");
-						puterr(temp->value);
-						// puterr(old);
-						// free(old);
-						puterr(": ambiguous redirect\n");
-						set_exit_status(*(lists_collecter->env), 1);
-						return (NULL);
+						if (temp->prev->type == T_REDIRECTION_IN || temp->prev->type == T_REDIRECTION_OUT || temp->prev->type == T_REDIRECTION_APPEND)
+						{
+							if (old[0] != '\"' && old[ft_strlen(old) - 1] != '\"')
+							{
+								puterr("bash: ");
+								puterr(old);
+								puterr(": ambiguous redirect\n");
+								set_exit_status(*(lists_collecter->env), 1);
+								return (NULL);
+							}
+						}
 					}
+					char **args;
+					args = ft_split2(temp->value, ' ');
+					int i = 0;
+					while(args[i])
+					{
+						insert_token(&tokens, new_token(T_WORD, ft_strdup(args[i])), temp);
+						i++;
+					}
+					free_args(args);
+					t_token *temp_to_remove = temp;
+					temp = temp->next;
+					remove_token(&tokens, temp_to_remove);
 				}
-				char **args;
-				args = ft_split2(temp->value, ' ');
-				int i = 0;
-				while(args[i])
-				{
-					insert_token(&tokens, new_token(T_WORD, ft_strdup(args[i])), temp);
-					i++;
-				}
-				free_args(args);
-				remove_token(&tokens, temp);
+				free(old);
 			}
+			else
+				temp = temp->next;
 		}
-		temp = temp->next;
 	}
 	return (tokens);
 }
@@ -1157,31 +1112,15 @@ int	in_quote(const char *str)
 t_token *add_redirection_in(t_token *temp, t_file_redirection **files)
 {
 	temp = temp->next;
-	if (check_if_have_space(temp->value) == 1 && in_quote(temp->value) == 0)
-	{
-		puterr("bash: [");
-		puterr(temp->value);
-		puterr("]: ambiguous redirect\n");
-	}
-	else 
-	{
-		add_file_redirection_back(files, new_file_redirection(ft_strdup(temp->value)
+	add_file_redirection_back(files, new_file_redirection(ft_strdup(temp->value)
 			,T_REDIRECTION_IN));
-	}
 	return (temp);
 }
 
 t_token *add_redirection_out(t_token *temp, t_file_redirection **files)
 {
 	temp = temp->next;
-	if (check_if_have_space(temp->value) == 1 && in_quote(temp->value) == 0)
-	{
-		puterr("bash: [");
-		puterr(temp->value);
-		puterr("]: ambiguous redirect\n");
-	}
-	else
-		add_file_redirection_back(files, new_file_redirection(ft_strdup(temp->value)
+	add_file_redirection_back(files, new_file_redirection(ft_strdup(temp->value)
 			,T_REDIRECTION_OUT));
 	return (temp);
 }
@@ -1189,14 +1128,7 @@ t_token *add_redirection_out(t_token *temp, t_file_redirection **files)
 t_token *add_redirection_append(t_token *temp, t_file_redirection **files)
 {
 	temp = temp->next;
-	if (check_if_have_space(temp->value) == 1 && in_quote(temp->value) == 0)
-	{
-		puterr("bash: [");
-		puterr(temp->value);
-		puterr("]: ambiguous redirect\n");
-	}
-	else
-		add_file_redirection_back(files, new_file_redirection(ft_strdup(temp->value)
+	add_file_redirection_back(files, new_file_redirection(ft_strdup(temp->value)
 			,T_REDIRECTION_APPEND));
 	return (temp);
 }
