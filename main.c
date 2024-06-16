@@ -896,18 +896,17 @@ void initialize_expand_string(int *i, int *in_single_quotes, int *in_double_quot
 char	*expand_string(char *str, int from_heredoc)
 {
 	int		i;
-	int		in_s_quotes;
-	int		in_d_quotes;
+	int		in_single_quotes;
+	int		in_double_quotes;
 	int		index;
 	char	*env_variable;
 
-	initialize_expand_string(&i, &in_s_quotes, &in_d_quotes, &env_variable);
+	initialize_expand_string(&i, &in_single_quotes, &in_double_quotes, &env_variable);
 	while (str[i])
 	{
-		check_quote(str, &in_s_quotes, &in_d_quotes, &i);
-		printf("in double quotes: %d\n", in_d_quotes);
-		printf("in single quotes: %d\n", in_s_quotes);	
-		if ((str[i] == '$' && ((in_s_quotes == 0 && from_heredoc == 0 && is_word(str[i + 1])) || from_heredoc == 1)))
+		// printf("str[%d] = %c\n", i, str[i]);
+		check_quote(str, &in_single_quotes, &in_double_quotes, &i);
+		if ((str[i] == '$' && ((in_single_quotes == 0 && from_heredoc == 0 && is_word(str[i + 1])) || from_heredoc == 1)))
 		{
 			if (is_whitespace(str[i + 1]) || str[i + 1] == '\0')
 			{
@@ -980,6 +979,8 @@ t_token	*expand(t_token *tokens)
 					temp = temp->next;
 					remove_token(&tokens, temp_to_remove);
 				}
+				else
+					temp = temp->next;
 				free(old);
 			}
 			else
@@ -1314,7 +1315,7 @@ void	handle_ctrl_c(int signal)
 	if (signal == SIGINT)
 	{
 		// clear the current line	
-		rl_replace_line("", 0);
+		// rl_replace_line("", 0);
 		// move to a new line
 		printf("\n");
 		//display the prmmpt on the new line
@@ -1449,7 +1450,7 @@ void	handle_heredoc_signals(int signal)
 	if (signal == SIGINT)
 	{
 		// Clear the current line and move to a new line
-		rl_replace_line("", 0);
+		// rl_replace_line("", 0);
 		printf("\n");
 		rl_on_new_line();
 		// rl_redisplay();
