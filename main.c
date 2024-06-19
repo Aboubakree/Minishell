@@ -219,12 +219,12 @@ int	check_syntax_error(const char *str)
 {
 	if (check_unclosed_quotes(str) == 1)
 		return (puterr("Syntax error : Unclosed quote\n"), 1);
-	if (check_misplaced_operators(str) == 1)
-		return (1);
-	if (check_logical_operators(str) == 1)
-		return (1);
-	if (check_invalid_redirection(str) == 1)
-		return (1);
+	// if (check_misplaced_operators(str) == 1)
+	// 	return (1);
+	// if (check_logical_operators(str) == 1)
+	// 	return (1);
+	// if (check_invalid_redirection(str) == 1)
+	// 	return (1);
 	return (0);
 }
 
@@ -574,8 +574,10 @@ t_token	*tokenize_input(const char *str)
 	i = 0;
 	while (str[i])
 	{
-		while (str[i]  &&  ft_strchr(" \t\n\v\f\r", str[i]))
+		while (str[i] &&  ft_strchr(" \t\n\v\f\r", str[i]))
 			i++;
+		if (str[i] == '\0')
+			break;
 		if (str[i] && ft_strchr("<>|", str[i]))
 			handle_operator(&head, str, &i);
 		else
@@ -606,19 +608,27 @@ void	free_tokens(t_token *tokens)
 
 int	check_syntax_error_tokens_helper(t_token *temp)
 {
-	if (temp->type == T_HERDOC && (temp->next->value[0] == '\0'
-			|| temp->next->type != T_WORD))
-		return (puterr("Syntax error: Expected a limiter after '<<'\n"), 1);
-	if (temp->type == T_REDIRECTION_IN && temp->next->type != T_WORD)
-		return (puterr("Syntax error: Expected a file after '<'\n"), 1);
-	if (temp->type == T_REDIRECTION_OUT && temp->next->type != T_WORD)
-		return (puterr("Syntax error: Expected a file after '>'\n"), 1);
-	if (temp->type == T_REDIRECTION_APPEND && temp->next->type != T_WORD)
-		return (puterr("Syntax error : Expected a file after '>>'\n"), 1);
+	if (temp->type == T_HERDOC && (temp->next == NULL || temp->next->value[0] == '\0'
+			|| temp->next->type != T_WORD ))
+		return (3);
+	if (temp->type == T_HERDOC && temp->next == NULL)
+		return (3);
+	if ((temp->type == T_REDIRECTION_IN 
+			|| temp->type == T_REDIRECTION_OUT
+			|| temp->type == T_REDIRECTION_APPEND
+			|| temp->type == T_HERDOC)
+			 && temp->next == NULL)
+		return (4);
 	if (temp->type == T_PIPE && !temp->next)
-		return (puterr("Syntax error : Expected a command after '|'\n"), 1);
+		return (2);
+	if (temp->type == T_REDIRECTION_IN && temp->next->type != T_WORD)
+		return (5);
+	if (temp->type == T_REDIRECTION_OUT && temp->next->type != T_WORD)
+		return (6);
+	if (temp->type == T_REDIRECTION_APPEND && temp->next->type != T_WORD)
+		return (7);
 	if (temp->type == T_PIPE && temp->next->type == T_PIPE)
-		return (puterr("Error: Logical operators not supported YET.\n"), 1);
+		return (8);
 	return (0);
 }
 
@@ -629,16 +639,27 @@ int	check_syntax_error_tokens(t_token *tokens)
 	if (!tokens)
 		return (0);
 	temp = tokens;
+	// 0 -> no error
+	// 1 -> minishell: syntax error near unexpected token `|'
+	// 2 -> Syntax error : Expected a command after '|'
+	// 3 -> Syntax error: Expected a limiter after '<<'
+	// 4 -> minishell: syntax error near unexpected token `newline'
+	// 5 -> Syntax error: Expected a file after '<'
+	// 6 -> Syntax error: Expected a file after '>'
+	// 7 -> Syntax error : Expected a file after '>>'
+	// 8 -> Error: Logical operators not supported YET.
 	while (temp)
 	{
-		if (check_syntax_error_tokens_helper(temp) == 1)
+		if (check_syntax_error_tokens_helper(temp) != 0)
+			return (check_syntax_error_tokens_helper(temp));
+		if (temp->prev == NULL && temp->type == T_PIPE)
 			return (1);
 		if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_IN)
-			return (puterr("Syntax error : Expected a command after '|'\n"), 1);
+			return (2);
 		if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_OUT)
-			return (puterr("Syntax error : Expected a command after '|'\n"), 1);
+			return (2);
 		if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_APPEND)
-			return (puterr("Syntax error : Expected a command after '|'\n"), 1);
+			return (2);
 		temp = temp->next;
 	}
 	return (0);
@@ -1270,6 +1291,26 @@ void print_args(t_minishell *temp)
 	printf("\n");
 }
 
+void print_files2(t_file_redirection *files)
+{
+	t_file_redirection *temp_files;
+
+	temp_files = files;
+	if (temp_files)
+	{
+		printf("files : \n");
+		while(temp_files)
+		{
+			while (temp_files)
+			{
+				printf(" file: [%s] \n", temp_files->filename);
+				printf("  type: %s \n", get_type_token(temp_files->type));
+				temp_files = temp_files->next;
+			}
+			printf("\n");
+		}
+	}
+}
 void print_files(t_minishell *temp)
 {
 	t_file_redirection *temp_files;
@@ -1458,7 +1499,33 @@ void	handle_heredoc_signals(int signal)
 	}
 }
 
+int check_delemeter_for_sr(char *str, char *filename)
+{
+	if (str == NULL)
+    {
+        write(2, "bash: warning: here-document delimited by end-of-file\n",
+            ft_strlen("bash: warning: here-document delimited by end-of-file\n"));
+        return (1);
+    }
+    if (ft_strncmp(filename, str, ft_strlen(str) + 1) == 0)
+    {
+        free(str);
+        return (1);
+    }
+    return (0);
+}
+void free_heredocs(t_file_redirection *files)
+{
+    t_file_redirection *temp;
 
+    while (files)
+    {
+        temp = files;
+        files = files->next;
+        free(temp->filename);
+        free(temp);
+    }
+}
 int check_delemeter(char *str, char *filename, int fd)
 {
     if (str == NULL)
@@ -1476,6 +1543,7 @@ int check_delemeter(char *str, char *filename, int fd)
     }
     return (0);
 }
+
 
 
 void	fill_heredoc(t_minishell *temp, t_file_redirection *files)
@@ -1501,7 +1569,6 @@ void	fill_heredoc(t_minishell *temp, t_file_redirection *files)
     }
     close(fd);
 }
-
 void	loop_heredoc(t_minishell *minishell)
 {
 	t_file_redirection	*files;
@@ -1520,6 +1587,29 @@ void	loop_heredoc(t_minishell *minishell)
 		temp = temp->next;
 	}
 	exit(0);
+}
+void	fill_heredoc_for_sr(t_file_redirection *heredoc)
+{
+	char *str;
+	while(1)
+	{
+		str = readline("> ");
+		if(check_delemeter_for_sr(str, heredoc->filename) == 1)
+			break;
+		if (str)
+			free(str);
+	}
+}
+void loop_heredoc_for_sr(t_file_redirection *heredocs)
+{
+	t_file_redirection *temp;
+
+	temp = heredocs;
+	while(temp)
+	{
+		fill_heredoc_for_sr(temp);
+		temp = temp->next;
+	}
 }
 
 int	fork_heredoc(t_minishell *minishell , t_environment *env)
@@ -1563,6 +1653,80 @@ int	check_heredoc(t_minishell *minishell , t_environment *env, int i)
 		exit(2);
 	}
 	return (0);
+}
+
+void print_heredocs(t_file_redirection *files)
+{
+	t_file_redirection *temp;
+	temp = files;
+	while(temp)
+	{
+		printf("filename = %s [%s]\n", temp->filename, get_type_token(temp->type));
+		temp = temp->next;
+	}
+}
+
+int check_heredoc_for_syntax_error(t_file_redirection **heredocs, t_token *tokens, int error_code)
+{
+	char *error_codes[9];
+	// error_codes = malloc(sizeof(char *) * 9);
+	error_codes[0] = "";
+	error_codes[1] = "minishell: syntax error near unexpected token `|'"; 
+	error_codes[2] = "Syntax error : Expected a command after '|'"; 
+	error_codes[3] = "Syntax error: Expected a limiter after '<<'"; 
+	error_codes[4] = "minishell: syntax error near unexpected token `newline'"; 
+	error_codes[5] = "Syntax error: Expected a file after '<'"; 
+	error_codes[6] = "Syntax error: Expected a file after '>'"; 
+	error_codes[7] = "Syntax error : Expected a file after '>>'"; 
+	error_codes[8] = "Error: Logical operators not supported YET."; 
+	// t_file_redirection *heredocs;
+	t_token *temp;
+	int heredoc_counter;
+
+	temp = tokens;
+	heredoc_counter = 0;
+	if (error_code == 3)
+	{
+		return (printf("%s\n", error_codes[error_code]), 0);	
+	}
+
+	while(temp)
+	{
+		if (temp->type == T_HERDOC && temp->next != NULL)
+		{
+			add_file_redirection_back(heredocs, new_file_redirection(ft_strdup(temp->next->value), T_HERDOC));
+			heredoc_counter++;
+		}
+		if (temp->type == T_PIPE)
+		{
+			puterr("minishell: syntax error near unexpected token `|'");
+			set_exit_status(*(lists_collecter->env), 2);
+			printf("%s\n", error_codes[error_code]);
+			return (0);
+			// exit(2);
+		}
+		temp = temp->next;
+		// ok then don't forget to complete that please ?!!!!!!!!!!!1
+	}
+	// print_heredocs(heredocs);
+		// return (fork_heredoc(minishell, env));
+	if (heredoc_counter == 0)
+		return (printf("%s\n", error_codes[error_code]), 0);
+	if (heredoc_counter > 0 && heredoc_counter < 17)
+	 {
+		// printf("the heredoc should be openned here !\n");
+		loop_heredoc_for_sr(*heredocs);
+		return (printf("%s\n", error_codes[error_code]), 0);
+	 }
+	else if (heredoc_counter > 16)
+	{
+		write(2, "bash: maximum here-document count exceeded\n", 43);
+		// free_lists_collector();
+		set_exit_status(*(lists_collecter->env), 2);
+		return (0);
+		// exit(2);
+	}
+	return (1);
 }
 
 int	is_builtin(char *cmd)
@@ -1995,8 +2159,21 @@ int main(int argc, char **argv, char **base_env)
         tokens = expand(tokens);
         // print_tokens(tokens);
         // printf("after expand ======================\n");
-        if (tokens == NULL || check_syntax_error(str) == 1 ||  ft_strlen(str) == 0 || ft_strncmp(str, ":", ft_strlen(str)) == 0 || check_syntax_error_tokens(tokens) == 1)
+		if (check_syntax_error(str) != 0)
+		{
+		 	add_history(str);
+            free(str);
+            free_tokens(tokens);
+            continue;	
+		}
+        if (check_syntax_error_tokens(tokens) != 0 || tokens == NULL ||  ft_strlen(str) == 0 || ft_strncmp(str, ":", ft_strlen(str)) == 0)
         {
+			t_file_redirection *heredocs;
+			heredocs = NULL;
+			int error_code = check_syntax_error_tokens(tokens);
+			printf("hello\n");
+			check_heredoc_for_syntax_error(&heredocs, tokens, error_code);
+			free_heredocs(heredocs);
             add_history(str);
             free(str);
             free_tokens(tokens);
