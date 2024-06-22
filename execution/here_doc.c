@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 12:50:23 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/22 16:39:45 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/22 18:53:23 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,17 +94,19 @@ int	fork_heredoc(t_minishell *minishell , t_environment *env)
 int	check_heredoc(t_minishell *minishell , t_environment *env, int i)
 {
 	t_file_redirection	*files;
+	t_minishell	*temp;
 
-	while (minishell)
+	temp = minishell;
+	while (temp)
 	{
-		files = minishell->files;
+		files = temp->files;
 		while (files)
 		{
 			if (files->type == T_HERDOC)
 				i ++;
 			files = files->next;
 		}
-		minishell = minishell->next;
+		temp = temp->next;
 	}
 	if (i > 0 && i < 17)
 		return (fork_heredoc(minishell, env));
