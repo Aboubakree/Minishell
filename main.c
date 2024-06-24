@@ -614,18 +614,22 @@ int	check_syntax_error_tokens_helper(t_token *temp)
 		if (temp->next == NULL)
 			return (3);
 		else if (temp->next->value[0] == '\0' || temp->next->type != T_WORD)
-			return (4);
+			return (9);
 	}
 	if ((temp->type == T_REDIRECTION_IN 
 			|| temp->type == T_REDIRECTION_OUT
 			|| temp->type == T_REDIRECTION_APPEND
 			|| temp->type == T_HERDOC)
 			 && temp->next == NULL)
-		return (3);
+		return (1);
 	if (temp->type == T_PIPE && !temp->next)
+		return (2);
+	if (temp->type != T_WORD && temp->next->type == T_PIPE)
 		return (2);
 	if (temp->type == T_REDIRECTION_IN && temp->next->type != T_WORD)
 		return (5);
+	if (temp->type == T_HERDOC && temp->next->type != T_WORD)
+		return (4);
 	if (temp->type == T_REDIRECTION_OUT && temp->next->type != T_WORD)
 		return (6);
 	if (temp->type == T_REDIRECTION_APPEND && temp->next->type != T_WORD)
@@ -642,21 +646,12 @@ int	check_syntax_error_tokens(t_token *tokens)
 	if (!tokens)
 		return (0);
 	temp = tokens;
-	// 0 -> no error
-	// 1 -> minishell: syntax error near unexpected token `|'
-	// 2 -> Syntax error : Expected a command after '|'
-	// 3 -> Syntax error: Expected a limiter after '<<'
-	// 4 -> minishell: syntax error near unexpected token `newline'
-	// 5 -> Syntax error: Expected a file after '<'
-	// 6 -> Syntax error: Expected a file after '>'
-	// 7 -> Syntax error : Expected a file after '>>'
-	// 8 -> Error: Logical operators not supported YET.
 	while (temp)
 	{
 		if (check_syntax_error_tokens_helper(temp) != 0)
 			return (check_syntax_error_tokens_helper(temp));
 		if (temp->prev == NULL && temp->type == T_PIPE)
-			return (1);
+			return (2);
 		if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_IN)
 			return (2);
 		if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_OUT)
@@ -1671,25 +1666,27 @@ void print_heredocs(t_file_redirection *files)
 
 int check_heredoc_for_syntax_error(t_file_redirection **heredocs, t_token *tokens, int error_code)
 {
-	char *error_codes[9];
+	char *error_codes[10];
+	int print_error = 1;
 	// error_codes = malloc(sizeof(char *) * 9);
 	error_codes[0] = "";
-	error_codes[1] = "minishell: syntax error near unexpected token `|'\n"; 
+	error_codes[1] = "minishell: syntax error near unexpected token `newline'\n"; 
 	error_codes[2] = "minishell: syntax error near unexpected token `|'\n"; 
 	// error_codes[3] = "Syntax error: Expected a limiter after '<<'\n"; 
 	error_codes[3] = "minishell: syntax error near unexpected token `newline'\n"; 
 	error_codes[4] = "minishell: syntax error near unexpected token `<<'\n"; 
-	error_codes[5] = "Syntax error: Expected a file after '<'\n"; 
-	error_codes[6] = "Syntax error: Expected a file after '>'\n"; 
+	error_codes[5] = "minishell: syntax error near unexpected token `<'\n"; 
+	error_codes[6] = "minishell: syntax error near unexpected token `>'\n"; 
 	error_codes[7] = "minishell: syntax error near unexpected token `>>'\n"; 
 	error_codes[8] = "Error: Logical operators not supported YET.\n"; 
+	error_codes[9] = "minishell: syntax error near unexpected token `<<'\n";
 	// t_file_redirection *heredocs;
 	t_token *temp;
 	int heredoc_counter;
 
 	temp = tokens;
 	heredoc_counter = 0;
-	if (error_code == 3 || error_code == 4)
+	if (error_code == 3 || error_code == 9)
 	{
 		return (printf("%s", error_codes[error_code]), 0);	
 	}
@@ -1705,7 +1702,10 @@ int check_heredoc_for_syntax_error(t_file_redirection **heredocs, t_token *token
 		{
 			set_exit_status(*(lists_collecter->env), 2);
 			printf("%s", error_codes[error_code]);
-			return (0);
+			print_error = 0;
+			if (heredoc_counter == 0)
+				return (0);
+			// return (0);
 			// exit(2);
 		}
 		temp = temp->next;
@@ -1720,7 +1720,9 @@ int check_heredoc_for_syntax_error(t_file_redirection **heredocs, t_token *token
 	 {
 		// printf("the heredoc should be openned here !\n");
 		loop_heredoc_for_sr(*heredocs);
-		return (printf("%s", error_codes[error_code]), 0);
+		if (print_error == 1)
+			printf("%s", error_codes[error_code]);
+		return (0);
 	 }
 	else if (heredoc_counter > 16)
 	{
@@ -1824,8 +1826,13 @@ void    start_execute_one(t_minishell *minishell, t_environment **env)
 
 	env_conv = convert_env(*env);
 	open_files(minishell, *env, minishell->files);
-	if (minishell->command == NULL || ft_strncmp(minishell->command, "", 1) == 0)
+	if (minishell->command == NULL)
 		exit(0);
+	if (ft_strncmp(minishell->command, "", 1) == 0)
+	{
+		printf("minishell: : command not found\n");
+		exit(0);
+	}
 	minishell->path = get_cmd_path(minishell->command, *env, 0);
 	if (minishell->path == NULL)
 		exit(127);
