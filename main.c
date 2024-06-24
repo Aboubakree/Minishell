@@ -610,15 +610,18 @@ int	check_syntax_error_tokens_helper(t_token *temp)
 {
 	if (temp->type == T_HERDOC && (temp->next == NULL || temp->next->value[0] == '\0'
 			|| temp->next->type != T_WORD ))
-		return (3);
-	if (temp->type == T_HERDOC && temp->next == NULL)
-		return (3);
+	{
+		if (temp->next == NULL)
+			return (3);
+		else if (temp->next->value[0] == '\0' || temp->next->type != T_WORD)
+			return (4);
+	}
 	if ((temp->type == T_REDIRECTION_IN 
 			|| temp->type == T_REDIRECTION_OUT
 			|| temp->type == T_REDIRECTION_APPEND
 			|| temp->type == T_HERDOC)
 			 && temp->next == NULL)
-		return (4);
+		return (3);
 	if (temp->type == T_PIPE && !temp->next)
 		return (2);
 	if (temp->type == T_REDIRECTION_IN && temp->next->type != T_WORD)
@@ -1671,23 +1674,24 @@ int check_heredoc_for_syntax_error(t_file_redirection **heredocs, t_token *token
 	char *error_codes[9];
 	// error_codes = malloc(sizeof(char *) * 9);
 	error_codes[0] = "";
-	error_codes[1] = "minishell: syntax error near unexpected token `|'"; 
-	error_codes[2] = "Syntax error : Expected a command after '|'"; 
-	error_codes[3] = "Syntax error: Expected a limiter after '<<'"; 
-	error_codes[4] = "minishell: syntax error near unexpected token `newline'"; 
-	error_codes[5] = "Syntax error: Expected a file after '<'"; 
-	error_codes[6] = "Syntax error: Expected a file after '>'"; 
-	error_codes[7] = "Syntax error : Expected a file after '>>'"; 
-	error_codes[8] = "Error: Logical operators not supported YET."; 
+	error_codes[1] = "minishell: syntax error near unexpected token `|'\n"; 
+	error_codes[2] = "minishell: syntax error near unexpected token `|'\n"; 
+	// error_codes[3] = "Syntax error: Expected a limiter after '<<'\n"; 
+	error_codes[3] = "minishell: syntax error near unexpected token `newline'\n"; 
+	error_codes[4] = "minishell: syntax error near unexpected token `<<'\n"; 
+	error_codes[5] = "Syntax error: Expected a file after '<'\n"; 
+	error_codes[6] = "Syntax error: Expected a file after '>'\n"; 
+	error_codes[7] = "minishell: syntax error near unexpected token `>>'\n"; 
+	error_codes[8] = "Error: Logical operators not supported YET.\n"; 
 	// t_file_redirection *heredocs;
 	t_token *temp;
 	int heredoc_counter;
 
 	temp = tokens;
 	heredoc_counter = 0;
-	if (error_code == 3)
+	if (error_code == 3 || error_code == 4)
 	{
-		return (printf("%s\n", error_codes[error_code]), 0);	
+		return (printf("%s", error_codes[error_code]), 0);	
 	}
 
 	while(temp)
@@ -1699,9 +1703,8 @@ int check_heredoc_for_syntax_error(t_file_redirection **heredocs, t_token *token
 		}
 		if (temp->type == T_PIPE)
 		{
-			puterr("minishell: syntax error near unexpected token `|'");
 			set_exit_status(*(lists_collecter->env), 2);
-			printf("%s\n", error_codes[error_code]);
+			printf("%s", error_codes[error_code]);
 			return (0);
 			// exit(2);
 		}
@@ -1710,19 +1713,19 @@ int check_heredoc_for_syntax_error(t_file_redirection **heredocs, t_token *token
 	}
 	// print_heredocs(heredocs);
 		// return (fork_heredoc(minishell, env));
+	set_exit_status(*(lists_collecter->env), 2);
 	if (heredoc_counter == 0)
-		return (printf("%s\n", error_codes[error_code]), 0);
+		return (printf("%s", error_codes[error_code]), 0);
 	if (heredoc_counter > 0 && heredoc_counter < 17)
 	 {
 		// printf("the heredoc should be openned here !\n");
 		loop_heredoc_for_sr(*heredocs);
-		return (printf("%s\n", error_codes[error_code]), 0);
+		return (printf("%s", error_codes[error_code]), 0);
 	 }
 	else if (heredoc_counter > 16)
 	{
 		write(2, "bash: maximum here-document count exceeded\n", 43);
 		// free_lists_collector();
-		set_exit_status(*(lists_collecter->env), 2);
 		return (0);
 		// exit(2);
 	}
@@ -1745,7 +1748,7 @@ int	is_builtin(char *cmd)
 		return (1);
 	if (ft_strncmp("unset", cmd, 6) == 0)
 		return (1);
-	if (strncmp("exit", cmd, 5) == 0)
+	if (ft_strncmp("exit", cmd, 5) == 0)
 		return (1);
 	return (0);
 }
@@ -2171,7 +2174,6 @@ int main(int argc, char **argv, char **base_env)
 			t_file_redirection *heredocs;
 			heredocs = NULL;
 			int error_code = check_syntax_error_tokens(tokens);
-			printf("hello\n");
 			check_heredoc_for_syntax_error(&heredocs, tokens, error_code);
 			free_heredocs(heredocs);
             add_history(str);
