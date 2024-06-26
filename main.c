@@ -991,12 +991,13 @@ void expand_string_helper(t_token **tokens, t_token **temp)
 	char *old;
 	char *index_of_equal;
 	char *index_of_dollar;
-	
-	index_of_equal = ft_strchr(old, '=');
-	index_of_equal = ft_strchr(old, '$');
-	(*temp)->value = expand_string((*temp)->value, 0);
+
 	old = ft_strdup((*temp)->value);
-	if (check_if_have_space((*temp)->value) == 1 && (index_of_equal == NULL || (index_of_equal >= index_of_dollar)))
+	index_of_dollar = ft_strchr(old, '$');
+	index_of_equal = ft_strchr(old, '=');
+	(*temp)->value = expand_string((*temp)->value, 0);
+	if (check_if_have_space((*temp)->value) == 1
+		&& (index_of_equal == NULL || (index_of_equal >= index_of_dollar)))
 	{
 		printf("here\n");
 		if ((*temp)->prev != NULL)
