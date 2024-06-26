@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/12 21:15:22 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/06/23 13:26:22 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -139,6 +139,7 @@ int env_size(t_environment *env);
 t_environment *get_before_target(t_environment *env, t_environment *target);
 void  put_at_end(t_environment **env, char *target_key);
 void increment_shlvl(t_environment *env);
+char	*create_paths(void);
 t_environment *creat_env();
 void get_environment(t_environment **env, char **base_env);
 t_environment *env_get_bykey(t_environment *env, char *key);
@@ -184,7 +185,7 @@ void get_in_out_priorities(t_minishell *singl_mini);
 void final_execution(t_minishell *singl_mini, t_environment **env);
 void execute_all(t_minishell *minishell, t_environment **env);
 
-void    restore_STD_IN_OUT(int stdout, int stdin);
+void    restore_std_in_out(int stdout, int stdin);
 char    *get_herdoc_path(int i);
 void    minishell_init(t_minishell *minishell, int count_cmds);
 void set_under_score(t_minishell *minishell, t_environment **env);

@@ -6,105 +6,101 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/04 13:37:15 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/11 11:38:07 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/23 13:26:55 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-
-int count_size(int nbr)
+int	count_size(int nbr)
 {
-    int size;
+	int	size;
 
-    size = 0;
-    if (nbr < 0)
-        nbr = -nbr;
-    while (nbr > 9)
-    {
-        size ++;
-        nbr = nbr / 10;
-    }
-    size ++;
-    return (size);
+	size = 0;
+	if (nbr < 0)
+		nbr = -nbr;
+	while (nbr > 9)
+	{
+		size++;
+		nbr = nbr / 10;
+	}
+	size++;
+	return (size);
 }
 
-char *ft_putnbr(int nbr)
+char	*ft_putnbr(int nbr)
 {
-    char *to_str;
-    int nbr_size;
-    int ng;
+	char	*to_str;
+	int		nbr_size;
+	int		ng;
 
-    ng = 0;
-    nbr_size = count_size(nbr);
-    if (nbr < 0)
-    {
-        ng = 1;
-        nbr = -nbr;
-        nbr_size ++;
-    }
-    to_str = malloc(sizeof(char) * (nbr_size + ng + 1));
-    to_str[nbr_size--] = '\0';
-    while (nbr_size > 0)
-    {
-        to_str[nbr_size] = (nbr % 10) + '0';
-        nbr = nbr / 10;
-        nbr_size --;
-    }
-    to_str[nbr_size] = (nbr % 10) + '0';
-    if (ng)
-        to_str[0] = '-';
-    return (to_str);
+	ng = 0;
+	nbr_size = count_size(nbr);
+	if (nbr < 0)
+	{
+		ng = 1;
+		nbr = -nbr;
+		nbr_size++;
+	}
+	to_str = malloc(sizeof(char) * (nbr_size + ng + 1));
+	to_str[nbr_size--] = '\0';
+	while (nbr_size > 0)
+	{
+		to_str[nbr_size] = (nbr % 10) + '0';
+		nbr = nbr / 10;
+		nbr_size--;
+	}
+	to_str[nbr_size] = (nbr % 10) + '0';
+	if (ng)
+		to_str[0] = '-';
+	return (to_str);
 }
 
-void set_exit_status(t_environment *env, int new_value)
+void	set_exit_status(t_environment *env, int new_value)
 {
-    t_environment *EXIT;
+	t_environment	*exit_stat;
 
-    EXIT = env_get_bykey(env, "?");
-    if (EXIT)
-    {
-        if (EXIT->value)
-            free(EXIT->value);
-        EXIT->value = ft_putnbr(new_value);
-    }
+	exit_stat = env_get_bykey(env, "?");
+	if (exit_stat)
+	{
+		if (exit_stat->value)
+			free(exit_stat->value);
+		exit_stat->value = ft_putnbr(new_value);
+	}
 }
 
-t_environment *creat_env()
+t_environment	*creat_env(void)
 {
-    t_environment *env;
-    char            current_path[1024];
+	t_environment	*env;
+	char			current_path[1024];
 
-    if (getcwd(current_path, 1024) == NULL)
-    {
-        perror("getcwd");
-        exit(1);
-    }
-    env = NULL;
-    env_add_back(&env, env_node(ft_strdup("PATH"),
-        ft_strdup("/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/snap/bin")));
-    env_add_back(&env, env_node(ft_strdup("PWD"), ft_strdup(current_path)));
-    env_add_back(&env, env_node(ft_strdup("SHLVL"), ft_strdup("1")));
-    env_add_back(&env, env_node(ft_strdup("?"), ft_strdup("0")));
-    env_add_back(&env, env_node(ft_strdup("OLDPWD"), NULL));
-    env_add_back(&env, env_node(ft_strdup("_"), ft_strdup("]")));
-    return (env);
+	if (getcwd(current_path, 1024) == NULL)
+	{
+		perror("getcwd");
+		exit(1);
+	}
+	env = NULL;
+	env_add_back(&env, env_node(ft_strdup("PATH"), create_paths()));
+	env_add_back(&env, env_node(ft_strdup("PWD"), ft_strdup(current_path)));
+	env_add_back(&env, env_node(ft_strdup("SHLVL"), ft_strdup("1")));
+	env_add_back(&env, env_node(ft_strdup("?"), ft_strdup("0")));
+	env_add_back(&env, env_node(ft_strdup("OLDPWD"), NULL));
+	env_add_back(&env, env_node(ft_strdup("_"), ft_strdup("]")));
+	return (env);
 }
 
-void increment_shlvl(t_environment *env)
+void	increment_shlvl(t_environment *env)
 {
-    t_environment *SHLVL;
-    char *new_lvl;
-    int lvl;
+	t_environment	*shlvl;
+	char			*new_lvl;
+	int				lvl;
 
-    SHLVL = env_get_bykey(env, "SHLVL");
-    if (SHLVL == NULL || SHLVL->value == NULL)
-        return;
-    lvl = ft_atoi(SHLVL->value);
-    lvl ++;
-    new_lvl = malloc(sizeof(char) * 2);
-    new_lvl[0] = lvl + '0';
-    new_lvl[1] = '\0';
-    free(SHLVL->value);
-    SHLVL->value = new_lvl;
-} 
+	shlvl = env_get_bykey(env, "SHLVL");
+	if (shlvl == NULL || shlvl->value == NULL)
+		return ;
+	lvl = ft_atoi(shlvl->value);
+	lvl++;
+	new_lvl = ft_putnbr(lvl);
+	free(shlvl->value);
+	shlvl->value = new_lvl;
+}

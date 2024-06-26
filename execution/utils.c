@@ -18,7 +18,7 @@ int	args_count(char **args)
 
 	i = 0;
 	while (args && args[i])
-		i ++;
+		i++;
 	return (i);
 }
 
@@ -32,7 +32,7 @@ int	check_builtin(t_minishell *singl_mini, t_environment **env)
 		return (echo(singl_mini, *env), 0);
 	if (ft_strncmp("env", singl_mini->command, 4) == 0)
 		return (envi(singl_mini, *env), 0);
-	if (ft_strncmp("pwd", singl_mini->command, 4) == 0 )
+	if (ft_strncmp("pwd", singl_mini->command, 4) == 0)
 		return (pwd(singl_mini, *env), 0);
 	if (ft_strncmp("export", singl_mini->command, 7) == 0)
 		return (export(singl_mini, env), 0);
@@ -45,17 +45,16 @@ int	check_builtin(t_minishell *singl_mini, t_environment **env)
 
 int	cmd_count(t_minishell *minishell)
 {
-	int count;
+	int	count;
 
 	count = 0;
 	while (minishell)
 	{
-		count ++;
+		count++;
 		minishell = minishell->next;
 	}
 	return (count);
 }
-
 
 void	handle_heredoc_signals(int signal)
 {
@@ -69,7 +68,6 @@ void	handle_heredoc_signals(int signal)
 	}
 }
 
-
 int	is_builtin(char *cmd)
 {
 	if (cmd == NULL)
@@ -80,7 +78,7 @@ int	is_builtin(char *cmd)
 		return (1);
 	if (ft_strncmp("env", cmd, 4) == 0)
 		return (1);
-	if (ft_strncmp("pwd", cmd, 4) == 0 )
+	if (ft_strncmp("pwd", cmd, 4) == 0)
 		return (1);
 	if (ft_strncmp("export", cmd, 7) == 0)
 		return (1);

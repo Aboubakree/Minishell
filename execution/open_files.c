@@ -28,10 +28,10 @@ int	file_error(t_minishell *minishell, t_environment *env, char *filename)
 	exit(1);
 }
 
-int check_std_in_out(t_type_of_token type ,char *filename)
+int	check_std_in_out(t_type_of_token type, char *filename)
 {
-	if (ft_strncmp(filename, "/dev/stdout", ft_strlen(filename) + 1) == 0 
-		&& (type == T_REDIRECTION_OUT || type == T_REDIRECTION_APPEND) )
+	if (ft_strncmp(filename, "/dev/stdout", ft_strlen(filename) + 1) == 0
+		&& (type == T_REDIRECTION_OUT || type == T_REDIRECTION_APPEND))
 		return (2);
 	if (ft_strncmp(filename, "/dev/stdin", ft_strlen(filename) + 1) == 0
 		&& type == T_REDIRECTION_IN)
@@ -39,15 +39,17 @@ int check_std_in_out(t_type_of_token type ,char *filename)
 	return (0);
 }
 
-int	open_file_extended_2(t_minishell *minishell, t_environment *env, t_file_redirection *files)
+int	open_file_extended_2(t_minishell *minishell, t_environment *env,
+		t_file_redirection *files)
 {
-	if (check_std_in_out(files->type , files->filename))
+	if (check_std_in_out(files->type, files->filename))
 		return (2);
 	if (files->type == T_REDIRECTION_APPEND)
 	{
 		if (minishell->outfile != 1)
 			close(minishell->outfile);
-		minishell->outfile = open(files->filename, O_WRONLY | O_APPEND | O_CREAT, 0664);
+		minishell->outfile = open(files->filename,
+				O_WRONLY | O_APPEND | O_CREAT, 0664);
 		if (minishell->outfile < 0)
 			return (file_error(minishell, env, files->filename));
 	}
@@ -62,7 +64,8 @@ int	open_file_extended_2(t_minishell *minishell, t_environment *env, t_file_redi
 	return (0);
 }
 
-int	open_file_extended(t_minishell *minishell, t_environment *env, t_file_redirection *files)
+int	open_file_extended(t_minishell *minishell, t_environment *env,
+		t_file_redirection *files)
 {
 	if (check_std_in_out(files->type, files->filename))
 		return (2);
@@ -78,18 +81,20 @@ int	open_file_extended(t_minishell *minishell, t_environment *env, t_file_redire
 	{
 		if (minishell->outfile != 1)
 			close(minishell->outfile);
-		minishell->outfile = open(files->filename, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		minishell->outfile = open(files->filename, O_WRONLY | O_CREAT | O_TRUNC,
+				0644);
 		if (minishell->outfile < 0)
 			return (file_error(minishell, env, files->filename));
 	}
 	return (0);
 }
 
-int	open_files(t_minishell *minishell, t_environment *env, t_file_redirection *files)
+int	open_files(t_minishell *minishell, t_environment *env,
+		t_file_redirection *files)
 {
-	files = minishell->files;
-	int return_value;
+	int	return_value;
 
+	files = minishell->files;
 	while (files)
 	{
 		return_value = open_file_extended(minishell, env, files);
