@@ -1,54 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   minishell.c                                        :+:      :+:    :+:   */
+/*   utils_1.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/01 10:47:20 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/26 18:49:35 by akrid            ###   ########.fr       */
+/*   Created: 2024/06/26 19:40:15 by akrid             #+#    #+#             */
+/*   Updated: 2024/06/26 21:01:11 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "minishell.h"
-
-int is_directory(char *cmd)
-{
-    struct stat path_stat;
-
-    if (stat(cmd, &path_stat) != 0) 
-        return 0; // or handle error as appropriate
-    // Check if it is a directory
-    return (S_ISDIR(path_stat.st_mode));
-}
-
-int empty_cmd(char *cmd)
-{
-	if (cmd == NULL)
-	{
-		free_at_exit();
-		exit(0);
-	}
-	if (ft_strncmp(cmd, "", 1) == 0 || (ft_strlen(cmd) == 2 
-		&& cmd[0] == '"' && cmd[1] == '"'))
-	{
-		write(2, "'': command not found\n", 22);
-		return (free_at_exit(), 1);
-	}
-	if (ft_strncmp(cmd, ".", 2) == 0)
-	{
-		write(2, "bash: .: filename argument required\n",36);
-		free_at_exit();
-		exit(2);
-	}
-	if (ft_strncmp(cmd, "..", 3) == 0)
-	{
-		write(2, "..: command not found\n",22);
-		free_at_exit();
-		exit(127);
-	}
-	return (0);
-}
+#include "../minishell.h"
 
 int	parse_cmds(char *command)
 {
@@ -79,27 +41,29 @@ int	parse_cmds(char *command)
 	return (0);
 }
 
-void free_split(char **splited)
+void	free_split(char **splited)
 {
-    int i;
+	int	i;
 
-    i = 0;
-    while (splited && splited[i])
-        free(splited[i ++]);
-    if (splited)
-        free(splited);
+	i = 0;
+	while (splited && splited[i])
+		free(splited[i++]);
+	if (splited)
+		free(splited);
 }
 
-char **check_paths(t_environment *temp, char *cmd)
+char	**check_paths(t_environment *temp, char *cmd)
 {
-	if (temp == NULL ||(temp->value == NULL || ft_strncmp(temp->value, "", 1) == 0))
+	if (temp == NULL || (temp->value == NULL || ft_strncmp(temp->value, "",
+				1) == 0))
 	{
 		write(2, "bash: ", 6);
 		write(2, cmd, ft_strlen(cmd));
-		write(2, ": No such file or directory\n", ft_strlen(": No such file or directory\n"));
+		write(2, ": No such file or directory\n",
+			ft_strlen(": No such file or directory\n"));
 		return (NULL);
 	}
-	return (ft_split( temp->value, ':'));
+	return (ft_split(temp->value, ':'));
 }
 
 char	*get_cmd_path(char *cmd, t_environment *env, int i)
