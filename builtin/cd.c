@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 11:04:31 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/23 12:37:20 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/26 17:27:22 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,8 +68,8 @@ void	set_pwd_oldpwd(t_environment *env, char *new_path)
 	t_environment	*oldpwd;
 	t_environment	*pwd;
 
-	oldpwd = env_get_bykey(env, "oldpwd");
-	pwd = env_get_bykey(env, "pwd");
+	oldpwd = env_get_bykey(env, "OLDPWD");
+	pwd = env_get_bykey(env, "PWD");
 	if (oldpwd && pwd)
 	{
 		free(oldpwd->value);
@@ -82,7 +82,7 @@ void	set_pwd_oldpwd(t_environment *env, char *new_path)
 			free(pwd->value);
 		pwd->value = ft_strdup(new_path);
 	}
-	else
+	else if (oldpwd)
 	{
 		if (oldpwd->value)
 			free(oldpwd->value);

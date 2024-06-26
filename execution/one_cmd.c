@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 12:48:01 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/12 22:19:32 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/26 18:20:16 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,12 +17,6 @@ void	start_execute_one(t_minishell *minishell, t_environment **env)
 	char	**env_conv;
 
 	open_files(minishell, *env, minishell->files);
-	if (minishell->command == NULL || ft_strncmp(minishell->command, "",
-			1) == 0)
-	{
-		free_at_exit();
-		exit(0);
-	}
 	minishell->path = get_cmd_path(minishell->command, *env, 0);
 	if (minishell->path == NULL)
 	{

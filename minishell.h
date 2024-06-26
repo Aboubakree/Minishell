@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/23 13:26:22 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/26 17:49:47 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,6 +108,7 @@ typedef struct s_lists_collecter
     t_minishell **minishell;
     t_token **tokens;
     t_environment **env;
+	int	p;
 } t_lists_collecter;
 
 

@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 09:11:10 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/11 11:17:16 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/26 18:05:34 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ int	export_print(t_environment **env)
 		if (strncmp(helper->key, "_", 2) != 0 && ft_strncmp(helper->key, "?",
 				2) != 0 && ft_strncmp(helper->key, "PATH", 2) != 0)
 			print(helper->key, helper->value);
-		if (ft_strncmp(helper->key, "PATH", 2) == 0 && env_size(*env) > 10)
+		if (ft_strncmp(helper->key, "PATH", 2) == 0 && lists_collecter->p )
 			print(helper->key, helper->value);
 		helper = helper->next;
 	}

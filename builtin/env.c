@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/29 18:48:43 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/08 19:07:46 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/26 17:52:53 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,14 +23,14 @@ void	envi(t_minishell *singl_mini, t_environment *env)
 	while (temp)
 	{
 		if (temp->value != NULL && ft_strncmp(temp->key, "?", 2) != 0
-			&& ft_strncmp(temp->key, "PATH", 2) != 0)
+			&& ft_strncmp(temp->key, "PATH", 5) != 0)
 		{
 			if (ft_strncmp(temp->key, "_", 2) == 0)
 				printf("%s=%s\n", temp->key, "/usr/bin/env");
 			else
 				printf("%s=%s\n", temp->key, temp->value);
 		}
-		if (ft_strncmp(temp->key, "PATH", 2) == 0 && env_size(env) > 10)
+		if (ft_strncmp(temp->key, "PATH", 5) == 0 && lists_collecter->p)
 			printf("%s=%s\n", temp->key, temp->value);
 		temp = temp->next;
 	}
