@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 10:47:20 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/08 18:32:57 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/26 18:49:35 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,12 +29,23 @@ int empty_cmd(char *cmd)
 		free_at_exit();
 		exit(0);
 	}
-	if (ft_strncmp(cmd, "", 1) == 0 || (ft_strlen(cmd) == 2 && cmd[0] == '"' && cmd[1] == '"'))
+	if (ft_strncmp(cmd, "", 1) == 0 || (ft_strlen(cmd) == 2 
+		&& cmd[0] == '"' && cmd[1] == '"'))
 	{
-		write(2, "'': command not found\n",
-			ft_strlen("'': command not found\n"));
+		write(2, "'': command not found\n", 22);
+		return (free_at_exit(), 1);
+	}
+	if (ft_strncmp(cmd, ".", 2) == 0)
+	{
+		write(2, "bash: .: filename argument required\n",36);
 		free_at_exit();
-		return (1);
+		exit(2);
+	}
+	if (ft_strncmp(cmd, "..", 3) == 0)
+	{
+		write(2, "..: command not found\n",22);
+		free_at_exit();
+		exit(127);
 	}
 	return (0);
 }

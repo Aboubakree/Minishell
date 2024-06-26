@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/30 11:34:29 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/23 13:29:53 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/26 18:10:40 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@ char	*create_paths(void)
 	char	*p;
 
 	p = ft_strdup(
-			"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/snap/bin"
+			"/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 			);
 	return (p);
 }

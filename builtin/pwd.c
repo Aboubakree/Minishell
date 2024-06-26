@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/28 17:34:04 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/23 12:51:58 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/26 17:40:02 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ void	pwd(t_minishell *singl_mini, t_environment *env)
 	if (open_files(singl_mini, env, singl_mini->files))
 		return ;
 	handel_input_output(singl_mini);
-	_pwd = env_get_bykey(env, "_pwd");
+	_pwd = env_get_bykey(env, "PWD");
 	if (_pwd && _pwd->value)
 		printf("%s\n", _pwd->value);
 	else

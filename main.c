@@ -1016,6 +1016,7 @@ t_token	*expand(t_token *tokens)
 {
 	t_token	*temp;
 
+	temp = NULL;
 	temp = tokens;
 	while (temp)
 	{
@@ -1605,18 +1606,19 @@ void free_heredocs(t_file_redirection *files)
 
 void collecter_init(t_minishell **minishell, t_environment **env, t_token **tokens)
 {
+	*env = NULL;
+	*tokens = NULL;
+	*minishell = NULL;
 	lists_collecter = malloc(sizeof(t_lists_collecter));
 	if (lists_collecter == NULL)
 	{
 		perror("malloc");
 		exit(1);
 	}
-	*env = NULL;
-	*tokens = NULL;
-	*minishell = NULL;
 	lists_collecter->minishell = minishell;
 	lists_collecter->env = env;
 	lists_collecter->tokens = tokens;
+	lists_collecter->p = 1;
 }
 
 void free_at_exit()
@@ -1640,6 +1642,9 @@ int main(int argc, char **argv, char **base_env)
 	(void)argv;
 	if (argc > 1)
 		return (1);
+	env = NULL;
+	tokens = NULL;
+	minishell = NULL;
 	collecter_init(&minishell, &env, &tokens);
 	get_environment(&env, base_env);
 	printf("Welcome to minishell\n");
