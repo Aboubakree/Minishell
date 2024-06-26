@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/26 17:49:47 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/26 20:01:37 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,6 +127,11 @@ void sort(t_environment **sort_env);
 void print(char *key, char *value);
 void	handle_heredoc_signals(int signal);
 char	*expand_string(char *str, int from_heredoc);
+int is_directory(char *cmd);
+int empty_cmd(char *cmd);
+int	parse_cmds(char *command);
+char **check_paths(t_environment *temp, char *cmd);
+
 
 
 // --------------------------------------------------- parsing ---------------------------------------------------
@@ -157,7 +162,6 @@ void replace_value(t_environment *env, t_environment *new);
 // ------------------------ execution -------------------------
 char	*get_cmd_path(char *cmd, t_environment *env, int i);
 int cmd_count(t_minishell *mini);
-int open_files(t_minishell *minishell, t_environment *env, t_file_redirection *files);
 void get_in_out_priorities(t_minishell *singl_mini);
 void unlink_files(t_minishell *minishell);
 
