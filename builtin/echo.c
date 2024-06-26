@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/27 10:41:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/08 17:24:42 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/15 00:16:38 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ void echo(t_minishell *single_mini, t_environment *env)
         j = 0;
         if (single_mini->args[i][j] == '-' && single_mini->args[i][j + 1] == 'n')
         {
-            j =+ 2;
+            j = j + 2;
             while(single_mini->args[i][j] == 'n')
                 j++;
             if (single_mini->args[i][j] == '\0')
