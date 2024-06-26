@@ -62,6 +62,7 @@ typedef struct s_token
     t_type_of_token type;
     char *value;
     struct s_token *next;
+    struct s_token *prev;
 } t_token;
 
 typedef struct s_files_redirection
