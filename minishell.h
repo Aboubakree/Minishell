@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
 /*   Updated: 2024/06/12 21:15:22 by rtamouss         ###   ########.fr       */
@@ -121,6 +121,11 @@ int args_count(char **args);
 void free_split(char **splited);
 void free_at_exit();
 char *ft_putnbr(int nbr);
+void swap_data(t_environment *helper);
+void sort(t_environment **sort_env);
+void print(char *key, char *value);
+void	handle_heredoc_signals(int signal);
+char	*expand_string(char *str, int from_heredoc);
 
 
 // --------------------------------------------------- parsing ---------------------------------------------------
@@ -133,11 +138,18 @@ void    env_add_back(t_environment **env, t_environment *node);
 int env_size(t_environment *env);
 t_environment *get_before_target(t_environment *env, t_environment *target);
 void  put_at_end(t_environment **env, char *target_key);
+void increment_shlvl(t_environment *env);
+t_environment *creat_env();
 void get_environment(t_environment **env, char **base_env);
 t_environment *env_get_bykey(t_environment *env, char *key);
 char **convert_env(t_environment *env);
 void free_environment(t_environment *env);
-
+void free_copy(t_environment *env);
+t_environment *duplicate_env(t_environment *env);
+t_environment *extract_node(char *arg);
+int pars_node(t_environment *new, char *arg);
+void append_value(t_environment *env, t_environment *new);
+void replace_value(t_environment *env, t_environment *new);
 
 
 // ------------------------ execution -------------------------
@@ -147,9 +159,43 @@ int open_files(t_minishell *minishell, t_environment *env, t_file_redirection *f
 void get_in_out_priorities(t_minishell *singl_mini);
 void unlink_files(t_minishell *minishell);
 
+int	check_builtin(t_minishell *singl_mini, t_environment **env);
+int	is_builtin(char *cmd);
+
+int check_delemeter(char *str, char *filename, int fd);
+void	fill_heredoc(t_minishell *temp, t_file_redirection *files);
+void	loop_heredoc(t_minishell *minishell);
+int	fork_heredoc(t_minishell *minishell , t_environment *env);
+int	check_heredoc(t_minishell *minishell , t_environment *env, int i);
+
+int	file_error(t_minishell *minishell, t_environment *env, char *filename);
+int	open_file_extended(t_minishell *minishell, t_environment *env, t_file_redirection *files);
+int	open_files(t_minishell *minishell,t_environment *env, t_file_redirection *files);
+void    start_execute_one(t_minishell *minishell, t_environment **env);
+void    execute_one(t_minishell *minishell, t_environment **env);
+
+void    pipe_init(t_minishell *mini);
+void close_pipes(int *pipe, int nbr_cmd);
+void unlink_files(t_minishell *minishell);
+
+void wait_childs(t_minishell *mini, t_environment *env, int num_cmd);
+void get_in_out_extended(t_minishell *singl_mini);
+void get_in_out_priorities(t_minishell *singl_mini);
+void final_execution(t_minishell *singl_mini, t_environment **env);
+void execute_all(t_minishell *minishell, t_environment **env);
+
+void    restore_STD_IN_OUT(int stdout, int stdin);
+char    *get_herdoc_path(int i);
+void    minishell_init(t_minishell *minishell, int count_cmds);
+void set_under_score(t_minishell *minishell, t_environment **env);
+void    execution(t_minishell *minishell, t_environment **env);
+
 
 
 // builtin
+void add_node(t_environment *env, t_environment *new);
+int    export_print( t_environment **env);
+int export_add(t_minishell *minishell, t_environment *env);
 void    handel_input_output(t_minishell *singl_mini);
 void handel_exit_status(t_environment *env, int nbr_cmd , int exit_value);
 void cd(t_minishell *singl_mini, t_environment *env);
