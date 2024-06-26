@@ -999,7 +999,6 @@ void expand_string_helper(t_token **tokens, t_token **temp)
 	if (check_if_have_space((*temp)->value) == 1
 		&& (index_of_equal == NULL || (index_of_equal >= index_of_dollar)))
 	{
-		printf("here\n");
 		if ((*temp)->prev != NULL)
 		{
 			if ((*temp)->prev->type == T_REDIRECTION_IN
@@ -1403,7 +1402,44 @@ void	handle_sigquit(int signal)
 		return ;
 	}
 }
+int check_delemeter_for_sr(char *str, char *filename)
+{
+	if (str == NULL)
+	{
+		write(2, "bash: warning: here-document delimited by end-of-file\n",
+			ft_strlen("bash: warning: here-document delimited by end-of-file\n"));
+		return (1);
+	}
+	if (ft_strncmp(filename, str, ft_strlen(str) + 1) == 0)
+	{
+		free(str);
+		return (1);
+	}
+	return (0);
+}
+void	fill_heredoc_for_sr(t_file_redirection *heredoc)
+{
+	char	*str;
+	while (1)
+	{
+		str = readline("> ");
+		if (check_delemeter_for_sr(str, heredoc->filename) == 1)
+			break;
+		if (str)
+			free(str);
+	}
+}
+void loop_heredoc_for_sr(t_file_redirection *heredocs)
+{
+	t_file_redirection	*temp;
 
+	temp = heredocs;
+	while (temp)
+	{
+		fill_heredoc_for_sr(temp);
+		temp = temp->next;
+	}
+}
 
 void	free_environment(t_environment *env)
 {
@@ -1420,6 +1456,7 @@ void	free_environment(t_environment *env)
 		free(temp);
 	}
 }
+
 void free_files(t_file_redirection *files)
 {
 	t_file_redirection	*temp_files;
@@ -1469,6 +1506,99 @@ void	free_minishell(t_minishell *minishell)
 // -------------------------------- start by exe one cmd -------------------------------------------
 // --------------------------------------- end of exe one cmd ----------------------------------------------
 
+int check_heredoc_for_syntax_error(t_file_redirection **heredocs, t_token *tokens, int error_code)
+{
+	char *error_codes[10];
+	int print_error = 1;
+	// error_codes = malloc(sizeof(char *) * 9);
+	error_codes[0] = "";
+	error_codes[1] = "minishell: syntax error near unexpected token `newline'\n"; 
+	error_codes[2] = "minishell: syntax error near unexpected token `|'\n"; 
+	// error_codes[3] = "Syntax error: Expected a limiter after '<<'\n"; 
+	error_codes[3] = "minishell: syntax error near unexpected token `newline'\n"; 
+	error_codes[4] = "minishell: syntax error near unexpected token `<<'\n"; 
+	error_codes[5] = "minishell: syntax error near unexpected token `<'\n"; 
+	error_codes[6] = "minishell: syntax error near unexpected token `>'\n"; 
+	error_codes[7] = "minishell: syntax error near unexpected token `>>'\n"; 
+	error_codes[8] = "Error: Logical operators not supported YET.\n"; 
+	error_codes[9] = "minishell: syntax error near unexpected token `<<'\n";
+	// t_file_redirection *heredocs;
+	t_token *temp;
+	int heredoc_counter;
+
+	temp = tokens;
+	heredoc_counter = 0;
+	if (error_code == 3 || error_code == 9)
+	{
+		return (printf("%s", error_codes[error_code]), 0);	
+	}
+
+	while(temp)
+	{
+		if (temp->type == T_HERDOC && temp->next != NULL)
+		{
+			add_file_redirection_back(heredocs, new_file_redirection(ft_strdup(temp->next->value), T_HERDOC));
+			heredoc_counter++;
+		}
+		if (temp->type == T_PIPE)
+		{
+			set_exit_status(*(lists_collecter->env), 2);
+			printf("%s", error_codes[error_code]);
+			print_error = 0;
+			if (heredoc_counter == 0)
+				return (0);
+			// return (0);
+			// exit(2);
+		}
+		temp = temp->next;
+		// ok then don't forget to complete that please ?!!!!!!!!!!!1
+	}
+	// print_heredocs(heredocs);
+		// return (fork_heredoc(minishell, env));
+	set_exit_status(*(lists_collecter->env), 2);
+	if (heredoc_counter == 0)
+		return (printf("%s", error_codes[error_code]), 0);
+	if (heredoc_counter > 0 && heredoc_counter < 17)
+	 {
+		// printf("the heredoc should be openned here !\n");
+		loop_heredoc_for_sr(*heredocs);
+		if (print_error == 1)
+			printf("%s", error_codes[error_code]);
+		return (0);
+	 }
+	else if (heredoc_counter > 16)
+	{
+		write(2, "bash: maximum here-document count exceeded\n", 43);
+		// free_lists_collector();
+		return (0);
+		// exit(2);
+	}
+	return (1);
+}
+void print_heredocs(t_file_redirection *files)
+{
+	t_file_redirection *temp;
+	temp = files;
+	while(temp)
+	{
+		printf("filename = %s [%s]\n", temp->filename, get_type_token(temp->type));
+		temp = temp->next;
+	}
+}
+
+
+void free_heredocs(t_file_redirection *files)
+{
+	t_file_redirection	*temp;
+
+	while (files)
+	{
+		temp = files;
+		files = files->next;
+		free(temp->filename);
+		free(temp);
+	}
+}
 
 //----------------------------------------- multiple commands --------------------------------------
 
