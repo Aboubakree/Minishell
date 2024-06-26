@@ -12,13 +12,13 @@
 
 #include "../minishell.h"
 
-
-void    start_execute_one(t_minishell *minishell, t_environment **env)
+void	start_execute_one(t_minishell *minishell, t_environment **env)
 {
-	char **env_conv;
+	char	**env_conv;
 
 	open_files(minishell, *env, minishell->files);
-	if (minishell->command == NULL || ft_strncmp(minishell->command, "", 1) == 0)
+	if (minishell->command == NULL || ft_strncmp(minishell->command, "",
+			1) == 0)
 	{
 		free_at_exit();
 		exit(0);
@@ -39,7 +39,7 @@ void    start_execute_one(t_minishell *minishell, t_environment **env)
 	exit(126);
 }
 
-void    execute_one(t_minishell *minishell, t_environment **env)
+void	execute_one(t_minishell *minishell, t_environment **env)
 {
 	pid_t	pid;
 	int		status;
