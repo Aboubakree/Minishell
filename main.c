@@ -967,22 +967,22 @@ void	*ambiguouse_redirect(char *old)
 	}
 	return ((void *)1);
 }
-void split_expanded_string(t_token *temp, t_token **tokens)
+void split_expanded_string(t_token **temp, t_token **tokens)
 {
 	char **args;
 	int i;
 	t_token *temp_to_remove;
 
-	args = ft_split2(temp->value, ' ');
+	args = ft_split2((*temp)->value, ' ');
 	i = 0;
 	while(args[i])
 	{
-		insert_token(tokens, new_token(T_WORD, ft_strdup(args[i])), temp);
+		insert_token(tokens, new_token(T_WORD, ft_strdup(args[i])), (*temp));
 			i++;
 	}
 	free_args(args);
-	temp_to_remove = temp;
-	temp = temp->next;
+	temp_to_remove = (*temp);
+	(*temp) = (*temp)->next;
 	remove_token(tokens, temp_to_remove);
 }
 
@@ -1006,7 +1006,7 @@ void expand_string_helper(t_token **tokens, t_token **temp)
 				|| (*temp)->prev->type == T_REDIRECTION_APPEND)
 				ambiguouse_redirect(old);
 		}
-		split_expanded_string((*temp), tokens);
+		split_expanded_string(temp, tokens);
 	}
 	else
 		(*temp) = (*temp)->next;
