@@ -955,7 +955,8 @@ int count_args(char **args)
 	return (i);
 }
 
-void	*ambiguouse_redirect(char *old)
+
+int	ambiguouse_redirect(char *old)
 {
 	if (old[0] != '\"' && old[ft_strlen(old) - 1] != '\"')
 	{
@@ -963,9 +964,9 @@ void	*ambiguouse_redirect(char *old)
 		puterr(old);
 		puterr(": ambiguous redirect\n");
 		set_exit_status(*(lists_collecter->env), 1);
-		return (NULL);
+		return (1);
 	}
-	return ((void *)1);
+	return (0);
 }
 void split_expanded_string(t_token **temp, t_token **tokens)
 {
@@ -986,7 +987,7 @@ void split_expanded_string(t_token **temp, t_token **tokens)
 	remove_token(tokens, temp_to_remove);
 }
 
-void expand_string_helper(t_token **tokens, t_token **temp)
+int expand_string_helper(t_token **tokens, t_token **temp)
 {
 	char *old;
 	char *index_of_equal;
@@ -1004,13 +1005,15 @@ void expand_string_helper(t_token **tokens, t_token **temp)
 			if ((*temp)->prev->type == T_REDIRECTION_IN
 				|| (*temp)->prev->type == T_REDIRECTION_OUT
 				|| (*temp)->prev->type == T_REDIRECTION_APPEND)
-				ambiguouse_redirect(old);
+				if (ambiguouse_redirect(old) == 1)
+					return (free_tokens(*tokens), free(old), 1);
 		}
 		split_expanded_string(temp, tokens);
 	}
 	else
 		(*temp) = (*temp)->next;
 	free(old);
+	return (0);
 }
 t_token	*expand(t_token *tokens)
 {
@@ -1029,7 +1032,8 @@ t_token	*expand(t_token *tokens)
 					temp = temp->next;
 					continue ;
 				}
-				expand_string_helper(&tokens, &temp);
+				if (expand_string_helper(&tokens, &temp) == 1)
+					return (NULL);
 			}
 			else
 				temp = temp->next;
@@ -1675,7 +1679,7 @@ int main(int argc, char **argv, char **base_env)
 		tokens = expand(tokens);
 		// print_tokens(tokens);
 		// printf("after expand ======================\n");
-		if (check_syntax_error(str) != 0)
+		if (check_syntax_error(str) != 0 || tokens == NULL)
 		{
 		 	add_history(str);
 			free(str);
@@ -1698,15 +1702,6 @@ int main(int argc, char **argv, char **base_env)
 		// print_minishell(minishell);
 		// printf("minishell after deleting quotes\n");
 		minishell = delete_quotes(minishell);
-		// if (minishell->command != NULL && is_empty(minishell->command) == 1)
-		// {
-		//     free(str);
-		//     free_tokens(tokens);
-		//     free_minishell(minishell);
-		//     continue;
-		// }
-		// print_minishell(minishell);
-		// printf("%s\n", str);
 		execution(minishell, &env);
 		free(str);
 		free_tokens(tokens);
