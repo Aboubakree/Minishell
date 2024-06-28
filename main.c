@@ -56,42 +56,36 @@ int	count_char_occurence(char *str, int c)
 	return (count);
 }
 
-void	update_nb_quote(char c, int *nb_quote_single, int *nb_quote_double)
-{
-	if (c == '\'')
-		*nb_quote_single += 1;
-	if (c == '\"')
-		*nb_quote_double += 1;
-}
 
-int	check_logical_operators(const char *str)
-{
-	int	i;
-	int	in_single_quote;
-	int	in_double_quote;
 
-	i = 0;
-	in_single_quote = 0;
-	in_double_quote = 0;
-	if (!str)
-		return (0);
-	while (str[i])
-	{
-		if (str[i] == '\'' && !in_double_quote)
-			in_single_quote = !in_single_quote;
-		else if (str[i] == '\"' && !in_single_quote)
-			in_double_quote = !in_double_quote;
-		else if (str[i] == '&' && !in_single_quote && !in_double_quote)
-		{
-			while (str[i] && is_whitespace(str[i]))
-				i++;
-			if (str[i] == '&')
-				return (puterr("Error: Logical Operators not supported.\n"), 1);
-		}
-		i++;
-	}
-	return (0);
-}
+// int	check_logical_operators(const char *str)
+// {
+// 	int	i;
+// 	int	in_single_quote;
+// 	int	in_double_quote;
+
+// 	i = 0;
+// 	in_single_quote = 0;
+// 	in_double_quote = 0;
+// 	if (!str)
+// 		return (0);
+// 	while (str[i])
+// 	{
+// 		if (str[i] == '\'' && !in_double_quote)
+// 			in_single_quote = !in_single_quote;
+// 		else if (str[i] == '\"' && !in_single_quote)
+// 			in_double_quote = !in_double_quote;
+// 		else if (str[i] == '&' && !in_single_quote && !in_double_quote)
+// 		{
+// 			while (str[i] && is_whitespace(str[i]))
+// 				i++;
+// 			if (str[i] == '&')
+// 				return (puterr("Error: Logical Operators not supported.\n"), 1);
+// 		}
+// 		i++;
+// 	}
+// 	return (0);
+// }
 
 void skip_whitespaces(const char *str, int *i)
 {
@@ -99,173 +93,88 @@ void skip_whitespaces(const char *str, int *i)
 		(*i)++;
 }
 
-int	check_misplaced_operators_helper(const char *str, int *nb_quote_single
-	, int *nb_quote_double,int *expect_operator)
-{
-	int	i;
+// int	check_misplaced_operators_helper(const char *str, int *nb_quote_single
+// 	, int *nb_quote_double,int *expect_operator)
+// {
+// 	int	i;
 
-	i = 0;
-	while (str[i])
-	{
-		update_nb_quote(str[i], nb_quote_single, nb_quote_double);
-		if (str[i] == '|' && *nb_quote_single % 2 == 0
-			&& *nb_quote_double % 2 == 0)
-		{
-			if (*expect_operator == 1)
-				return (ft_putstr_fd(\
-					"Syntax error : Misplaced Operator\n", 2), 1);
-			*expect_operator = 1;
-		}
-		else if (!is_whitespace(str[i]))
-			*expect_operator = 0;
-		i++;
-	}
-	return (0);
-}
+// 	i = 0;
+// 	while (str[i])
+// 	{
+// 		update_nb_quote(str[i], nb_quote_single, nb_quote_double);
+// 		if (str[i] == '|' && *nb_quote_single % 2 == 0
+// 			&& *nb_quote_double % 2 == 0)
+// 		{
+// 			if (*expect_operator == 1)
+// 				return (ft_putstr_fd("Syntax error : Misplaced Operator\n", 2), 1);
+// 			*expect_operator = 1;
+// 		}
+// 		else if (!is_whitespace(str[i]))
+// 			*expect_operator = 0;
+// 		i++;
+// 	}
+// 	return (0);
+// }
 
-int	check_misplaced_operators(const char *str)
-{
-	int	i;
-	int	nb_quote_single;
-	int	nb_quote_double;
-	int	expect_operator;
+// int	check_misplaced_operators(const char *str)
+// {
+// 	int	i;
+// 	int	nb_quote_single;
+// 	int	nb_quote_double;
+// 	int	expect_operator;
 
-	i = 0;
-	nb_quote_single = 0;
-	nb_quote_double = 0;
-	expect_operator = 0;
-	skip_whitespaces(str, &i);
-	if (str[i] == '|')
-		return (ft_putstr_fd(\
-			"Syntax error : Misplaced Operator at first of line\n", 2), 1);
-	if (check_misplaced_operators_helper(str, &nb_quote_single
-			, &nb_quote_double, &expect_operator) == 1)
-		return (1);
-	if (expect_operator == 1)
-		return (ft_putstr_fd(\
-			"Syntax error : Misplaced Operator at end of line\n", 2), 1);
-	else
-		return (0);
-}
+// 	i = 0;
+// 	nb_quote_single = 0;
+// 	nb_quote_double = 0;
+// 	expect_operator = 0;
+// 	skip_whitespaces(str, &i);
+// 	if (str[i] == '|')
+// 		return (ft_putstr_fd("Syntax error : Misplaced Operator at first of line\n", 2), 1);
+// 	if (check_misplaced_operators_helper(str, &nb_quote_single
+// 			, &nb_quote_double, &expect_operator) == 1)
+// 		return (1);
+// 	if (expect_operator == 1)
+// 		return (ft_putstr_fd("Syntax error : Misplaced Operator at end of line\n", 2), 1);
+// 	else
+// 		return (0);
+// }
 
-int	check_unclosed_quotes(const char *str)
-{
-	int	i;
-	int	in_single_quotes;
-	int	in_double_quotes;
 
-	i = 0;
-	if (!str)
-		return (0);
-	in_single_quotes = 0;
-	in_double_quotes = 0;
-	while (str[i])
-	{
-		if (str[i] == '\'' && in_double_quotes == 0)
-			in_single_quotes = !in_single_quotes;
-		if (str[i] == '\"' && in_single_quotes == 0)
-			in_double_quotes = !in_double_quotes;
-		i++;
-	}
-	return (in_single_quotes || in_double_quotes);
-}
-void	free_args(char **args)
-{
-	int	i;
 
-	i = 0;
-	if (args)
-	{
-		while (args[i])
-		{
-			free(args[i]);
-			i++;
-		}
-		free(args);
-	}
-}
+// int	check_invalid_redirection(const char *str)
+// {
+// 	int	i;
+// 	int	nb_quote_single;
+// 	int	nb_quote_double;
 
-int	check_invalid_redirection(const char *str)
-{
-	int	i;
-	int	nb_quote_single;
-	int	nb_quote_double;
+// 	i = 0;
+// 	nb_quote_single = 0;
+// 	nb_quote_double = 0;
+// 	while (str[i])
+// 	{
+// 		update_nb_quote(str[i], &nb_quote_single, &nb_quote_double);
+// 		if ((str[i] == '>' || str[i] == '<')
+// 			&& nb_quote_single % 2 == 0 && nb_quote_double % 2 == 0)
+// 		{
+// 			if ((str[i] == '>' && str[i + 1] == '>')
+// 				|| (str[i] == '<' && str[i + 1] == '<'))
+// 				i++;
+// 			if (str[i + 1] == '\0')
+// 				return (printf("Syntax error : Invalid redirection\n"), 1);
+// 			else if (str[i + 1] == '>' || str[i + 1] == '<')
+// 				return (printf("Syntax error : Misplaced Operator\n"), 1);
+// 		}
+// 		i++;
+// 	}
+// 	return (0);
+// }
 
-	i = 0;
-	nb_quote_single = 0;
-	nb_quote_double = 0;
-	while (str[i])
-	{
-		update_nb_quote(str[i], &nb_quote_single, &nb_quote_double);
-		if ((str[i] == '>' || str[i] == '<')
-			&& nb_quote_single % 2 == 0 && nb_quote_double % 2 == 0)
-		{
-			if ((str[i] == '>' && str[i + 1] == '>')
-				|| (str[i] == '<' && str[i + 1] == '<'))
-				i++;
-			if (str[i + 1] == '\0')
-				return (printf("Syntax error : Invalid redirection\n"), 1);
-			else if (str[i + 1] == '>' || str[i + 1] == '<')
-				return (printf("Syntax error : Misplaced Operator\n"), 1);
-		}
-		i++;
-	}
-	return (0);
-}
-
-int	check_syntax_error(const char *str)
-{
-	if (check_unclosed_quotes(str) == 1)
-		return (puterr("Syntax error : Unclosed quote\n"), 1);
-	return (0);
-}
 
 // syntax error check
 // tokenization
 
-int	is_operator(char c)
-{
-	return (c == '|' || c == '>' || c == '<');
-}
-int	is_pipe(char c)
-{
-	return (c == '|');
-}
-int	is_redirection_in(char c)
-{
-	return (c == '<');
-}
-int	is_redirection_out(char c)
-{
-	return (c == '>');
-}
 
-int	is_quote(char c)
-{
-	return (c == '\'' || c == '\"');
-}
 
-int	is_env_variable(char c)
-{
-	return (c == '$');
-}
-
-int	is_arithmetic_operator(char c)
-{
-	return (c == '+' || c == '-' || c == '*' || c == '/' || c == '=');
-}
-int	is_colone(char c)
-{
-	return (c == ':');
-}
-int	is_number(char c)
-{
-	return (c >= '0' && c <= '9');
-}
-int is_alpha(char c)
-{
-	return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
-}
 int not_alpha_numeric(char c)
 {
 	return (!is_alpha(c) && !is_number(c) && c != '_' && c != '?' && c != '`');
@@ -281,100 +190,12 @@ int	is_word(char c)
 		&& !is_env_variable(c)
 		&& !not_alpha_numeric(c));
 }
-int	s_minishell_size(t_minishell *minishell)
-{
-	int	size;
 
-	size = 0;
-	if (!minishell)
-		return (0);
-	while (minishell)
-	{
-		size++;
-		minishell = minishell->next;
-	}
-	return (size);
-}
 
-int	tokens_size(t_token *tokens)
-{
-	int	size;
 
-	size = 0;
-	if (!tokens)
-		return (0);
-	while (tokens)
-	{
-		size++;
-		tokens = tokens->next;
-	}
-	return (size);
-}
 
-t_token	get_last_token(t_token *tokens)
-{
-	t_token	*temp;
 
-	temp = tokens;
-	if (!temp)
-		return (t_token){0,NULL,  NULL, NULL};
-	while (temp->next)
-		temp = temp->next;
-	return (*temp);
-}
 
-int	check_if_have_quotes(char *str)
-{
-	int	i;
-	int	single_quotes;
-	int	double_quotes;
-
-	single_quotes = 0;
-	double_quotes = 0;
-	i = 0;
-	while (str[i])
-	{
-		if (str[i] == '\"')
-			double_quotes++;
-		else if (str[i] == '\'')
-			single_quotes++;
-		i++;
-	}
-	if (single_quotes >= 1 || double_quotes >= 1)
-		return (0);
-	return (1);
-}
-
-t_file_redirection	*new_file_redirection(char *filename, t_type_of_token type)
-{
-	t_file_redirection	*file;
-
-	file = (t_file_redirection *)malloc(sizeof(t_file_redirection));
-	if (!file)
-		return (NULL);
-	file->filename = filename;
-	file->should_expand_heredoc = 1;
-	file->should_expand_heredoc = check_if_have_quotes(filename);
-	file->type = type;
-	file->next = NULL;
-	return (file);
-}
-
-void	add_file_redirection_back(t_file_redirection **head
-	, t_file_redirection *new_file)
-{
-	t_file_redirection	*temp;
-
-	if (!*head)
-		*head = new_file;
-	else
-	{
-		temp = *head;
-		while (temp->next)
-			temp = temp->next;
-		temp->next = new_file;
-	}
-}
 
 void find_target(t_token **head, t_token *target, t_token **temp, t_token **prev)
 {
@@ -386,337 +207,28 @@ void find_target(t_token **head, t_token *target, t_token **temp, t_token **prev
 	}
 }
 
-void	remove_token(t_token **head, t_token *target)
-{
-	t_token	*temp;
-	t_token	*prev;
-
-	if (!*head)
-		return ;
-	if (*head == target)
-	{
-		if (target->next)
-			target->next->prev = NULL;
-		*head = target->next;
-		free(target->value);
-		free(target);
-		return ;
-	}
-	find_target(head, target, &temp, &prev);
-	if (temp)
-	{
-		if (temp->next)
-			temp->next->prev = prev;
-		prev->next = temp->next;
-		free(temp->value);
-		free(temp);
-	}
-}
-
-t_token	*new_token(t_type_of_token type, char *value)
-{
-	t_token	*token;
-
-	token = (t_token *)malloc(sizeof(t_token));
-	if (!token)
-		return (NULL);
-	token->type = type;
-	token->value = value;
-	token->next = NULL;
-	token->prev = NULL;
-	return (token);
-}
-
-void	add_token_front(t_token **head, t_token *new_token)
-{
-	new_token->prev = NULL;
-	new_token->next = *head;
-	*head = new_token;
-}
-
-void insert_token(t_token **head, t_token *new_token, t_token *target)
-{
-	t_token	*temp;
-
-	if (!*head)
-		*head = new_token;
-	else
-	{
-		temp = *head;
-		while (temp->next && temp->next != target)
-			temp = temp->next;
-		new_token->next = temp->next;
-		if (temp->next)
-			temp->next->prev = new_token;
-		new_token->prev = temp;
-		temp->next = new_token;
-	}
-}
-
-void	add_token_back(t_token **head, t_token *new_token)
-{
-	t_token	*temp;
-
-	if (!*head)
-		*head = new_token;
-	else
-	{
-		temp = *head;
-		while (temp->next)
-			temp = temp->next;
-		temp->next = new_token;
-		new_token->prev = temp;
-	}
-}
 
 
-char	*get_type_token(t_type_of_token type)
-{
-	if (type == T_WORD)
-		return ("T_WORD");
-	else if (type == T_PIPE)
-		return ("T_PIPE");
-	else if (type == T_REDIRECTION_IN)
-		return ("T_REDIRECTION_IN");
-	else if (type == T_REDIRECTION_OUT)
-		return ("T_REDIRECTION_OUT");
-	else if (type == T_REDIRECTION_APPEND)
-		return ("T_REDIRECTION_APPEND");
-	else if (type == T_HERDOC)
-		return ("T_HERDOC");
-	return ("UNKNOWN");
-}
 
-void	print_tokens(t_token *tokens)
-{
-	printf("--------------------\n");
-	while (tokens)
-	{
-		printf("type: %s, value: [%s]\n"
-			, get_type_token(tokens->type), tokens->value);
-		tokens = tokens->next;
-	}
-	printf("--------------------\n");
-}
 
-void	handle_operator(t_token **head, const char *str, int *i)
-{
-	if (is_pipe(str[*i]))
-		add_token_back(head, new_token(T_PIPE, ft_strdup("|")));
-	else if (is_redirection_in(str[*i]))
-	{
-		if (str[*i + 1] == '<')
-		{
-			add_token_back(head, new_token(T_HERDOC, ft_strdup("<<")));
-			(*i)++;
-		}
-		else
-			add_token_back(head, new_token(T_REDIRECTION_IN, ft_strdup("<")));
-	}
-	else if (is_redirection_out(str[*i]))
-	{
-		if (str[*i + 1] == '>')
-		{
-			add_token_back(head, new_token(T_REDIRECTION_APPEND, \
-				ft_strdup(">>")));
-			(*i)++;
-		}
-		else
-			add_token_back(head, new_token(T_REDIRECTION_OUT, ft_strdup(">")));
-	}
-}
 
-void	update_quote_state(int *in_quote, char *quote, char c)
-{
-	if (*in_quote == 0 && (c == '\'' || c == '\"'))
-	{
-		*in_quote = 1;
-		*quote = c;
-	}
-	else if (*in_quote == 1 && c == *quote)
-		*in_quote = 0;
-}
 
-void	handle_word(t_token **head, const char *str, int *i)
-{
-	int		in_quote;
-	char	quote;
-	char	*temp;
-	int		j;
 
-	in_quote = 0;
-	j = *i;
-	quote = '\0';
-	while (str[*i])
-	{
-		update_quote_state(&in_quote, &quote, str[*i]);
-		if (in_quote == 0)
-		{
-			if (is_operator(str[*i]) || is_whitespace(str[*i]))
-				break ;
-		}
-		(*i)++;
-	}
-	temp = ft_substr(str, j, *i - j);
-	add_token_back(head, new_token(T_WORD, temp));
-	(*i)--;
-}
 
-t_token	*tokenize_input(const char *str)
-{
-	t_token	*head;
-	int		i;
 
-	head = NULL;
-	i = 0;
-	while (str[i])
-	{
-		while (str[i] && ft_strchr(" \t\n\v\f\r", str[i]))
-			i++;
-		if (str[i] == '\0')
-			break ;
-		if (str[i] && ft_strchr("<>|", str[i]))
-			handle_operator(&head, str, &i);
-		else
-			handle_word(&head, str, &i);
-		i++;
-	}
-	return (head);
-}
 
-void	free_tokens(t_token *tokens)
-{
-	t_token	*current;
-	t_token	*next;
 
-	current = tokens;
-	while (current != NULL)
-	{
-		next = current->next;
-		if (current->value != NULL)
-		{
-			free(current->value);
-			current->value = NULL;
-		}
-		free(current);
-		current = next;
-	}
-}
-int check_syntax_error_tokens_helper2(t_token *temp)
-{
-	if (temp->type == T_HERDOC
-		&& (temp->next == NULL
-			|| temp->next->value[0] == '\0'
-			|| temp->next->type != T_WORD))
-	{
-		if (temp->next == NULL)
-			return (3);
-		else if (temp->next->value[0] == '\0' || temp->next->type != T_WORD)
-			return (9);
-	}
-	if ((temp->type == T_REDIRECTION_IN
-			|| temp->type == T_REDIRECTION_OUT
-			|| temp->type == T_REDIRECTION_APPEND
-			|| temp->type == T_HERDOC)
-		&& temp->next == NULL)
-		return (1);
-	return (0);
-}
 
-int	check_syntax_error_tokens_helper(t_token *temp)
-{
-	if (check_syntax_error_tokens_helper2(temp) != 0)
-		return (check_syntax_error_tokens_helper2(temp));
-	if (temp->type == T_PIPE && !temp->next)
-		return (2);
-	if (temp->type != T_WORD && temp->next->type == T_PIPE)
-		return (2);
-	if (temp->type == T_REDIRECTION_IN && temp->next->type != T_WORD)
-		return (5);
-	if (temp->type == T_HERDOC && temp->next->type != T_WORD)
-		return (4);
-	if (temp->type == T_REDIRECTION_OUT && temp->next->type != T_WORD)
-		return (6);
-	if (temp->type == T_REDIRECTION_APPEND && temp->next->type != T_WORD)
-		return (7);
-	if (temp->type == T_PIPE && temp->next->type == T_PIPE)
-		return (8);
-	return (0);
-}
 
-int	check_syntax_error_tokens(t_token *tokens)
-{
-	t_token	*temp;
 
-	if (!tokens)
-		return (0);
-	temp = tokens;
-	while (temp)
-	{
-		if (check_syntax_error_tokens_helper(temp) != 0)
-			return (check_syntax_error_tokens_helper(temp));
-		if (temp->prev == NULL && temp->type == T_PIPE)
-			return (2);
-		if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_IN)
-			return (2);
-		if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_OUT)
-			return (2);
-		if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_APPEND)
-			return (2);
-		temp = temp->next;
-	}
-	return (0);
-}
 
-t_minishell	*new_minishell(char *command, char **args, t_file_redirection *files)
-{
-	t_minishell	*minishell;
 
-	minishell = (t_minishell *)malloc(sizeof(t_minishell));
-	if (!minishell)
-	{
-		free(command);
-		free(args);
-		return (NULL);
-	}
-	minishell->heredoc_path = NULL;
-	minishell->infile = 0;
-	minishell->outfile = 0;
-	minishell->pipe = 0;
-	minishell->path = NULL;
-	minishell->command = command;
-	minishell->args = args;
-	minishell->files = files;
-	minishell->next = NULL;
-	return (minishell);
-}
 
-void	add_minishell_back(t_minishell **head, t_minishell *new_minishell)
-{
-	t_minishell	*temp;
 
-	if (!*head)
-		*head = new_minishell;
-	else
-	{
-		temp = *head;
-		while (temp->next)
-			temp = temp->next;
-		temp->next = new_minishell;
-	}
-}
 
-void	*new_arg(char *arg)
-{
-	t_args	*args;
 
-	args = (t_args *)malloc(sizeof(t_args));
-	if (!args)
-		return (NULL);
-	args->args = arg;
-	args->next = NULL;
-	return (args);
-}
+
+
 
 int	check_whitespaces(const char *str)
 {
@@ -732,124 +244,14 @@ int	check_whitespaces(const char *str)
 	return (0);
 }
 
-void	add_arg_back(t_args **head, t_args *new_arg)
-{
-	t_args	*temp;
 
-	if (!*head)
-		*head = new_arg;
-	else
-	{
-		temp = *head;
-		while (temp->next)
-			temp = temp->next;
-		temp->next = new_arg;
-	}
-}
 
-static int	ft_count_words(char const *str, char sep)
-{
-	int	count;
-	int	i;
 
-	count = 0;
-	i = 0;
-	while (str[i])
-	{
-		while (str[i] && (str[i] == sep))
-			i++;
-		if (str[i] && !(str[i] == sep))
-		{
-			count++;
-			while (str[i] && !(str[i] == sep))
-				i++;
-		}
-	}
-	return (count);
-}
 
-static char	**ft_free(char **strs)
-{
-	int	i;
 
-	i = 0;
-	while (strs[i])
-		free(strs[i++]);
-	free(strs);
-	return (0);
-}
 
-void initialize_value_split2(int *j, char *quote, int *in_quote)
-{
-	*j = 0;
-	*quote = '\0';
-	*in_quote = 0;
-}
 
-void ft_skip2(int *i, int in_quote, const char *s, char c)
-{
-	if (in_quote == 0 && s[*i] == c)
-		(*i)++;
-}
 
-char	**ft_split2_helper(char **res, char const *s, char c, int i)
-{
-	int		start;
-	char	quote;
-	int		in_quote;
-	int		j;
-
-	initialize_value_split2(&j, &quote, &in_quote);
-	update_quote_state(&in_quote, &quote, s[i]);
-	while (s[i])
-	{
-		update_quote_state(&in_quote, &quote, s[i]);
-		ft_skip2(&i, in_quote, s, c);
-		start = i;
-		i--;
-		while (s[++i] && (s[i] != c || in_quote == 1))
-			update_quote_state(&in_quote, &quote, s[i]);
-		if (i <= start)
-			continue ;
-		res[j] = (char *)malloc((i - start + 1) * sizeof(char));
-		if (!res[j])
-			return (ft_free(res));
-		ft_strlcpy(res[j], &s[start], i - start + 1);
-		j++;
-	}
-	res[j] = NULL;
-	return (res);
-}
-
-char	**ft_split2(char const *s, char c)
-{
-	char	**res;
-	int		i;
-
-	i = 0;
-	if (!s)
-		return (NULL);
-	res = (char **)malloc((ft_count_words(s, c) + 1) * sizeof(char *));
-	if (!res)
-		return (NULL);
-	res = ft_split2_helper(res, s, c , i);
-	if (!res)
-		return (ft_free(res));
-	return (res);
-}
-
-void check_quote(const char *str, int *in_single_quotes, int *in_double_quotes, int *i)
-{
-	if (str[*i] == '\'' && *in_single_quotes == 0 && *in_double_quotes == 0)
-		*in_single_quotes = 1;
-	else if (str[*i] == '\'' && *in_single_quotes == 1)
-		*in_single_quotes = 0;
-	else if (str[*i] == '\"' && *in_double_quotes == 0
-		&& *in_single_quotes == 0)
-		*in_double_quotes = 1;
-	else if (str[*i] == '\"' && *in_double_quotes == 1)
-		*in_double_quotes = 0;
-}
 
 void	handle_quotes_after_dollar(char *str)
 {
@@ -945,15 +347,7 @@ char	*expand_string(char *str, int from_heredoc)
 	return (str);
 }
 
-int count_args(char **args)
-{
-	int	i;
 
-	i = 0;
-	while (args[i])
-		i++;
-	return (i);
-}
 
 
 int	ambiguouse_redirect(char *old)
@@ -1223,19 +617,7 @@ int	handle_word_new_command(t_minishell_data_help *data, t_token *temp)
 	return (0);
 }
 
-void	join_args(t_token *temp, char **args1, char ***args)
-{
-	char	*temp_args1;
 
-	temp_args1 = ft_strjoin(*args1, temp->value);
-	free(*args1);
-	*args1 = temp_args1;
-	temp_args1 = ft_strjoin(*args1, "\r");
-	free(*args1);
-	*args1 = temp_args1;
-	free_args(*args);
-	*args = ft_split2(*args1, '\r');
-}
 
 void	token_to_minishell_helper(t_minishell_data_help *data, t_token **temp)
 {
@@ -1308,82 +690,10 @@ int	is_empty(char *str)
 
 }
 
-void	print_args(t_minishell *temp)
-{
-	int	i;
 
-	i = 0;
-	if (temp->args)
-	{
-		printf("args: ");
-		while (temp->args[i])
-		{
-			printf("[%s]", temp->args[i]);
-			i++;
-		}
-	}
-	printf("\n");
-}
 
-void	print_files2(t_file_redirection *files)
-{
-	t_file_redirection	*temp_files;
 
-	temp_files = files;
-	if (temp_files)
-	{
-		printf("files : \n");
-		while (temp_files)
-		{
-			while (temp_files)
-			{
-				printf(" file: [%s] \n", temp_files->filename);
-				printf("  type: %s \n", get_type_token(temp_files->type));
-				temp_files = temp_files->next;
-			}
-			printf("\n");
-		}
-	}
-}
 
-void print_files(t_minishell *temp)
-{
-	t_file_redirection	*temp_files;
-
-	if (temp->files)
-	{
-		temp_files = temp->files;
-		printf("files :\n");
-		while (temp_files)
-		{
-			printf(" file: [%s] \n", temp_files->filename);
-			printf("  type: %s \n", get_type_token(temp_files->type));
-			temp_files = temp_files->next;
-		}
-		printf("\n");
-	}
-
-}
-
-void	print_minishell(t_minishell *minishell)
-{
-	t_minishell			*temp;
-	int					i;
-
-	i = 0;
-	temp = minishell;
-	while (temp)
-	{
-		printf("--------------------\n");
-		if (temp->command)
-			printf("command [%d]: [%s]\n", i, temp->command);
-		print_args(temp);
-		print_files(temp);
-		printf("--------------------\n");
-		temp = temp->next;
-		i++;
-	}
-}
 
 // end tokenization
 void	handle_ctrl_c(int signal)
@@ -1455,68 +765,7 @@ void	loop_heredoc_for_sr(t_file_redirection *heredocs)
 	}
 }
 
-void	free_environment(t_environment *env)
-{
-	t_environment	*temp;
 
-	if (!env)
-		return ;
-	while (env)
-	{
-		temp = env;
-		env = env->next;
-		free(temp->key);
-		free(temp->value);
-		free(temp);
-	}
-}
-
-void	free_files(t_file_redirection *files)
-{
-	t_file_redirection	*temp_files;
-	t_file_redirection	*temp_files_next;
-
-	if (files)
-	{
-		temp_files = files;
-		while (temp_files)
-		{
-			temp_files_next = temp_files->next;
-			free(temp_files->filename);
-			free(temp_files);
-			temp_files = temp_files_next;
-		}
-	}
-}
-
-void	free_minishell(t_minishell *minishell)
-{
-	t_minishell			*temp;
-	char				**temp_args;
-
-	if (!minishell)
-		return ;
-	if (minishell->pipe)
-		free(minishell->pipe);
-	while (minishell)
-	{
-		temp = minishell;
-		minishell = minishell->next;
-		if (temp->command)
-			free(temp->command);
-		if (temp->heredoc_path)
-			free(temp->heredoc_path);
-		if (temp->path)
-			free(temp->path);
-		if (temp->args)
-		{
-			temp_args = temp->args;
-			free_args(temp_args);
-		}
-		free_files(temp->files);
-		free(temp);
-	}
-}
 
 // -------------------------------- start by exe one cmd -------------------------------------------
 // --------------------------------------- end of exe one cmd ----------------------------------------------
@@ -1615,18 +864,7 @@ void	print_heredocs(t_file_redirection *files)
 }
 
 
-void free_heredocs(t_file_redirection *files)
-{
-	t_file_redirection	*temp;
 
-	while (files)
-	{
-		temp = files;
-		files = files->next;
-		free(temp->filename);
-		free(temp);
-	}
-}
 
 //----------------------------------------- multiple commands --------------------------------------
 
@@ -1648,16 +886,7 @@ void	collecter_init(t_minishell **minishell, t_environment **env, t_token **toke
 	lists_collecter->p = 1;
 }
 
-void free_at_exit()
-{
-	if (*lists_collecter->env )
-		free_environment(*lists_collecter->env);
-	if (*lists_collecter->minishell )
-		free_minishell(*lists_collecter->minishell);
-	if (*lists_collecter->tokens )
-		free_tokens(*lists_collecter->tokens);
-	free(lists_collecter);
-}
+
 
 int main(int argc, char **argv, char **base_env)
 {

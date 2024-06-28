@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   minishell.h                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/26 21:30:50 by akrid            ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   minishell.h                                        :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2024/04/26 17:01:35 by akrid         #+#    #+#                 */
+/*   Updated: 2024/06/28 21:40:26 by rtamouss      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -232,5 +232,70 @@ void			export(t_minishell *minishell,
 					t_environment **env);
 void			echo(t_minishell *single_mini,
 					t_environment *env);
+
+
+// PARSIIIIIIIIIIIIIIIIIIIIING
+
+void check_quote(const char *str, int *in_single_quotes, int *in_double_quotes, int *i);
+void	update_quote_state(int *in_quote, char *quote, char c);
+int	check_if_have_quotes(char *str);
+int	check_unclosed_quotes(const char *str);
+void	update_nb_quote(char c, int *nb_quote_single, int *nb_quote_double);
+
+void insert_token(t_token **head, t_token *new_token, t_token *target);
+void	add_token_back(t_token **head, t_token *new_token);
+char	*get_type_token(t_type_of_token type);
+void	print_tokens(t_token *tokens);
+int	tokens_size(t_token *tokens);
+t_token	get_last_token(t_token *tokens);
+void	remove_token(t_token **head, t_token *target);
+t_token	*new_token(t_type_of_token type, char *value);
+void	add_token_front(t_token **head, t_token *new_token);
+void find_target(t_token **head, t_token *target, t_token **temp, t_token **prev);
+int	is_operator(char c);
+int	is_pipe(char c);
+int	is_redirection_in(char c);
+int	is_redirection_out(char c);
+int	is_quote(char c);
+int	is_env_variable(char c);
+int	is_arithmetic_operator(char c);
+int	is_colone(char c);
+int	is_number(char c);
+int is_alpha(char c);
+t_file_redirection	*new_file_redirection(char *filename, t_type_of_token type);
+void	add_file_redirection_back(t_file_redirection **head, t_file_redirection *new_file);
+void print_files(t_minishell *temp);
+void	handle_operator(t_token **head, const char *str, int *i);
+void	handle_word(t_token **head, const char *str, int *i);
+t_token	*tokenize_input(const char *str);
+int	is_whitespace(char c);
+
+int	check_syntax_error(const char *str);
+void	puterr(char *str);
+int check_syntax_error_tokens_helper2(t_token *temp);
+int	check_syntax_error_tokens_helper(t_token *temp);
+int	check_syntax_error_tokens(t_token *tokens);
+int	s_minishell_size(t_minishell *minishell);
+t_minishell	*new_minishell(char *command, char **args, t_file_redirection *files);
+void	add_minishell_back(t_minishell **head, t_minishell *new_minishell);
+void	print_minishell(t_minishell *minishell);
+void	*new_arg(char *arg);
+void	add_arg_back(t_args **head, t_args *new_arg);
+int count_args(char **args);
+void	join_args(t_token *temp, char **args1, char ***args);
+void	print_args(t_minishell *temp);
+void free_at_exit();
+void free_heredocs(t_file_redirection *files);
+void	free_minishell(t_minishell *minishell);
+void	free_files(t_file_redirection *files);
+void	free_environment(t_environment *env);
+void initialize_value_split2(int *j, char *quote, int *in_quote);
+void ft_skip2(int *i, int in_quote, const char *s, char c);
+char	**ft_split2_helper(char **res, char const *s, char c, int i);
+char	**ft_split2(char const *s, char c);
+char	**ft_free(char **strs);
+void	free_tokens(t_token *tokens);
+int	ft_count_words(char const *str, char sep);
+void	free_args(char **args);
 
 #endif
