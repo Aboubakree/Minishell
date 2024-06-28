@@ -968,18 +968,19 @@ int	ambiguouse_redirect(char *old)
 	}
 	return (0);
 }
-void split_expanded_string(t_token **temp, t_token **tokens)
+
+void	split_expanded_string(t_token **temp, t_token **tokens)
 {
-	char **args;
-	int i;
-	t_token *temp_to_remove;
+	char	**args;
+	int		i;
+	t_token	*temp_to_remove;
 
 	args = ft_split2((*temp)->value, ' ');
 	i = 0;
-	while(args[i])
+	while (args[i])
 	{
 		insert_token(tokens, new_token(T_WORD, ft_strdup(args[i])), (*temp));
-			i++;
+		i++;
 	}
 	free_args(args);
 	temp_to_remove = (*temp);
@@ -989,9 +990,9 @@ void split_expanded_string(t_token **temp, t_token **tokens)
 
 int expand_string_helper(t_token **tokens, t_token **temp)
 {
-	char *old;
-	char *index_of_equal;
-	char *index_of_dollar;
+	char	*old;
+	char	*index_of_equal;
+	char	*index_of_dollar;
 
 	old = ft_strdup((*temp)->value);
 	index_of_dollar = ft_strchr(old, '$');
@@ -1094,13 +1095,14 @@ void delete_quotes_from_string(char *str)
 	}
 	str[k] = '\0';
 }
-void delete_quotes_from_files(t_minishell *minishell)
+
+void	delete_quotes_from_files(t_minishell *minishell)
 {
-	t_minishell *temp;
-	t_file_redirection *files;
+	t_minishell			*temp;
+	t_file_redirection	*files;
 
 	temp = minishell;
-	if (temp!= NULL && temp->files != NULL)
+	if (temp != NULL && temp->files != NULL)
 	{
 		while (temp)
 		{
@@ -1114,10 +1116,11 @@ void delete_quotes_from_files(t_minishell *minishell)
 		}
 	}
 }
+
 void delete_quotes_from_args(t_minishell *minishell)
 {
-	t_minishell *temp;
-	int i;
+	t_minishell	*temp;
+	int			i;
 
 	i = 0;
 	temp = minishell;
@@ -1162,39 +1165,39 @@ int	in_quote(const char *str)
 }
 
 
-t_token *add_redirection_in(t_token *temp, t_file_redirection **files)
+t_token	*add_redirection_in(t_token *temp, t_file_redirection **files)
 {
 	temp = temp->next;
-	add_file_redirection_back(files, new_file_redirection(ft_strdup(temp->value)
-			,T_REDIRECTION_IN));
+	add_file_redirection_back(files, new_file_redirection(\
+		ft_strdup(temp->value), T_REDIRECTION_IN));
 	return (temp);
 }
 
-t_token *add_redirection_out(t_token *temp, t_file_redirection **files)
+t_token	*add_redirection_out(t_token *temp, t_file_redirection **files)
 {
 	temp = temp->next;
-	add_file_redirection_back(files, new_file_redirection(ft_strdup(temp->value)
-			,T_REDIRECTION_OUT));
+	add_file_redirection_back(files, new_file_redirection(\
+		ft_strdup(temp->value), T_REDIRECTION_OUT));
 	return (temp);
 }
 
-t_token *add_redirection_append(t_token *temp, t_file_redirection **files)
+t_token	*add_redirection_append(t_token *temp, t_file_redirection **files)
 {
 	temp = temp->next;
-	add_file_redirection_back(files, new_file_redirection(ft_strdup(temp->value)
-			,T_REDIRECTION_APPEND));
+	add_file_redirection_back(files, new_file_redirection(\
+		ft_strdup(temp->value), T_REDIRECTION_APPEND));
 	return (temp);
 }
 
-t_token *add_heredoc(t_token *temp, t_file_redirection **files)
+t_token	*add_heredoc(t_token *temp, t_file_redirection **files)
 {
 	temp = temp->next;
-	add_file_redirection_back(files, new_file_redirection(ft_strdup(temp->value)
-		,T_HERDOC));
+	add_file_redirection_back(files, new_file_redirection(\
+		ft_strdup(temp->value), T_HERDOC));
 	return (temp);
 }
 
-int initialize_and_free(t_minishell_data_help *data)
+int	initialize_and_free(t_minishell_data_help *data)
 {
 	data->command = NULL;
 	free(data->args1);
@@ -1204,7 +1207,7 @@ int initialize_and_free(t_minishell_data_help *data)
 	return (1);
 }
 
-int handle_word_new_command(t_minishell_data_help *data, t_token *temp)
+int	handle_word_new_command(t_minishell_data_help *data, t_token *temp)
 {
 	char	*temp_args1;
 
@@ -1220,9 +1223,9 @@ int handle_word_new_command(t_minishell_data_help *data, t_token *temp)
 	return (0);
 }
 
-void join_args(t_token *temp, char **args1, char ***args)
+void	join_args(t_token *temp, char **args1, char ***args)
 {
-	char *temp_args1;
+	char	*temp_args1;
 
 	temp_args1 = ft_strjoin(*args1, temp->value);
 	free(*args1);
@@ -1234,7 +1237,7 @@ void join_args(t_token *temp, char **args1, char ***args)
 	*args = ft_split2(*args1, '\r');
 }
 
-void token_to_minishell_helper(t_minishell_data_help *data, t_token **temp)
+void	token_to_minishell_helper(t_minishell_data_help *data, t_token **temp)
 {
 	if ((*temp)->type == T_WORD)
 	{
@@ -1253,7 +1256,7 @@ void token_to_minishell_helper(t_minishell_data_help *data, t_token **temp)
 		(*temp) = add_heredoc((*temp), &data->files);
 }
 
-void initialize_token_to_minishell_data(t_minishell_data_help *data)
+void	initialize_token_to_minishell_data(t_minishell_data_help *data)
 {
 	data->args1 = NULL;
 	data->args = NULL;
@@ -1282,7 +1285,7 @@ t_minishell	*token_to_minishell(t_token *tokens)
 			temp = temp->next;
 			continue ;
 		}
-			token_to_minishell_helper(&data, &temp);
+		token_to_minishell_helper(&data, &temp);
 		temp = temp->next;
 	}
 	add_minishell_back(&minishell,
@@ -1305,9 +1308,9 @@ int	is_empty(char *str)
 
 }
 
-void print_args(t_minishell *temp)
+void	print_args(t_minishell *temp)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	if (temp->args)
@@ -1322,15 +1325,15 @@ void print_args(t_minishell *temp)
 	printf("\n");
 }
 
-void print_files2(t_file_redirection *files)
+void	print_files2(t_file_redirection *files)
 {
-	t_file_redirection *temp_files;
+	t_file_redirection	*temp_files;
 
 	temp_files = files;
 	if (temp_files)
 	{
 		printf("files : \n");
-		while(temp_files)
+		while (temp_files)
 		{
 			while (temp_files)
 			{
@@ -1342,9 +1345,10 @@ void print_files2(t_file_redirection *files)
 		}
 	}
 }
+
 void print_files(t_minishell *temp)
 {
-	t_file_redirection *temp_files;
+	t_file_redirection	*temp_files;
 
 	if (temp->files)
 	{
@@ -1407,12 +1411,14 @@ void	handle_sigquit(int signal)
 		return ;
 	}
 }
-int check_delemeter_for_sr(char *str, char *filename)
+
+int	check_delemeter_for_sr(char *str, char *filename)
 {
 	if (str == NULL)
 	{
 		write(2, "bash: warning: here-document delimited by end-of-file\n",
-			ft_strlen("bash: warning: here-document delimited by end-of-file\n"));
+			ft_strlen(\
+				"bash: warning: here-document delimited by end-of-file\n"));
 		return (1);
 	}
 	if (ft_strncmp(filename, str, ft_strlen(str) + 1) == 0)
@@ -1422,19 +1428,22 @@ int check_delemeter_for_sr(char *str, char *filename)
 	}
 	return (0);
 }
+
 void	fill_heredoc_for_sr(t_file_redirection *heredoc)
 {
 	char	*str;
+
 	while (1)
 	{
 		str = readline("> ");
 		if (check_delemeter_for_sr(str, heredoc->filename) == 1)
-			break;
+			break ;
 		if (str)
 			free(str);
 	}
 }
-void loop_heredoc_for_sr(t_file_redirection *heredocs)
+
+void	loop_heredoc_for_sr(t_file_redirection *heredocs)
 {
 	t_file_redirection	*temp;
 
@@ -1462,10 +1471,10 @@ void	free_environment(t_environment *env)
 	}
 }
 
-void free_files(t_file_redirection *files)
+void	free_files(t_file_redirection *files)
 {
 	t_file_redirection	*temp_files;
-	t_file_redirection *temp_files_next;
+	t_file_redirection	*temp_files_next;
 
 	if (files)
 	{
@@ -1479,6 +1488,7 @@ void free_files(t_file_redirection *files)
 		}
 	}
 }
+
 void	free_minishell(t_minishell *minishell)
 {
 	t_minishell			*temp;
@@ -1511,37 +1521,43 @@ void	free_minishell(t_minishell *minishell)
 // -------------------------------- start by exe one cmd -------------------------------------------
 // --------------------------------------- end of exe one cmd ----------------------------------------------
 
-void fill_error_codes(char **error_codes)
+void	fill_error_codes(char **error_codes)
 {
 	error_codes[0] = "";
-	error_codes[1] = "minishell: syntax error near unexpected token `newline'\n"; 
-	error_codes[2] = "minishell: syntax error near unexpected token `|'\n"; 
-	// error_codes[3] = "Syntax error: Expected a limiter after '<<'\n"; 
-	error_codes[3] = "minishell: syntax error near unexpected token `newline'\n"; 
-	error_codes[4] = "minishell: syntax error near unexpected token `<<'\n"; 
-	error_codes[5] = "minishell: syntax error near unexpected token `<'\n"; 
-	error_codes[6] = "minishell: syntax error near unexpected token `>'\n"; 
-	error_codes[7] = "minishell: syntax error near unexpected token `>>'\n"; 
-	error_codes[8] = "Error: Logical operators not supported YET.\n"; 
-	error_codes[9] = "minishell: syntax error near unexpected token `<<'\n";
+	error_codes[1]
+		= "minishell: syntax error near unexpected token `newline'\n";
+	error_codes[2]
+		= "minishell: syntax error near unexpected token `|'\n"; 
+	error_codes[3]
+		= "minishell: syntax error near unexpected token `newline'\n"; 
+	error_codes[4]
+		= "minishell: syntax error near unexpected token `<<'\n"; 
+	error_codes[5]
+		= "minishell: syntax error near unexpected token `<'\n"; 
+	error_codes[6]
+		= "minishell: syntax error near unexpected token `>'\n"; 
+	error_codes[7]
+		= "minishell: syntax error near unexpected token `>>'\n"; 
+	error_codes[8]
+		= "Error: Logical operators not supported YET.\n"; 
+	error_codes[9]
+		= "minishell: syntax error near unexpected token `<<'\n";
 }
 
-int help_heredoc_sr(int  *heredoc_counter, t_token *tokens, int error_code, t_file_redirection **heredocs)
+int	help_heredoc_sr(int  *heredoc_counter, t_token *tokens, int error_code, t_file_redirection **heredocs)
 {
-	t_token *temp;
-	char *error_codes[10];
-	temp = tokens;
-	int print_error;
+	t_token		*temp;
+	char		*error_codes[10];
+	int			print_error;
 
+	temp = tokens;
 	fill_error_codes(error_codes);
 	print_error = 1;
-	while(temp)
+	while (temp)
 	{
 		if (temp->type == T_HERDOC && temp->next != NULL)
-		{
-			add_file_redirection_back(heredocs, new_file_redirection(ft_strdup(temp->next->value), T_HERDOC));
-			(*heredoc_counter)++;
-		}
+			(add_file_redirection_back(heredocs, new_file_redirection(\
+				ft_strdup(temp->next->value), T_HERDOC)), (*heredoc_counter)++);
 		if (temp->type == T_PIPE)
 		{
 			set_exit_status(*(lists_collecter->env), 2);
@@ -1555,24 +1571,26 @@ int help_heredoc_sr(int  *heredoc_counter, t_token *tokens, int error_code, t_fi
 	return (print_error);
 }
 
-int check_heredoc_for_syntax_error(t_file_redirection **heredocs, t_token *tokens, int error_code)
+int	check_heredoc_for_syntax_error(t_file_redirection **heredocs
+	, t_token *tokens, int error_code)
 {
-	char *error_codes[10];
-	int print_error;
-	int heredoc_counter;
+	char	*error_codes[10];
+	int		print_error;
+	int		heredoc_counter;
 
 	heredoc_counter = 0;
 	fill_error_codes(error_codes);
 	if (error_code == 3 || error_code == 9)
 		return (puterr(error_codes[error_code]), 0);	
-	print_error = help_heredoc_sr(&heredoc_counter, tokens, error_code, heredocs);
+	print_error = help_heredoc_sr(&heredoc_counter,
+			tokens, error_code, heredocs);
 	if (print_error == -1)
 		return (0);
 	set_exit_status(*(lists_collecter->env), 2);
 	if (heredoc_counter == 0)
 		return (puterr(error_codes[error_code]), 0);
 	if (heredoc_counter > 0 && heredoc_counter < 17)
-	 {
+	{
 		loop_heredoc_for_sr(*heredocs);
 		if (print_error == 1)
 			puterr(error_codes[error_code]);
@@ -1582,13 +1600,16 @@ int check_heredoc_for_syntax_error(t_file_redirection **heredocs, t_token *token
 		return (puterr("minishell: maximum here-document count exceeded\n"), 0);
 	return (1);
 }
-void print_heredocs(t_file_redirection *files)
+
+void	print_heredocs(t_file_redirection *files)
 {
-	t_file_redirection *temp;
+	t_file_redirection	*temp;
+
 	temp = files;
-	while(temp)
+	while (temp)
 	{
-		printf("filename = %s [%s]\n", temp->filename, get_type_token(temp->type));
+		printf("filename = %s [%s]\n",
+			temp->filename, get_type_token(temp->type));
 		temp = temp->next;
 	}
 }
@@ -1610,7 +1631,7 @@ void free_heredocs(t_file_redirection *files)
 //----------------------------------------- multiple commands --------------------------------------
 
 
-void collecter_init(t_minishell **minishell, t_environment **env, t_token **tokens)
+void	collecter_init(t_minishell **minishell, t_environment **env, t_token **tokens)
 {
 	*env = NULL;
 	*tokens = NULL;
@@ -1640,11 +1661,11 @@ void free_at_exit()
 
 int main(int argc, char **argv, char **base_env)
 {
-	t_environment *env;
-	t_token *tokens;
-	t_minishell *minishell;
-	char *str;
-	
+	t_environment	*env;
+	t_token			*tokens;
+	t_minishell		*minishell;
+	char			*str;
+
 	(void)argv;
 	if (argc > 1)
 		return (1);
@@ -1656,21 +1677,23 @@ int main(int argc, char **argv, char **base_env)
 	printf("Welcome to minishell\n");
 	while (1)
 	{
-		if (signal(SIGINT, handle_ctrl_c) == SIG_ERR) {
+		if (signal(SIGINT, handle_ctrl_c) == SIG_ERR)
+		{
 			perror("signal");
-			return 1;
+			return (1);
 		}
-		else if (signal(SIGQUIT, SIG_IGN) == SIG_ERR) {
+		else if (signal(SIGQUIT, SIG_IGN) == SIG_ERR)
+		{
 			perror("signal");
-			return 1;
+			return (1);
 		}
 		str = readline("$> ");
 		if (str == NULL)
-			break;
+			break ;
 		if (check_whitespaces(str) == 0)
 		{
 			free(str);
-			continue;
+			continue ;
 		}
 		if (str[0] != '\0')
 			add_history(str);
@@ -1683,10 +1706,10 @@ int main(int argc, char **argv, char **base_env)
 		// printf("after expand ======================\n");
 		if (check_syntax_error(str) != 0 || tokens == NULL)
 		{
-		 	add_history(str);
+			add_history(str);
 			free(str);
 			free_tokens(tokens);
-			continue;	
+			continue ;	
 		}
 		if (check_syntax_error_tokens(tokens) != 0 || tokens == NULL ||  ft_strlen(str) == 0 || ft_strncmp(str, ":", ft_strlen(str)) == 0)
 		{
