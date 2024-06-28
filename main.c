@@ -1511,11 +1511,8 @@ void	free_minishell(t_minishell *minishell)
 // -------------------------------- start by exe one cmd -------------------------------------------
 // --------------------------------------- end of exe one cmd ----------------------------------------------
 
-int check_heredoc_for_syntax_error(t_file_redirection **heredocs, t_token *tokens, int error_code)
+void fill_error_codes(char **error_codes)
 {
-	char *error_codes[10];
-	int print_error = 1;
-	// error_codes = malloc(sizeof(char *) * 9);
 	error_codes[0] = "";
 	error_codes[1] = "minishell: syntax error near unexpected token `newline'\n"; 
 	error_codes[2] = "minishell: syntax error near unexpected token `|'\n"; 
@@ -1527,57 +1524,62 @@ int check_heredoc_for_syntax_error(t_file_redirection **heredocs, t_token *token
 	error_codes[7] = "minishell: syntax error near unexpected token `>>'\n"; 
 	error_codes[8] = "Error: Logical operators not supported YET.\n"; 
 	error_codes[9] = "minishell: syntax error near unexpected token `<<'\n";
-	// t_file_redirection *heredocs;
+}
+
+int help_heredoc_sr(int  *heredoc_counter, t_token *tokens, int error_code, t_file_redirection **heredocs)
+{
 	t_token *temp;
-	int heredoc_counter;
-
+	char *error_codes[10];
 	temp = tokens;
-	heredoc_counter = 0;
-	if (error_code == 3 || error_code == 9)
-	{
-		return (printf("%s", error_codes[error_code]), 0);	
-	}
+	int print_error;
 
+	fill_error_codes(error_codes);
+	print_error = 1;
 	while(temp)
 	{
 		if (temp->type == T_HERDOC && temp->next != NULL)
 		{
 			add_file_redirection_back(heredocs, new_file_redirection(ft_strdup(temp->next->value), T_HERDOC));
-			heredoc_counter++;
+			(*heredoc_counter)++;
 		}
 		if (temp->type == T_PIPE)
 		{
 			set_exit_status(*(lists_collecter->env), 2);
-			printf("%s", error_codes[error_code]);
+			puterr(error_codes[error_code]);
 			print_error = 0;
-			if (heredoc_counter == 0)
-				return (0);
-			// return (0);
-			// exit(2);
+			if (*heredoc_counter == 0)
+				return (-1);
 		}
 		temp = temp->next;
-		// ok then don't forget to complete that please ?!!!!!!!!!!!1
 	}
-	// print_heredocs(heredocs);
-		// return (fork_heredoc(minishell, env));
+	return (print_error);
+}
+
+int check_heredoc_for_syntax_error(t_file_redirection **heredocs, t_token *tokens, int error_code)
+{
+	char *error_codes[10];
+	int print_error;
+	int heredoc_counter;
+
+	heredoc_counter = 0;
+	fill_error_codes(error_codes);
+	if (error_code == 3 || error_code == 9)
+		return (puterr(error_codes[error_code]), 0);	
+	print_error = help_heredoc_sr(&heredoc_counter, tokens, error_code, heredocs);
+	if (print_error == -1)
+		return (0);
 	set_exit_status(*(lists_collecter->env), 2);
 	if (heredoc_counter == 0)
-		return (printf("%s", error_codes[error_code]), 0);
+		return (puterr(error_codes[error_code]), 0);
 	if (heredoc_counter > 0 && heredoc_counter < 17)
 	 {
-		// printf("the heredoc should be openned here !\n");
 		loop_heredoc_for_sr(*heredocs);
 		if (print_error == 1)
-			printf("%s", error_codes[error_code]);
+			puterr(error_codes[error_code]);
 		return (0);
-	 }
-	else if (heredoc_counter > 16)
-	{
-		write(2, "bash: maximum here-document count exceeded\n", 43);
-		// free_lists_collector();
-		return (0);
-		// exit(2);
 	}
+	else if (heredoc_counter > 16)
+		return (puterr("minishell: maximum here-document count exceeded\n"), 0);
 	return (1);
 }
 void print_heredocs(t_file_redirection *files)
