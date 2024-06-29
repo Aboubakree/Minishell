@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2024/04/26 17:01:35 by akrid         #+#    #+#                 */
-/*   Updated: 2024/06/28 21:40:26 by rtamouss      ########   odam.nl         */
+/*   Updated: 2024/06/29 10:24:05 by rtamouss      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -297,5 +297,44 @@ char	**ft_free(char **strs);
 void	free_tokens(t_token *tokens);
 int	ft_count_words(char const *str, char sep);
 void	free_args(char **args);
+void init_expand_string(int *i, int *in_single_quotes, int *in_double_quotes, char **env_variable);
+char	*expand_string(char *str, int from_heredoc);
+void	split_expanded_string(t_token **temp, t_token **tokens);
+int expand_string_helper(t_token **tokens, t_token **temp);
+int	is_word(char c);
+void find_target(t_token **head, t_token *target, t_token **temp, t_token **prev);
+int	check_whitespaces(const char *str);
+void	handle_quotes_after_dollar(char *str);
+char *change_value(char *str, int *i, int *index, char *env_variable);
+int expand_helper(int index, int *i, char *str);
+int	ambiguouse_redirect(char *old);
+int	ft_remove_char(char *str, int index);
+void delete_quotes_from_string(char *str);
+t_token	*expand(t_token *tokens);;
+void	delete_quotes_from_files(t_minishell *minishell);
+void delete_quotes_from_args(t_minishell *minishell);
+t_minishell	*delete_quotes(t_minishell *minishell);
+int	in_quote(const char *str);
+t_token	*add_redirection_in(t_token *temp, t_file_redirection **files);
+t_token	*add_redirection_out(t_token *temp, t_file_redirection **files);
+t_token	*add_redirection_append(t_token *temp, t_file_redirection **files);
+t_token	*add_heredoc(t_token *temp, t_file_redirection **files);
+int	initialize_and_free(t_minishell_data_help *data);
+int	handle_word_new_command(t_minishell_data_help *data, t_token *temp);
+void	token_to_minishell_helper(t_minishell_data_help *data, t_token **temp);
+void	initialize_token_to_minishell_data(t_minishell_data_help *data);
+t_minishell	*token_to_minishell(t_token *tokens);
+int	is_empty(char *str);
+void	handle_ctrl_c(int signal);
+int	check_if_have_space(const char *str);
+void	handle_sigquit(int signal);
+int	check_delemeter_for_sr(char *str, char *filename);
+void	fill_heredoc_for_sr(t_file_redirection *heredoc);
+void	loop_heredoc_for_sr(t_file_redirection *heredocs);
+void	fill_error_codes(char **error_codes);
+int	help_heredoc_sr(int  *heredoc_counter, t_token *tokens, int error_code, t_file_redirection **heredocs);
+int	check_heredoc_for_syntax_error(t_file_redirection **heredocs, t_token *tokens, int error_code);
+void	print_heredocs(t_file_redirection *files);
+void	collecter_init(t_minishell **minishell, t_environment **env, t_token **tokens);
 
 #endif

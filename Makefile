@@ -15,7 +15,8 @@ SRC = main.c environment.c environment_2.c environment_3.c\
 	parsing/manage_quotes.c parsing/manage_tokens.c parsing/manage_tokens2.c\
 	parsing/helper_functions.c parsing/helper_functions2.c parsing/manage_files_redirections.c\
 	parsing/tokenize_input.c parsing/check_syntax_error.c parsing/manage_minishell.c\
-	parsing/manage_args.c parsing/free_data.c parsing/free_data2.c parsing/split_for_minishell.c
+	parsing/manage_args.c parsing/free_data.c parsing/free_data2.c parsing/split_for_minishell.c\
+	parsing/expand.c parsing/expand_utils.c
 
 LIBFT_DIR = lib/libft
 LIBFT = $(LIBFT_DIR)/libft.a
