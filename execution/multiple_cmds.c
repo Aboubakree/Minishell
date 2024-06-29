@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 12:01:15 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/11 12:47:03 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/29 17:18:19 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,18 +21,22 @@ void	wait_childs(t_minishell *mini, t_environment *env, int num_cmd)
 	close_pipes(mini->pipe, mini->nbr_cmd);
 	while (i < num_cmd)
 	{
-		if (wait(&status) > 0)
+		status = 0;
+		wait(&status);
+		if (status == 131 || status == 2)
 		{
-			status = status >> 8;
+			if (status == 2)
+				status += 128;
+			if (status == 131)
+				printf("Quit (core dumped)");
 			set_exit_status(env, status);
-			i++;
 		}
 		else
-		{
-			perror("wait");
-			i++;
-		}
+			set_exit_status(env, WEXITSTATUS(status));
+		i++;
 	}
+	if (status < 255 && status != 0)
+		printf("\n");
 	unlink_files(mini);
 }
 
@@ -103,12 +107,17 @@ void	execute_all(t_minishell *minishell, t_environment **env)
 
 	pipe_init(minishell);
 	temp = minishell;
+	handle_signals(SIG_IGN, SIG_IGN, interactive_sigint, SIG_IGN);
 	while (temp)
 	{
 		pid = fork();
 		if (pid == 0)
+		{
+			handle_signals(active_sigint, active_sigquit, SIG_IGN, SIG_IGN);
 			final_execution(temp, env);
+		}
 		temp = temp->next;
 	}
 	wait_childs(minishell, *env, minishell->nbr_cmd);
+	handle_signals(interactive_sigint, SIG_IGN, SIG_IGN, SIG_IGN);
 }

@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/26 21:30:50 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/29 12:02:31 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,6 +127,13 @@ int				is_directory(char *cmd);
 int				empty_cmd(char *cmd);
 int				parse_cmds(char *command);
 char			**check_paths(t_environment *temp, char *cmd);
+
+// --------------- signals ---------------------
+void interactive_sigint(int sig);
+void interactive_sigquit(int sig);
+void active_sigint(int sig);
+void active_sigquit(int sig);
+void handle_signals(void (*sigint)(int), void (*sigquit)(int), void (*sigint_old)(int), void (*sigquit_old)(int));
 
 // environment
 t_environment	*env_node(char *key, char *value);

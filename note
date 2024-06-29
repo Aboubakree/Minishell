@@ -1,0 +1,5 @@
+exit_status dyal 				"					
+signals in active mode 			ctrl+\ quit
+lweq | echo $?
+exit 							ra9m kbir
+export SHLVL=999999999999999999

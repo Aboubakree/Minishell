@@ -1382,22 +1382,27 @@ void	print_minishell(t_minishell *minishell)
 }
 
 // end tokenization
-void	handle_ctrl_c(int signal)
-{
-	if (signal == SIGINT)
-	{
-		// clear the current line	
-		// rl_replace_line("", 0);
-		// move to a new line
-		printf("\n");
-		//display the prmmpt on the new line
-		rl_on_new_line();
-		// redrws the readline line
-		rl_redisplay();
-		set_exit_status(*(lists_collecter->env), 130);
-		return;
-	}
-}
+// void	handle_ctrl_c(int signal)
+// {
+// 	set_exit_status(*(lists_collecter->env), 130);
+// 	// printf("%d\n",lists_collecter->sig);
+// 	if (signal == SIGINT)
+// 	{
+// 		if (lists_collecter->sig)
+// 		{
+// 			printf("\n");
+// 			// printf("here\n");
+// 			rl_on_new_line();
+// 			rl_replace_line("", 1);
+// 			rl_redisplay();
+// 			set_exit_status(*(lists_collecter->env), 130);
+// 		}
+// 		// clear the current line	
+// 		// move to a new line
+// 		//display the prmmpt on the new line
+// 	}
+// 	return;
+// }
 
 void	handle_sigquit(int signal)
 {
@@ -1636,6 +1641,61 @@ void free_at_exit()
 	free(lists_collecter);
 }
 
+
+void interactive_sigint(int sig)
+{
+	(void)sig;
+	printf("\n");
+	rl_on_new_line();
+	rl_replace_line("", 1);
+	rl_redisplay();
+	set_exit_status(*(lists_collecter->env), 130);
+}
+
+void interactive_sigquit(int sig)
+{
+	(void)sig;
+	return;
+}
+
+// Signal handler for the child process
+void active_sigint(int sig)
+{
+	(void)sig;
+    printf("\n");
+}
+
+void active_sigquit(int sig)
+{
+	(void)sig;
+	printf("Quit (core dumped)\n");
+}
+
+void handle_signals(void (*sigint)(int), void (*sigquit)(int), void (*sigint_old)(int), void (*sigquit_old)(int)) 
+{
+    struct sigaction s_int;
+	struct sigaction s_int_old;
+    struct sigaction s_quit;
+	struct sigaction s_quit_old;
+
+    // Set up the SIGINT handler
+    s_int.sa_handler = sigint;
+    sigemptyset(&s_int.sa_mask);
+    s_int.sa_flags = 0;
+    s_int_old.sa_handler = sigint_old;
+    sigemptyset(&s_int_old.sa_mask);
+    s_int_old.sa_flags = 0;
+    sigaction(SIGINT, &s_int, &s_int_old);
+    // Set up the SIGQUIT handler
+    s_quit.sa_handler = sigquit;
+    sigemptyset(&s_quit.sa_mask);
+    s_quit.sa_flags = 0;
+    s_quit_old.sa_handler = sigquit_old;
+    sigemptyset(&s_quit_old.sa_mask);
+    s_quit_old.sa_flags = 0;
+    sigaction(SIGQUIT, &s_quit, &s_quit_old);
+}
+
 int main(int argc, char **argv, char **base_env)
 {
 	t_environment *env;
@@ -1652,16 +1712,9 @@ int main(int argc, char **argv, char **base_env)
 	collecter_init(&minishell, &env, &tokens);
 	get_environment(&env, base_env);
 	printf("Welcome to minishell\n");
+	handle_signals(interactive_sigint, SIG_IGN,  SIG_IGN,  SIG_IGN);
 	while (1)
 	{
-		if (signal(SIGINT, handle_ctrl_c) == SIG_ERR) {
-			perror("signal");
-			return 1;
-		}
-		else if (signal(SIGQUIT, SIG_IGN) == SIG_ERR) {
-			perror("signal");
-			return 1;
-		}
 		str = readline("$> ");
 		if (str == NULL)
 			break;
@@ -1709,5 +1762,6 @@ int main(int argc, char **argv, char **base_env)
 	}
 	free_environment(env);
 	free(lists_collecter);
+	printf("exit\n");
 	return (0);
 }
