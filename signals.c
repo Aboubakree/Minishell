@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/29 17:37:05 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/29 17:40:03 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/29 20:34:24 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ void	interactive_sigint(int sig)
 	rl_on_new_line();
 	rl_replace_line("", 1);
 	rl_redisplay();
-	set_exit_status(*(lists_collecter->env), 130);
+	set_exit_status(*(g_lists_collecter->env), 130);
 }
 
 void	interactive_sigquit(int sig)
@@ -32,6 +32,8 @@ void	active_sigint(int sig)
 {
 	(void)sig;
 	printf("\n");
+	free_at_exit();
+	exit(130);
 }
 
 void	active_sigquit(int sig)

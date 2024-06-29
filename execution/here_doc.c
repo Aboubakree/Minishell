@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 12:50:23 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/29 16:07:25 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/29 20:33:49 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,6 @@ void	fill_heredoc(t_minishell *temp, t_file_redirection *files)
 		perror("open");
 	while (1)
 	{
-		signal(SIGINT, handle_heredoc_signals);
 		str = readline(">");
 		if (check_delemeter(str, files->filename, fd) == 1)
 			break ;

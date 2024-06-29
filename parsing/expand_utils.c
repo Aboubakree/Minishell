@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   expand_utils.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/29 10:24:27 by rtamouss          #+#    #+#             */
-/*   Updated: 2024/06/29 19:03:23 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/06/29 20:14:00 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ char	*change_value(char *str, int *i, int *index, char *env_variable)
 	char			*last;
 
 	env_variable = ft_substr(str, *i + 1, *index - *i - 1);
-	get_env = env_get_bykey(*(lists_collecter->env), env_variable);
+	get_env = env_get_bykey(*(g_lists_collecter->env), env_variable);
 	if (get_env == NULL)
 		value = ft_strdup("");
 	else

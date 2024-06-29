@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 11:16:04 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/26 18:01:40 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/29 20:10:50 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ void	append_value(t_environment *env, t_environment *new)
 
 	new->key[ft_strlen(new->key) - 1] = '\0';
 	if (ft_strncmp(new->key, "PATH", 5) == 0)
-		lists_collecter->p = 1;
+		g_lists_collecter->p = 1;
 	target = env_get_bykey(env, new->key);
 	temp = env->next->next;
 	previous = env->next;
@@ -106,7 +106,7 @@ void	replace_value(t_environment *env, t_environment *new)
 	temp = env;
 	previous = (env)->next;
 	if (ft_strncmp(new->key, "PATH", 5) == 0)
-		lists_collecter->p = 1;
+		g_lists_collecter->p = 1;
 	if (target == NULL)
 	{
 		temp = temp->next->next;

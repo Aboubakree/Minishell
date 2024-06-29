@@ -3,34 +3,36 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/10 20:13:09 rtamouss         ###   ########.fr       */
+/*   Updated: 2024/06/29 20:09:01 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
-#include <readline/readline.h>
 #include <readline/history.h>
+#include <readline/readline.h>
+
 // syntax error checking/
 
-t_lists_collecter *lists_collecter;
+t_lists_collecter	*g_lists_collecter;
 
-int syntax_checker(t_token *tokens, char *str)
+int	syntax_checker(t_token *tokens, char *str)
 {
+	t_file_redirection	*heredocs;
+	int					error_code;
+
 	if (check_syntax_error(str) != 0 || tokens == NULL)
 	{
 		free_tokens(tokens);
 		return (1);
 	}
-	if (check_syntax_error_tokens(tokens) != 0 
-		|| tokens == NULL ||  ft_strlen(str) == 0 
-		|| ft_strncmp(str, ":", ft_strlen(str)) == 0)
+	if (check_syntax_error_tokens(tokens) != 0 || tokens == NULL
+		|| ft_strlen(str) == 0 || ft_strncmp(str, ":", ft_strlen(str)) == 0)
 	{
-		t_file_redirection *heredocs;
 		heredocs = NULL;
-		int error_code = check_syntax_error_tokens(tokens);
+		error_code = check_syntax_error_tokens(tokens);
 		check_heredoc_for_syntax_error(&heredocs, tokens, error_code);
 		free_heredocs(heredocs);
 		free_tokens(tokens);
@@ -39,16 +41,16 @@ int syntax_checker(t_token *tokens, char *str)
 	return (0);
 }
 
-void minishell_loop(t_environment **env, t_token **tokens, t_minishell **minishell)
+void	minishell_loop(t_environment **env, t_token **tokens,
+		t_minishell **minishell)
 {
-	char *str;
+	char	*str;
 
 	while (1)
 	{
-
 		str = readline("$> ");
 		if (str == NULL)
-			break;
+			break ;
 		if (str[0] != '\0' && check_whitespaces(str))
 			add_history(str);
 		*tokens = tokenize_input(str);
@@ -56,9 +58,8 @@ void minishell_loop(t_environment **env, t_token **tokens, t_minishell **minishe
 		if (check_whitespaces(str) == 0 || syntax_checker(*tokens, str))
 		{
 			free(str);
-			continue;
+			continue ;
 		}
-
 		*minishell = token_to_minishell(*tokens);
 		*minishell = delete_quotes(*minishell);
 		execution(*minishell, env);
@@ -68,22 +69,22 @@ void minishell_loop(t_environment **env, t_token **tokens, t_minishell **minishe
 	}
 }
 
-int main(int argc, char **argv, char **base_env)
+int	main(int argc, char **argv, char **base_env)
 {
-	t_environment *env;
-	t_token *tokens;
-	t_minishell *minishell;
-	
+	t_environment		*env;
+	t_token				*tokens;
+	t_minishell			*minishell;
+
 	(void)argv;
 	if (argc > 1)
 		return (1);
 	collecter_init(&minishell, &env, &tokens);
 	get_environment(&env, base_env);
 	printf("Welcome to minishell\n");
-	handle_signals(interactive_sigint, SIG_IGN,  SIG_IGN,  SIG_IGN);
+	handle_signals(interactive_sigint, SIG_IGN, SIG_IGN, SIG_IGN);
 	minishell_loop(&env, &tokens, &minishell);
 	free_environment(env);
-	free(lists_collecter);
+	free(g_lists_collecter);
 	printf("exit\n");
 	return (0);
 }
