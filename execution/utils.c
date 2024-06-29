@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 12:55:10 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/11 13:18:45 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/29 19:17:51 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ void	handle_heredoc_signals(int signal)
 {
 	if (signal == SIGINT)
 	{
-		rl_replace_line("", 0);
+		// rl_replace_line("", 0);
 		printf("\n");
 		rl_on_new_line();
 		free_at_exit();
