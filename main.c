@@ -1641,59 +1641,53 @@ void free_at_exit()
 	free(lists_collecter);
 }
 
-
-void interactive_sigint(int sig)
+int syntax_checker(t_token *tokens, char *str)
 {
-	(void)sig;
-	printf("\n");
-	rl_on_new_line();
-	rl_replace_line("", 1);
-	rl_redisplay();
-	set_exit_status(*(lists_collecter->env), 130);
+	if (check_syntax_error(str) != 0 || tokens == NULL)
+	{
+		free_tokens(tokens);
+		return (1);
+	}
+	if (check_syntax_error_tokens(tokens) != 0 
+		|| tokens == NULL ||  ft_strlen(str) == 0 
+		|| ft_strncmp(str, ":", ft_strlen(str)) == 0)
+	{
+		t_file_redirection *heredocs;
+		heredocs = NULL;
+		int error_code = check_syntax_error_tokens(tokens);
+		check_heredoc_for_syntax_error(&heredocs, tokens, error_code);
+		free_heredocs(heredocs);
+		free_tokens(tokens);
+		return (1);
+	}
+	return (0);
 }
 
-void interactive_sigquit(int sig)
+void minishell_loop(t_environment **env, t_token **tokens, t_minishell **minishell)
 {
-	(void)sig;
-	return;
-}
+	char *str;
 
-// Signal handler for the child process
-void active_sigint(int sig)
-{
-	(void)sig;
-    printf("\n");
-}
-
-void active_sigquit(int sig)
-{
-	(void)sig;
-	printf("Quit (core dumped)\n");
-}
-
-void handle_signals(void (*sigint)(int), void (*sigquit)(int), void (*sigint_old)(int), void (*sigquit_old)(int)) 
-{
-    struct sigaction s_int;
-	struct sigaction s_int_old;
-    struct sigaction s_quit;
-	struct sigaction s_quit_old;
-
-    // Set up the SIGINT handler
-    s_int.sa_handler = sigint;
-    sigemptyset(&s_int.sa_mask);
-    s_int.sa_flags = 0;
-    s_int_old.sa_handler = sigint_old;
-    sigemptyset(&s_int_old.sa_mask);
-    s_int_old.sa_flags = 0;
-    sigaction(SIGINT, &s_int, &s_int_old);
-    // Set up the SIGQUIT handler
-    s_quit.sa_handler = sigquit;
-    sigemptyset(&s_quit.sa_mask);
-    s_quit.sa_flags = 0;
-    s_quit_old.sa_handler = sigquit_old;
-    sigemptyset(&s_quit_old.sa_mask);
-    s_quit_old.sa_flags = 0;
-    sigaction(SIGQUIT, &s_quit, &s_quit_old);
+	while (1)
+	{
+		str = readline("$> ");
+		if (str == NULL)
+			break;
+		if (str[0] != '\0' && check_whitespaces(str))
+			add_history(str);
+		*tokens = tokenize_input(str);
+		*tokens = expand(*tokens);
+		if (check_whitespaces(str) == 0 || syntax_checker(*tokens, str))
+		{
+			free(str);
+			continue;
+		}
+		*minishell = token_to_minishell(*tokens);
+		*minishell = delete_quotes(*minishell);
+		execution(*minishell, env);
+		free(str);
+		free_tokens(*tokens);
+		free_minishell(*minishell);
+	}
 }
 
 int main(int argc, char **argv, char **base_env)
@@ -1701,65 +1695,15 @@ int main(int argc, char **argv, char **base_env)
 	t_environment *env;
 	t_token *tokens;
 	t_minishell *minishell;
-	char *str;
 	
 	(void)argv;
 	if (argc > 1)
 		return (1);
-	env = NULL;
-	tokens = NULL;
-	minishell = NULL;
 	collecter_init(&minishell, &env, &tokens);
 	get_environment(&env, base_env);
 	printf("Welcome to minishell\n");
 	handle_signals(interactive_sigint, SIG_IGN,  SIG_IGN,  SIG_IGN);
-	while (1)
-	{
-		str = readline("$> ");
-		if (str == NULL)
-			break;
-		if (check_whitespaces(str) == 0)
-		{
-			free(str);
-			continue;
-		}
-		if (str[0] != '\0')
-			add_history(str);
-		// printf("before expand ======================\n");
-		tokens = tokenize_input(str);
-		// print_tokens(tokens);
-		// printf("after expand ======================\n");
-		tokens = expand(tokens);
-		// print_tokens(tokens);
-		// printf("after expand ======================\n");
-		if (check_syntax_error(str) != 0 || tokens == NULL)
-		{
-		 	add_history(str);
-			free(str);
-			free_tokens(tokens);
-			continue;	
-		}
-		if (check_syntax_error_tokens(tokens) != 0 || tokens == NULL ||  ft_strlen(str) == 0 || ft_strncmp(str, ":", ft_strlen(str)) == 0)
-		{
-			t_file_redirection *heredocs;
-			heredocs = NULL;
-			int error_code = check_syntax_error_tokens(tokens);
-			check_heredoc_for_syntax_error(&heredocs, tokens, error_code);
-			free_heredocs(heredocs);
-			add_history(str);
-			free(str);
-			free_tokens(tokens);
-			continue;
-		}
-		minishell = token_to_minishell(tokens);
-		// print_minishell(minishell);
-		// printf("minishell after deleting quotes\n");
-		minishell = delete_quotes(minishell);
-		execution(minishell, &env);
-		free(str);
-		free_tokens(tokens);
-		free_minishell(minishell);
-	}
+	minishell_loop(&env, &tokens, &minishell);
 	free_environment(env);
 	free(lists_collecter);
 	printf("exit\n");
