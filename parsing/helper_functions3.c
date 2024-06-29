@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   helper_functions3.c                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/29 16:19:23 by rtamouss          #+#    #+#             */
-/*   Updated: 2024/06/29 19:24:03 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/06/29 20:15:08 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,14 +70,14 @@ void	collecter_init(t_minishell **minishell,
 	*env = NULL;
 	*tokens = NULL;
 	*minishell = NULL;
-	lists_collecter = malloc(sizeof(t_lists_collecter));
-	if (lists_collecter == NULL)
+	g_lists_collecter = malloc(sizeof(t_lists_collecter));
+	if (g_lists_collecter == NULL)
 	{
 		perror("malloc");
 		exit(1);
 	}
-	lists_collecter->minishell = minishell;
-	lists_collecter->env = env;
-	lists_collecter->tokens = tokens;
-	lists_collecter->p = 1;
+	g_lists_collecter->minishell = minishell;
+	g_lists_collecter->env = env;
+	g_lists_collecter->tokens = tokens;
+	g_lists_collecter->p = 1;
 }
