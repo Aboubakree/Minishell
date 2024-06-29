@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   manage_args.c                                      :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2024/06/28 21:29:21 by rtamouss      #+#    #+#                 */
-/*   Updated: 2024/06/28 21:30:44 by rtamouss      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   manage_args.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/28 21:29:21 by rtamouss          #+#    #+#             */
+/*   Updated: 2024/06/29 19:09:09 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,8 @@ void	add_arg_back(t_args **head, t_args *new_arg)
 		temp->next = new_arg;
 	}
 }
-int count_args(char **args)
+
+int	count_args(char **args)
 {
 	int	i;
 
@@ -47,6 +48,7 @@ int count_args(char **args)
 		i++;
 	return (i);
 }
+
 void	join_args(t_token *temp, char **args1, char ***args)
 {
 	char	*temp_args1;

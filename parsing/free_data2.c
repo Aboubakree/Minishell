@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   free_data2.c                                       :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2024/06/28 21:37:29 by rtamouss      #+#    #+#                 */
-/*   Updated: 2024/06/28 21:40:21 by rtamouss      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   free_data2.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/28 21:37:29 by rtamouss          #+#    #+#             */
+/*   Updated: 2024/06/29 19:04:33 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ char	**ft_free(char **strs)
 	free(strs);
 	return (0);
 }
+
 void	free_tokens(t_token *tokens)
 {
 	t_token	*current;

@@ -1,17 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   free_data.c                                        :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2024/06/28 21:32:20 by rtamouss      #+#    #+#                 */
-/*   Updated: 2024/06/28 21:32:56 by rtamouss      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   free_data.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/28 21:32:20 by rtamouss          #+#    #+#             */
+/*   Updated: 2024/06/29 19:26:58 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
-
 
 void	free_environment(t_environment *env)
 {
@@ -75,7 +74,8 @@ void	free_minishell(t_minishell *minishell)
 		free(temp);
 	}
 }
-void free_heredocs(t_file_redirection *files)
+
+void	free_heredocs(t_file_redirection *files)
 {
 	t_file_redirection	*temp;
 
@@ -87,13 +87,14 @@ void free_heredocs(t_file_redirection *files)
 		free(temp);
 	}
 }
-void free_at_exit()
+
+void	free_at_exit(void)
 {
-	if (*lists_collecter->env )
+	if (*lists_collecter->env)
 		free_environment(*lists_collecter->env);
-	if (*lists_collecter->minishell )
+	if (*lists_collecter->minishell)
 		free_minishell(*lists_collecter->minishell);
-	if (*lists_collecter->tokens )
+	if (*lists_collecter->tokens)
 		free_tokens(*lists_collecter->tokens);
 	free(lists_collecter);
 }

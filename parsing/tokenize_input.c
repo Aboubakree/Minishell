@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   tokenize_input.c                                   :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2024/06/28 21:13:59 by rtamouss      #+#    #+#                 */
-/*   Updated: 2024/06/28 21:16:21 by rtamouss      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   tokenize_input.c                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/28 21:13:59 by rtamouss          #+#    #+#             */
+/*   Updated: 2024/06/29 19:19:37 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ void	handle_operator(t_token **head, const char *str, int *i)
 			add_token_back(head, new_token(T_REDIRECTION_OUT, ft_strdup(">")));
 	}
 }
+
 void	handle_word(t_token **head, const char *str, int *i)
 {
 	int		in_quote;

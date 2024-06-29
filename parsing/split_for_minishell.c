@@ -1,30 +1,29 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   split_for_minishell.c                              :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2024/06/28 21:34:24 by rtamouss      #+#    #+#                 */
-/*   Updated: 2024/06/28 21:39:23 by rtamouss      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   split_for_minishell.c                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/28 21:34:24 by rtamouss          #+#    #+#             */
+/*   Updated: 2024/06/29 19:26:19 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-void initialize_value_split2(int *j, char *quote, int *in_quote)
+void	initialize_value_split2(int *j, char *quote, int *in_quote)
 {
 	*j = 0;
 	*quote = '\0';
 	*in_quote = 0;
 }
 
-void ft_skip2(int *i, int in_quote, const char *s, char c)
+void	ft_skip2(int *i, int in_quote, const char *s, char c)
 {
 	if (in_quote == 0 && s[*i] == c)
 		(*i)++;
 }
-
 
 int	ft_count_words(char const *str, char sep)
 {
@@ -46,6 +45,7 @@ int	ft_count_words(char const *str, char sep)
 	}
 	return (count);
 }
+
 char	**ft_split2_helper(char **res, char const *s, char c, int i)
 {
 	int		start;
@@ -86,7 +86,7 @@ char	**ft_split2(char const *s, char c)
 	res = (char **)malloc((ft_count_words(s, c) + 1) * sizeof(char *));
 	if (!res)
 		return (NULL);
-	res = ft_split2_helper(res, s, c , i);
+	res = ft_split2_helper(res, s, c, i);
 	if (!res)
 		return (ft_free(res));
 	return (res);

@@ -1,17 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   check_syntax_error.c                               :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2024/06/28 21:12:58 by rtamouss      #+#    #+#                 */
-/*   Updated: 2024/06/28 21:20:04 by rtamouss      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   check_syntax_error.c                               :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/28 21:12:58 by rtamouss          #+#    #+#             */
+/*   Updated: 2024/06/29 16:27:39 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
-
 
 int	check_syntax_error(const char *str)
 {
@@ -20,7 +19,7 @@ int	check_syntax_error(const char *str)
 	return (0);
 }
 
-int check_syntax_error_tokens_helper2(t_token *temp)
+int	check_syntax_error_tokens_helper2(t_token *temp)
 {
 	if (temp->type == T_HERDOC
 		&& (temp->next == NULL
@@ -82,6 +81,20 @@ int	check_syntax_error_tokens(t_token *tokens)
 		if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_APPEND)
 			return (2);
 		temp = temp->next;
+	}
+	return (0);
+}
+
+int	check_if_have_space(const char *str)
+{
+	int	i;
+
+	i = 0;
+	while (str[i])
+	{
+		if (is_whitespace(str[i]) == 1)
+			return (1);
+		i++;
 	}
 	return (0);
 }

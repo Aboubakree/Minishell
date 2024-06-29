@@ -1,19 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   expand_utils.c                                     :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2024/06/29 10:24:27 by rtamouss      #+#    #+#                 */
-/*   Updated: 2024/06/29 10:25:18 by rtamouss      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   expand_utils.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/29 10:24:27 by rtamouss          #+#    #+#             */
+/*   Updated: 2024/06/29 19:03:23 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-
-char *change_value(char *str, int *i, int *index, char *env_variable)
+char	*change_value(char *str, int *i, int *index, char *env_variable)
 {
 	char			*new_value;
 	t_environment	*get_env;
@@ -41,7 +40,7 @@ char *change_value(char *str, int *i, int *index, char *env_variable)
 	return (new_value);
 }
 
-int expand_helper(int index, int *i, char *str)
+int	expand_helper(int index, int *i, char *str)
 {
 	index = *i;
 	index++;
@@ -53,4 +52,9 @@ int expand_helper(int index, int *i, char *str)
 			index++;
 	}
 	return (index);
+}
+
+int	not_alpha_numeric(char c)
+{
+	return (!is_alpha(c) && !is_number(c) && c != '_' && c != '?' && c != '`');
 }

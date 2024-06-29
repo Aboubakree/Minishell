@@ -1,23 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   expand.c                                           :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2024/06/29 09:38:51 by rtamouss      #+#    #+#                 */
-/*   Updated: 2024/06/29 10:21:48 by rtamouss      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   expand.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/29 09:38:51 by rtamouss          #+#    #+#             */
+/*   Updated: 2024/06/29 19:03:52 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
-void init_expand_string(int *i, int *in_single_quotes, int *in_double_quotes, char **env_variable)
+
+void	init_expand_string(int *i, int *in_single_quotes,
+	int *in_double_quotes, char **env_variable)
 {
 	*i = 0;
 	*in_single_quotes = 0;
 	*in_double_quotes = 0;
 	*env_variable = NULL;
 }
+
 char	*expand_string(char *str, int from_heredoc)
 {
 	int		i;
@@ -66,7 +69,7 @@ void	split_expanded_string(t_token **temp, t_token **tokens)
 	remove_token(tokens, temp_to_remove);
 }
 
-int expand_string_helper(t_token **tokens, t_token **temp)
+int	expand_string_helper(t_token **tokens, t_token **temp)
 {
 	char	*old;
 	char	*index_of_equal;

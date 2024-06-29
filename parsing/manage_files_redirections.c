@@ -1,18 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   manage_files_redirections.c                        :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2024/06/28 21:03:49 by rtamouss      #+#    #+#                 */
-/*   Updated: 2024/06/28 21:09:31 by rtamouss      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   manage_files_redirections.c                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/28 21:03:49 by rtamouss          #+#    #+#             */
+/*   Updated: 2024/06/29 19:22:47 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
-
-
 
 t_file_redirection	*new_file_redirection(char *filename, t_type_of_token type)
 {
@@ -45,8 +43,7 @@ void	add_file_redirection_back(t_file_redirection **head
 	}
 }
 
-
-void print_files(t_minishell *temp)
+void	print_files(t_minishell *temp)
 {
 	t_file_redirection	*temp_files;
 
@@ -62,5 +59,4 @@ void print_files(t_minishell *temp)
 		}
 		printf("\n");
 	}
-
 }

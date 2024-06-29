@@ -1,18 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   manage_tokens2.c                                   :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2024/06/28 20:12:47 by rtamouss      #+#    #+#                 */
-/*   Updated: 2024/06/28 20:13:11 by rtamouss      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   manage_tokens2.c                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/28 20:12:47 by rtamouss          #+#    #+#             */
+/*   Updated: 2024/06/29 19:25:50 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-void insert_token(t_token **head, t_token *new_token, t_token *target)
+void	insert_token(t_token **head, t_token *new_token, t_token *target)
 {
 	t_token	*temp;
 
@@ -47,7 +47,6 @@ void	add_token_back(t_token **head, t_token *new_token)
 	}
 }
 
-
 char	*get_type_token(t_type_of_token type)
 {
 	if (type == T_WORD)
@@ -70,8 +69,8 @@ void	print_tokens(t_token *tokens)
 	printf("--------------------\n");
 	while (tokens)
 	{
-		printf("type: %s, value: [%s]\n"
-			, get_type_token(tokens->type), tokens->value);
+		printf("type: %s, value: [%s]\n", \
+			get_type_token(tokens->type), tokens->value);
 		tokens = tokens->next;
 	}
 	printf("--------------------\n");

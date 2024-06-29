@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   manage_tokens.c                                    :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2024/06/28 20:11:26 by rtamouss      #+#    #+#                 */
-/*   Updated: 2024/06/28 20:12:32 by rtamouss      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   manage_tokens.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/28 20:11:26 by rtamouss          #+#    #+#             */
+/*   Updated: 2024/06/29 19:18:47 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,13 @@ t_token	get_last_token(t_token *tokens)
 
 	temp = tokens;
 	if (!temp)
-		return (t_token){0,NULL,  NULL, NULL};
+	{
+		temp->type = 0;
+		temp->value = NULL;
+		temp->next = NULL;
+		temp->prev = NULL;
+		return (*temp);
+	}
 	while (temp->next)
 		temp = temp->next;
 	return (*temp);
@@ -65,6 +71,7 @@ void	remove_token(t_token **head, t_token *target)
 		free(temp);
 	}
 }
+
 t_token	*new_token(t_type_of_token type, char *value)
 {
 	t_token	*token;
