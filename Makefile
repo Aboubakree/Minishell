@@ -6,7 +6,7 @@ NAME = minishell
 
 CFLAGS = -Wall -Werror -Wextra -fPIC -g3 
 
-SRC = main.c environment.c environment_2.c environment_3.c\
+SRC = main.c environment.c environment_2.c environment_3.c signals.c\
 	builtin/cd.c builtin/pwd.c builtin/env.c builtin/exit.c builtin/unset.c\
 	builtin/export.c builtin/export_add.c builtin/export_print.c builtin/echo.c\
 	execution/execution.c execution/here_doc.c execution/one_cmd.c\

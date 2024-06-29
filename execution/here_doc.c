@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 12:50:23 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/23 12:33:09 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/29 16:07:25 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,12 +82,17 @@ int	fork_heredoc(t_minishell *minishell, t_environment *env)
 	int		status;
 
 	status = 0;
+	handle_signals(SIG_IGN, SIG_IGN, interactive_sigint, SIG_IGN);
 	pid = fork();
 	if (pid == 0)
+	{
+		handle_signals(active_sigint, SIG_IGN, SIG_IGN, SIG_IGN);
 		loop_heredoc(minishell);
+	}
 	wait(&status);
 	status = status >> 8;
 	set_exit_status(env, status);
+	handle_signals(interactive_sigint, SIG_IGN, SIG_IGN, SIG_IGN);
 	return (status);
 }
 
