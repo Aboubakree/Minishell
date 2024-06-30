@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2024/06/29 09:38:51 by rtamouss      #+#    #+#                 */
-/*   Updated: 2024/06/30 19:46:53 by rtamouss      ########   odam.nl         */
+/*   Updated: 2024/06/30 20:31:37 by rtamouss      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,7 +117,7 @@ t_token	*expand(t_token *tokens)
 		{
 			if (temp->type == T_WORD)
 			{
-				if (ft_strchr(temp->value, '$') == NULL)
+				if (ft_strchr(temp->value, '$') == NULL || (temp->prev != NULL && temp->prev->type == T_HERDOC))
 				{
 					temp = temp->next;
 					continue ;

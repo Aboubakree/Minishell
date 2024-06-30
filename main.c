@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/29 20:09:01 by akrid            ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   main.c                                             :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2024/04/24 10:18:34 by akrid         #+#    #+#                 */
+/*   Updated: 2024/06/30 20:26:47 by rtamouss      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ int	syntax_checker(t_token *tokens, char *str)
 		return (free_tokens(tokens), 1);
 	if (check_syntax_error(str) != 0)
 	{
-		set_exit_status(*lists_collecter->env, 2);
+		set_exit_status(*g_lists_collecter->env, 2);
 		return (1);
 	}
 	if (check_syntax_error_tokens(tokens) != 0 || tokens == NULL
@@ -37,7 +37,7 @@ int	syntax_checker(t_token *tokens, char *str)
 		check_heredoc_for_syntax_error(&heredocs, tokens, error_code);
 		free_heredocs(heredocs);
 		free_tokens(tokens);
-		set_exit_status(*lists_collecter->env, 2);
+		set_exit_status(*g_lists_collecter->env, 2);
 		return (1);
 	}
 	return (0);
