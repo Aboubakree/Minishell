@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 12:55:10 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/29 19:17:51 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/06/29 20:07:07 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,18 +54,6 @@ int	cmd_count(t_minishell *minishell)
 		minishell = minishell->next;
 	}
 	return (count);
-}
-
-void	handle_heredoc_signals(int signal)
-{
-	if (signal == SIGINT)
-	{
-		// rl_replace_line("", 0);
-		printf("\n");
-		rl_on_new_line();
-		free_at_exit();
-		exit(130);
-	}
 }
 
 int	is_builtin(char *cmd)

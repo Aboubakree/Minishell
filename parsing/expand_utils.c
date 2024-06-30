@@ -21,7 +21,7 @@ char	*change_value(char *str, int *i, int *index, char *env_variable)
 	char			*last;
 
 	env_variable = ft_substr(str, *i + 1, *index - *i - 1);
-	get_env = env_get_bykey(*(lists_collecter->env), env_variable);
+	get_env = env_get_bykey(*(g_lists_collecter->env), env_variable);
 	if (get_env == NULL)
 		value = ft_strdup("");
 	else

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   free_data.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/28 21:32:20 by rtamouss          #+#    #+#             */
-/*   Updated: 2024/06/29 19:26:58 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/06/29 20:14:28 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,11 +90,11 @@ void	free_heredocs(t_file_redirection *files)
 
 void	free_at_exit(void)
 {
-	if (*lists_collecter->env)
-		free_environment(*lists_collecter->env);
-	if (*lists_collecter->minishell)
-		free_minishell(*lists_collecter->minishell);
-	if (*lists_collecter->tokens)
-		free_tokens(*lists_collecter->tokens);
-	free(lists_collecter);
+	if (*g_lists_collecter->env)
+		free_environment(*g_lists_collecter->env);
+	if (*g_lists_collecter->minishell)
+		free_minishell(*g_lists_collecter->minishell);
+	if (*g_lists_collecter->tokens)
+		free_tokens(*g_lists_collecter->tokens);
+	free(g_lists_collecter);
 }

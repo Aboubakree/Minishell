@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   helper_functions4.c                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/29 16:20:41 by rtamouss          #+#    #+#             */
-/*   Updated: 2024/06/29 19:22:02 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/06/29 20:15:17 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ int	ambiguouse_redirect(char *old)
 		puterr("minishell: ");
 		puterr(old);
 		puterr(": ambiguous redirect\n");
-		set_exit_status(*(lists_collecter->env), 1);
+		set_exit_status(*(g_lists_collecter->env), 1);
 		return (1);
 	}
 	return (0);
