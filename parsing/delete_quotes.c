@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2024/06/29 16:08:13 by rtamouss      #+#    #+#                 */
-/*   Updated: 2024/06/30 19:45:33 by rtamouss      ########   odam.nl         */
+/*   Updated: 2024/06/30 19:45:33by rtamouss      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ void	delete_quotes_from_string_helper(char *str, int *k,
 		else if (str[j] == '\"' && !*in_single_quote)
 			*in_double_quote = !*in_double_quote;
 		else if (str[j] == '$'
-			&& *in_double_quote == 0 && *in_single_quote == 0 && str[j+1] != '\0')
+			&& *in_double_quote == 0 && *in_single_quote == 0 && str[j+1] != '\0' && !is_alpha(str[j+1]))
 		{
 			if (str[j] == '\'' && !*in_double_quote)
 				*in_single_quote = !*in_single_quote;
