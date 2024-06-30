@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   expand.c                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/06/29 09:38:51 by rtamouss          #+#    #+#             */
-/*   Updated: 2024/06/29 19:03:52 by rtamouss         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   expand.c                                           :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2024/06/29 09:38:51 by rtamouss      #+#    #+#                 */
+/*   Updated: 2024/06/30 19:46:53 by rtamouss      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,6 +95,13 @@ int	expand_string_helper(t_token **tokens, t_token **temp)
 	else
 		(*temp) = (*temp)->next;
 	free(old);
+	return (0);
+}
+
+int check_if_dollars(char *str)
+{
+	if (str[0] == '$' && str[1] == '\0')
+		return (1);
 	return (0);
 }
 

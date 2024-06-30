@@ -19,9 +19,11 @@ t_lists_collecter *lists_collecter;
 
 int syntax_checker(t_token *tokens, char *str)
 {
-	if (check_syntax_error(str) != 0 || tokens == NULL)
+	if (tokens == NULL)
+		return (free_tokens(tokens), 1);
+	if (check_syntax_error(str) != 0)
 	{
-		free_tokens(tokens);
+		set_exit_status(*lists_collecter->env, 2);
 		return (1);
 	}
 	if (check_syntax_error_tokens(tokens) != 0 
@@ -34,6 +36,7 @@ int syntax_checker(t_token *tokens, char *str)
 		check_heredoc_for_syntax_error(&heredocs, tokens, error_code);
 		free_heredocs(heredocs);
 		free_tokens(tokens);
+		set_exit_status(*lists_collecter->env, 2);
 		return (1);
 	}
 	return (0);
@@ -58,7 +61,6 @@ void minishell_loop(t_environment **env, t_token **tokens, t_minishell **minishe
 			free(str);
 			continue;
 		}
-
 		*minishell = token_to_minishell(*tokens);
 		*minishell = delete_quotes(*minishell);
 		execution(*minishell, env);
@@ -79,7 +81,6 @@ int main(int argc, char **argv, char **base_env)
 		return (1);
 	collecter_init(&minishell, &env, &tokens);
 	get_environment(&env, base_env);
-	printf("Welcome to minishell\n");
 	handle_signals(interactive_sigint, SIG_IGN,  SIG_IGN,  SIG_IGN);
 	minishell_loop(&env, &tokens, &minishell);
 	free_environment(env);
