@@ -1,14 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/30 18:25:02 by akrid            ###   ########.fr       */
-
+/*   Updated: 2024/07/01 20:37:42 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,9 +20,10 @@ t_lists_collecter	*g_lists_collecter;
 
 int	syntax_checker(t_token *tokens, char *str)
 {
-  t_file_redirection	*heredocs;
+	t_file_redirection	*heredocs;
 	int					error_code;
-  if (tokens == NULL)
+
+	if (tokens == NULL)
 		return (free_tokens(tokens), 1);
 	if (check_syntax_error(str) != 0)
 	{

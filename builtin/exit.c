@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 09:11:41 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/09 17:53:12 by akrid            ###   ########.fr       */
+/*   Updated: 2024/07/01 20:29:09 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@ int	check_digits(char *str)
 	i = 0;
 	if (str && (str[i] == '-' || str[i] == '+'))
 		i++;
+	if (str && str[i] == '\0')
+		return (0);
 	while (str && str[i])
 	{
 		if (ft_isdigit(str[i]) == 0)
@@ -53,7 +55,7 @@ void	fake_exit(t_minishell *singl_mini, t_environment *env)
 	if (open_files(singl_mini, env, singl_mini->files))
 		return ;
 	handel_input_output(singl_mini);
-	exit_status = 0;
+	exit_status = ft_atoi((env_get_bykey(env, "?")->value));
 	if (singl_mini->nbr_cmd == 1)
 		printf("exit\n");
 	if (singl_mini->args && singl_mini->args[1])
