@@ -38,7 +38,6 @@ int	syntax_checker(t_token *tokens, char *str)
 		error_code = check_syntax_error_tokens(tokens);
 		check_heredoc_for_syntax_error(&heredocs, tokens, error_code);
 		free_heredocs(heredocs);
-		free_tokens(tokens);
 		set_exit_status(*g_lists_collecter->env, 2);
 		return (1);
 	}
