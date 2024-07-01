@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   expand.c                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/06/29 09:38:51 by rtamouss          #+#    #+#             */
-/*   Updated: 2024/06/29 19:03:52 by rtamouss         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   expand.c                                           :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2024/06/29 09:38:51 by rtamouss      #+#    #+#                 */
+/*   Updated: 2024/06/30 20:31:37 by rtamouss      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,6 +98,13 @@ int	expand_string_helper(t_token **tokens, t_token **temp)
 	return (0);
 }
 
+int check_if_dollars(char *str)
+{
+	if (str[0] == '$' && str[1] == '\0')
+		return (1);
+	return (0);
+}
+
 t_token	*expand(t_token *tokens)
 {
 	t_token	*temp;
@@ -110,7 +117,7 @@ t_token	*expand(t_token *tokens)
 		{
 			if (temp->type == T_WORD)
 			{
-				if (ft_strchr(temp->value, '$') == NULL)
+				if (ft_strchr(temp->value, '$') == NULL || (temp->prev != NULL && temp->prev->type == T_HERDOC))
 				{
 					temp = temp->next;
 					continue ;

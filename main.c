@@ -1,5 +1,6 @@
 /* ************************************************************************** */
 /*                                                                            */
+
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
@@ -7,6 +8,7 @@
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
 /*   Updated: 2024/06/30 18:25:02 by akrid            ###   ########.fr       */
+
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,12 +22,13 @@ t_lists_collecter	*g_lists_collecter;
 
 int	syntax_checker(t_token *tokens, char *str)
 {
-	t_file_redirection	*heredocs;
+  t_file_redirection	*heredocs;
 	int					error_code;
-
-	if (check_syntax_error(str) != 0 || tokens == NULL)
+  if (tokens == NULL)
+		return (free_tokens(tokens), 1);
+	if (check_syntax_error(str) != 0)
 	{
-		free_tokens(tokens);
+		set_exit_status(*g_lists_collecter->env, 2);
 		return (1);
 	}
 	if (check_syntax_error_tokens(tokens) != 0 || tokens == NULL
@@ -36,6 +39,7 @@ int	syntax_checker(t_token *tokens, char *str)
 		check_heredoc_for_syntax_error(&heredocs, tokens, error_code);
 		free_heredocs(heredocs);
 		free_tokens(tokens);
+		set_exit_status(*g_lists_collecter->env, 2);
 		return (1);
 	}
 	return (0);
