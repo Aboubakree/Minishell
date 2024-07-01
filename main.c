@@ -61,6 +61,7 @@ void	minishell_loop(t_environment **env, t_token **tokens,
 		if (check_whitespaces(str) == 0 || syntax_checker(*tokens, str))
 		{
 			free(str);
+			free_tokens(*tokens);
 			continue ;
 		}
 		*minishell = token_to_minishell(*tokens);
