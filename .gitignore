@@ -1,0 +1,17 @@
+# Ignore hidden files starting with .nfs...
+.nfs*
+
+# Ignore object files (.o)
+*.o
+
+# Ignore archive files (.a)
+*.a
+
+# Ignore executable files
+*/* (shell pattern for executables)
+
+# Ignore hidden files prefixed with dot (alternative, less specific)
+.*
+
+# Don't ignore the .gitignore file itself (important)
+!*.gitignore

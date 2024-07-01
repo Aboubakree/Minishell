@@ -55,6 +55,8 @@ f : $(NAME)
 
 v : $(NAME)
 	valgrind ./$(NAME)
+l : $(NAME)
+	valgrind --suppressions=readline.supp --leak-check=full --show-leak-kinds=all ./$(NAME)
 k : $(NAME)
 	./$(NAME)
 
