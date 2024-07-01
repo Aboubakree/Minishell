@@ -1,12 +1,14 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   main.c                                             :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2024/04/24 10:18:34 by akrid         #+#    #+#                 */
-/*   Updated: 2024/06/30 20:26:47 by rtamouss      ########   odam.nl         */
+
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
+/*   Updated: 2024/06/30 18:25:02 by akrid            ###   ########.fr       */
+
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +84,7 @@ int	main(int argc, char **argv, char **base_env)
 		return (1);
 	collecter_init(&minishell, &env, &tokens);
 	get_environment(&env, base_env);
-	handle_signals(interactive_sigint, SIG_IGN,  SIG_IGN,  SIG_IGN);
+	handle_signals(interactive_sigint, SIG_IGN, SIG_IGN, SIG_IGN);
 	minishell_loop(&env, &tokens, &minishell);
 	free_environment(env);
 	free(g_lists_collecter);

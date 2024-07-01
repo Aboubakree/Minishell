@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/26 19:40:27 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/26 21:05:41 by akrid            ###   ########.fr       */
+/*   Updated: 2024/07/01 11:53:15 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,4 +47,39 @@ int	empty_cmd(char *cmd)
 		exit(127);
 	}
 	return (0);
+}
+
+void	get_in_out_extended(t_minishell *singl_mini)
+{
+	if (singl_mini->infile == 0)
+		dup2(singl_mini->pipe[(singl_mini->cmd_order - 1) * 2], 0);
+	else
+		dup2(singl_mini->infile, 0);
+	if (singl_mini->outfile == 1)
+		dup2(singl_mini->pipe[singl_mini->cmd_order * 2 + 1], 1);
+	else
+		dup2(singl_mini->outfile, 1);
+}
+
+void	get_in_out_priorities(t_minishell *singl_mini)
+{
+	if (singl_mini->cmd_order == 0)
+	{
+		dup2(singl_mini->infile, STDIN_FILENO);
+		if (singl_mini->outfile == STDOUT_FILENO)
+			dup2(singl_mini->pipe[1], STDOUT_FILENO);
+		else
+			dup2(singl_mini->outfile, 1);
+	}
+	else if (singl_mini->cmd_order == singl_mini->nbr_cmd - 1)
+	{
+		if (singl_mini->infile == 0)
+			dup2(singl_mini->pipe[(singl_mini->cmd_order - 1) * 2], 0);
+		else
+			dup2(singl_mini->infile, 0);
+		dup2(singl_mini->outfile, 1);
+	}
+	else
+		get_in_out_extended(singl_mini);
+	close_pipes(singl_mini->pipe, singl_mini->nbr_cmd);
 }
