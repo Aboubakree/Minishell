@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/24 10:18:34 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/29 20:09:01 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/30 18:25:02 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,6 @@ int	main(int argc, char **argv, char **base_env)
 		return (1);
 	collecter_init(&minishell, &env, &tokens);
 	get_environment(&env, base_env);
-	printf("Welcome to minishell\n");
 	handle_signals(interactive_sigint, SIG_IGN, SIG_IGN, SIG_IGN);
 	minishell_loop(&env, &tokens, &minishell);
 	free_environment(env);

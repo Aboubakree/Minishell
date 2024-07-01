@@ -6,73 +6,58 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 12:01:15 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/29 17:18:19 by akrid            ###   ########.fr       */
+/*   Updated: 2024/07/01 11:52:14 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-void	wait_childs(t_minishell *mini, t_environment *env, int num_cmd)
+void	set_last_exitstat(t_environment *env, int status, int *new_line)
 {
-	int	i;
-	int	status;
+	if (status == 131 || status == 2)
+	{
+		if (status == 2)
+			status += 128;
+		if (status == 131)
+			printf("Quit (core dumped)");
+		set_exit_status(env, status);
+	}
+	else
+	{
+		set_exit_status(env, WEXITSTATUS(status));
+	}
+	if (status < 200 && status != 0 && *new_line)
+	{
+		*new_line = 0;
+		printf("\n");
+	}
+}
+
+void	wait_childs(t_minishell *mini, t_environment *env,
+	int num_cmd, pid_t last_pid)
+{
+	int		i;
+	int		status;
+	pid_t	pid;
+	int		new_line;
 
 	i = 0;
+	new_line = 1;
 	close_pipes(mini->pipe, mini->nbr_cmd);
 	while (i < num_cmd)
 	{
 		status = 0;
-		wait(&status);
-		if (status == 131 || status == 2)
+		pid = wait(&status);
+		if (pid == last_pid)
+			set_last_exitstat(env, status, &new_line);
+		if (status == 2 && pid != last_pid && new_line)
 		{
-			if (status == 2)
-				status += 128;
-			if (status == 131)
-				printf("Quit (core dumped)");
-			set_exit_status(env, status);
+			new_line = 0;
+			printf("\n");
 		}
-		else
-			set_exit_status(env, WEXITSTATUS(status));
 		i++;
 	}
-	if (status < 255 && status != 0)
-		printf("\n");
 	unlink_files(mini);
-}
-
-void	get_in_out_extended(t_minishell *singl_mini)
-{
-	if (singl_mini->infile == 0)
-		dup2(singl_mini->pipe[(singl_mini->cmd_order - 1) * 2], 0);
-	else
-		dup2(singl_mini->infile, 0);
-	if (singl_mini->outfile == 1)
-		dup2(singl_mini->pipe[singl_mini->cmd_order * 2 + 1], 1);
-	else
-		dup2(singl_mini->outfile, 1);
-}
-
-void	get_in_out_priorities(t_minishell *singl_mini)
-{
-	if (singl_mini->cmd_order == 0)
-	{
-		dup2(singl_mini->infile, STDIN_FILENO);
-		if (singl_mini->outfile == STDOUT_FILENO)
-			dup2(singl_mini->pipe[1], STDOUT_FILENO);
-		else
-			dup2(singl_mini->outfile, 1);
-	}
-	else if (singl_mini->cmd_order == singl_mini->nbr_cmd - 1)
-	{
-		if (singl_mini->infile == 0)
-			dup2(singl_mini->pipe[(singl_mini->cmd_order - 1) * 2], 0);
-		else
-			dup2(singl_mini->infile, 0);
-		dup2(singl_mini->outfile, 1);
-	}
-	else
-		get_in_out_extended(singl_mini);
-	close_pipes(singl_mini->pipe, singl_mini->nbr_cmd);
 }
 
 void	final_execution(t_minishell *singl_mini, t_environment **env)
@@ -118,6 +103,6 @@ void	execute_all(t_minishell *minishell, t_environment **env)
 		}
 		temp = temp->next;
 	}
-	wait_childs(minishell, *env, minishell->nbr_cmd);
+	wait_childs(minishell, *env, minishell->nbr_cmd, pid);
 	handle_signals(interactive_sigint, SIG_IGN, SIG_IGN, SIG_IGN);
 }

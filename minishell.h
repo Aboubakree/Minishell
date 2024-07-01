@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/29 20:19:52 by akrid            ###   ########.fr       */
+/*   Updated: 2024/06/30 18:16:36 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -203,7 +203,7 @@ void							close_pipes(int *pipe, int nbr_cmd);
 void							unlink_files(t_minishell *minishell);
 
 void							wait_childs(t_minishell *mini,
-									t_environment *env, int num_cmd);
+									t_environment *env, int num_cmd, pid_t pid);
 void							get_in_out_extended(t_minishell *singl_mini);
 void							get_in_out_priorities(t_minishell *singl_mini);
 void							final_execution(t_minishell *singl_mini,
