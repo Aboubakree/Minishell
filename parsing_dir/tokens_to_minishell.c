@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   tokens_to_minishell.c                              :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/06/29 16:12:36 by rtamouss          #+#    #+#             */
-/*   Updated: 2024/06/29 19:21:23 by rtamouss         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   tokens_to_minishell.c                              :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2024/06/29 16:12:36 by rtamouss      #+#    #+#                 */
+/*   Updated: 2024/07/02 18:41:50 by rtamouss      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ int	handle_word_new_command(t_minishell_data_help *data, t_token *temp)
 	free(data->args1);
 	data->args1 = temp_args1;
 	free_args(data->args);
-	data->args = ft_split2(data->args1, '\r');
+	data->args = ft_split2(data->args1, "\r");
 	return (0);
 }
 

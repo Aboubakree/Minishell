@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2024/06/28 21:12:58 by rtamouss      #+#    #+#                 */
-/*   Updated: 2024/07/01 21:52:34 by rtamouss      ########   odam.nl         */
+/*   Updated: 2024/07/02 16:33:15 by rtamouss      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,10 +73,6 @@ int	check_syntax_error_tokens(t_token *tokens)
 		if (check_syntax_error_tokens_helper(temp) != 0)
 			return (check_syntax_error_tokens_helper(temp));
 		if (temp->prev == NULL && temp->type == T_PIPE)
-			return (2);
-		if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_OUT)
-			return (2);
-		if (temp->type == T_PIPE && temp->next->type == T_REDIRECTION_APPEND)
 			return (2);
 		temp = temp->next;
 	}

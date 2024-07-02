@@ -6,7 +6,7 @@
 /*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2024/06/29 09:38:51 by rtamouss      #+#    #+#                 */
-/*   Updated: 2024/06/30 20:31:37 by rtamouss      ########   odam.nl         */
+/*   Updated: 2024/07/02 18:41:26 by rtamouss      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ void	split_expanded_string(t_token **temp, t_token **tokens)
 	int		i;
 	t_token	*temp_to_remove;
 
-	args = ft_split2((*temp)->value, ' ');
+	args = ft_split2((*temp)->value, " \t\r");
 	i = 0;
 	while (args[i])
 	{

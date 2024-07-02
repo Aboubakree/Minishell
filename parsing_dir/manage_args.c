@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   manage_args.c                                      :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/06/28 21:29:21 by rtamouss          #+#    #+#             */
-/*   Updated: 2024/06/29 19:09:09 by rtamouss         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   manage_args.c                                      :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2024/06/28 21:29:21 by rtamouss      #+#    #+#                 */
+/*   Updated: 2024/07/02 18:41:36 by rtamouss      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,7 +60,7 @@ void	join_args(t_token *temp, char **args1, char ***args)
 	free(*args1);
 	*args1 = temp_args1;
 	free_args(*args);
-	*args = ft_split2(*args1, '\r');
+	*args = ft_split2(*args1, "\r");
 }
 
 void	print_args(t_minishell *temp)

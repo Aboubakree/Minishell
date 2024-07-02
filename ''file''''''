@@ -1,0 +1,25 @@
+a
+builtin
+environment_2.c
+environment_2.o
+environment_3.c
+environment_3.o
+environment.c
+environment.o
+execution
+''file''''''
+file
+file'
+lib
+ls -la
+main.c
+main.o
+Makefile
+minishell
+minishell.h
+oufile
+parsing_dir
+readline.supp
+script.sh
+signals.c
+signals.o
