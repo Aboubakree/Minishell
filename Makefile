@@ -19,6 +19,7 @@ SRC = main.c environment.c environment_2.c environment_3.c signals.c\
 	parsing_dir/expand.c parsing_dir/expand_utils.c parsing_dir/delete_quotes.c parsing_dir/tokens_to_minishell.c\
 	parsing_dir/tokens_to_minishell_utils.c parsing_dir/check_syntax_error2.c \
 	parsing_dir/helper_functions3.c parsing_dir/helper_functions4.c parsing_dir/helper_functions5.c\
+	parsing_dir/delete_quotes_utils.c
 
 LIBFT_DIR = lib/libft
 LIBFT = $(LIBFT_DIR)/libft.a
