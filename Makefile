@@ -29,9 +29,6 @@ OBJ = ${SRC:.c=.o}
 
 all : $(NAME)
 
-# $(NAME) : $(OBJ) $(LIBFT)
-# 	cc $(CFLAGS) -o $(NAME) $(OBJ)
-
 $(NAME) : $(OBJ) $(LIBFT)
 	$(CC) $(CFLAGS) -o $@ $^ -lreadline
 	@echo "\033[0;32m✅ minishell compiled\033[0m"
@@ -51,15 +48,6 @@ fclean : clean
 	@echo "\033[0;32m🧹🧹 fcleaned\033[0m"
 
 re : fclean all
-f : $(NAME)
-	valgrind --leak-check=full ./$(NAME)
-
-v : $(NAME)
-	valgrind ./$(NAME)
-l : $(NAME)
-	valgrind --suppressions=readline.supp --leak-check=full --show-leak-kinds=all ./$(NAME)
-k : $(NAME)
-	./$(NAME)
 
 .SECONDARY : $(OBJ)
 
