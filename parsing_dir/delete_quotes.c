@@ -74,48 +74,118 @@ void ft_remove_2_chars(char *str, int index1, int index2)
 // }
 
 
-void delete_quotes_from_string(char *str)
+// void delete_quotes_from_string(char *str)
+// {
+//     if (str == NULL)
+//         return;
+
+//     int len = ft_strlen(str);
+//     int i = 0;
+//     int j = 0;
+
+//     while (i < len)
+//     {
+//         if ((str[i] == '"' || str[i] == '\'') && i + 1 < len)
+//         {
+//             char quote = str[i];
+//             int start = i;
+//             i++;
+//             while (i < len && str[i] != quote)
+//             {
+//                 i++;
+//             }
+//             if (i < len && str[i] == quote)
+//             {
+//                 // Found matching quote, skip both quotes
+//                 i++;
+//                 while (start + 1 < i - 1)
+//                 {
+//                     str[j++] = str[++start];
+//                 }
+//             }
+//             else
+//             {
+//                 // No matching quote found, keep the opening quote
+//                 str[j++] = str[start];
+//                 i = start + 1;
+//             }
+//         }
+//         else
+//         {
+//             str[j++] = str[i++];
+//         }
+//     }
+//     str[j] = '\0';
+// }
+void delete_quotes_from_string_helper(char *str, int *k,
+    int *in_single_quote, int *in_double_quote)
 {
-    if (str == NULL)
-        return;
-
-    int len = ft_strlen(str);
-    int i = 0;
     int j = 0;
-
-    while (i < len)
+    while (str[j])
     {
-        if ((str[i] == '"' || str[i] == '\'') && i + 1 < len)
+        if (str[j] == '\'' && !*in_double_quote)
         {
-            char quote = str[i];
-            int start = i;
-            i++;
-            while (i < len && str[i] != quote)
+            if (*in_single_quote)
             {
-                i++;
-            }
-            if (i < len && str[i] == quote)
-            {
-                // Found matching quote, skip both quotes
-                i++;
-                while (start + 1 < i - 1)
-                {
-                    str[j++] = str[++start];
-                }
+                *in_single_quote = 0;
             }
             else
             {
-                // No matching quote found, keep the opening quote
-                str[j++] = str[start];
-                i = start + 1;
+                *in_single_quote = 1;
+                // Check for matching closing quote
+                int temp_j = j + 1;
+                while (str[temp_j] && str[temp_j] != '\'')
+                    temp_j++;
+                if (!str[temp_j])
+                {
+					// No matching closing quote, keep this quote
+                    str[(*k)++] = str[j];
+                }
             }
+        }
+        else if (str[j] == '\"' && !*in_single_quote)
+        {
+            if (*in_double_quote)
+            {
+                *in_double_quote = 0;
+            }
+            else
+            {
+                *in_double_quote = 1;
+                // Check for matching closing quote
+                int temp_j = j + 1;
+                while (str[temp_j] && str[temp_j] != '\"')
+                    temp_j++;
+                if (!str[temp_j])
+                {
+                    // No matching closing quote, keep this quote
+                    str[(*k)++] = str[j];
+                }
+            }
+        }
+        else if (str[j] == '$'
+            && *in_double_quote == 0 && *in_single_quote == 0 && str[j+1] != '\0' && !is_alpha(str[j+1]))
+        {
+            if (str[j] == '\'' && !*in_double_quote)
+				*in_single_quote = !*in_single_quote;
+			else if (str[j] == '\"' && !*in_single_quote)
+				*in_double_quote = !*in_double_quote;
         }
         else
         {
-            str[j++] = str[i++];
+            str[(*k)++] = str[j];
         }
+        j++;
     }
-    str[j] = '\0';
+}
+
+void delete_quotes_from_string(char *str)
+{
+    int in_single_quote = 0;
+    int in_double_quote = 0;
+    int k = 0;
+    delete_quotes_from_string_helper(str, &k, &in_single_quote, &in_double_quote);
+    str[k] = '\0';
 }
 
 // void delete_quotes_from_string(char *str)
