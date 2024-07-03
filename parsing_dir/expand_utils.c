@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   expand_utils.c                                     :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2024/06/29 10:24:27 by rtamouss      #+#    #+#                 */
-/*   Updated: 2024/06/30 17:28:32 by rtamouss      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   expand_utils.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/29 10:24:27 by rtamouss          #+#    #+#             */
+/*   Updated: 2024/07/03 23:05:59 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ char	*change_value(char *str, int *i, int *index, char *env_variable)
 	char			*last;
 
 	env_variable = ft_substr(str, *i + 1, *index - *i - 1);
-	get_env = env_get_bykey(*(g_lists_collecter->env), env_variable);
+	get_env = env_get_bykey(*((get_list_collecter())->env), env_variable);
 	if (get_env == NULL)
 		value = ft_strdup("");
 	else

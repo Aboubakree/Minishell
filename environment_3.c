@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/04 13:37:15 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/29 20:15:48 by akrid            ###   ########.fr       */
+/*   Updated: 2024/07/03 23:10:42 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,7 @@ t_environment	*creat_env(void)
 	env_add_back(&env, env_node(ft_strdup("?"), ft_strdup("0")));
 	env_add_back(&env, env_node(ft_strdup("OLDPWD"), NULL));
 	env_add_back(&env, env_node(ft_strdup("_"), ft_strdup("]")));
-	g_lists_collecter->p = 0;
+	(get_list_collecter())->p = 0;
 	return (env);
 }
 

@@ -6,7 +6,7 @@
 /*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/29 18:48:43 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/29 20:10:29 by akrid            ###   ########.fr       */
+/*   Updated: 2024/07/03 23:13:51 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ void	envi(t_minishell *singl_mini, t_environment *env)
 			else
 				printf("%s=%s\n", temp->key, temp->value);
 		}
-		if (ft_strncmp(temp->key, "PATH", 5) == 0 && g_lists_collecter->p)
+		if (ft_strncmp(temp->key, "PATH", 5) == 0 && (get_list_collecter())->p)
 			printf("%s=%s\n", temp->key, temp->value);
 		temp = temp->next;
 	}

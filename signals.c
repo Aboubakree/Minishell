@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   signals.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/29 17:37:05 by akrid             #+#    #+#             */
-/*   Updated: 2024/07/03 16:23:21 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/07/03 23:12:55 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ void	interactive_sigint(int sig)
 	rl_on_new_line();
 	rl_replace_line("", 0);
 	rl_redisplay();
-	set_exit_status(*(g_lists_collecter->env), 130);
+	set_exit_status(*((get_list_collecter())->env), 130);
 }
 
 void	interactive_sigquit(int sig)

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   check_syntax_error2.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/29 16:17:39 by rtamouss          #+#    #+#             */
-/*   Updated: 2024/07/03 14:54:10 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/07/03 23:05:18 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,7 @@ int	help_heredoc_sr(int *heredoc_counter, t_token *tokens,
 				ft_strdup(temp->next->value), T_HERDOC)), (*heredoc_counter)++);
 		if (temp->type == T_PIPE)
 		{
-			set_exit_status(*(g_lists_collecter->env), 2);
+			set_exit_status(*((get_list_collecter())->env), 2);
 			puterr(error_codes[error_code]);
 			print_error = 0;
 			if (*heredoc_counter == 0)
@@ -104,7 +104,7 @@ int	check_heredoc_for_syntax_error(t_file_redirection **heredocs
 			tokens, error_code, heredocs);
 	if (print_error == -1)
 		return (0);
-	set_exit_status(*(g_lists_collecter->env), 2);
+	set_exit_status(*((get_list_collecter())->env), 2);
 	if (heredoc_counter == 0)
 		return (puterr(error_codes[error_code]), 0);
 	if (heredoc_counter > 0 && heredoc_counter < 17)

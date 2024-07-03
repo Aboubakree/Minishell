@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/03 22:05:56 by rtamouss          #+#    #+#             */
-/*   Updated: 2024/07/03 22:05:57 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/07/03 23:17:11 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,23 @@
 
 // syntax error checking/
 
-t_lists_collecter	*g_lists_collecter;
+t_lists_collecter	*get_list_collecter(void)
+{
+	static t_lists_collecter	*lists_collecter = NULL;
+
+	if (lists_collecter == NULL)
+	{
+		lists_collecter = malloc(sizeof(t_lists_collecter));
+		if (lists_collecter == NULL)
+		{
+			perror("malloc");
+			exit(1);
+		}
+	}
+	return (lists_collecter);
+}
+
+// t_lists_collecter	*g_lists_collecter;
 
 int	syntax_checker(t_token *tokens, char *str)
 {
@@ -27,7 +43,7 @@ int	syntax_checker(t_token *tokens, char *str)
 		return (free_tokens(tokens), 1);
 	if (check_syntax_error(str) != 0)
 	{
-		set_exit_status(*g_lists_collecter->env, 2);
+		set_exit_status(*(get_list_collecter())->env, 2);
 		return (1);
 	}
 	if (check_syntax_error_tokens(tokens) != 0 || tokens == NULL
@@ -37,7 +53,7 @@ int	syntax_checker(t_token *tokens, char *str)
 		error_code = check_syntax_error_tokens(tokens);
 		check_heredoc_for_syntax_error(&heredocs, tokens, error_code);
 		free_heredocs(heredocs);
-		set_exit_status(*g_lists_collecter->env, 2);
+		set_exit_status(*(get_list_collecter())->env, 2);
 		return (1);
 	}
 	return (0);
@@ -86,7 +102,7 @@ int	main(int argc, char **argv, char **base_env)
 	handle_signals(interactive_sigint, SIG_IGN, SIG_IGN, SIG_IGN);
 	minishell_loop(&env, &tokens, &minishell);
 	free_environment(env);
-	free(g_lists_collecter);
+	free((get_list_collecter()));
 	printf("exit\n");
 	return (0);
 }

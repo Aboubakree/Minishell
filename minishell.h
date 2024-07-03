@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/07/03 22:05:06 by rtamouss         ###   ########.fr       */
+/*   Updated: 2024/07/03 23:18:14 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,9 +108,10 @@ typedef struct s_lists_collecter
 	int							p;
 }								t_lists_collecter;
 
-extern t_lists_collecter		*g_lists_collecter;
+// extern t_lists_collecter		*g_lists_collecter;
 
 // -------------- common function ---------------
+t_lists_collecter				*get_list_collecter(void);
 void							set_exit_status(t_environment *env,
 									int new_value);
 int								args_count(char **args);

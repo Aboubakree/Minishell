@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   free_data.c                                        :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2024/07/01 21:52:13 by rtamouss      #+#    #+#                 */
-/*   Updated: 2024/07/01 21:52:16 by rtamouss      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   free_data.c                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/07/01 21:52:13 by rtamouss          #+#    #+#             */
+/*   Updated: 2024/07/03 23:07:30 by akrid            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,11 +90,11 @@ void	free_heredocs(t_file_redirection *files)
 
 void	free_at_exit(void)
 {
-	if (*g_lists_collecter->env)
-		free_environment(*g_lists_collecter->env);
-	if (*g_lists_collecter->minishell)
-		free_minishell(*g_lists_collecter->minishell);
-	if (*g_lists_collecter->tokens)
-		free_tokens(*g_lists_collecter->tokens);
-	free(g_lists_collecter);
+	if (*(get_list_collecter())->env)
+		free_environment(*(get_list_collecter())->env);
+	if (*(get_list_collecter())->minishell)
+		free_minishell(*(get_list_collecter())->minishell);
+	if (*(get_list_collecter())->tokens)
+		free_tokens(*(get_list_collecter())->tokens);
+	free((get_list_collecter()));
 }
