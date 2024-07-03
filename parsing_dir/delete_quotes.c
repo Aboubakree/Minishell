@@ -188,81 +188,6 @@ void delete_quotes_from_string(char *str)
     str[k] = '\0';
 }
 
-// void delete_quotes_from_string(char *str)
-// {
-// 	int in_quote;
-// 	char quote;
-// 	int 	i;
-
-// 	in_quote = 0;
-// 	quote = '\0';
-// 	i = 0;
-// 	int index = 0;
-
-// 	if (str == NULL)
-// 		return ;	
-
-// 	int len = ft_strlen(str);
-// 	while(i < len)
-// 	{
-// 		printf("%s%c %s", RED, str[i] , RESET);
-// 		// printf("\n==================\n");
-// 		// printf("quote = [%c]\n" , quote);
-// 		// printf("in_quote = %d\n", in_quote);
-// 		// printf("\n==================\n");
-// 		if (str[i] == '\"' && in_quote == 0 && (quote == '\0' || quote != '\''))
-// 		{
-// 			// if (delete_double_quotes(&i, str, &in_quote, &quote) == 1)
-// 			// 	break;
-// 			in_quote = 1;
-// 			quote = '\"';
-// 			index = i;
-// 			i++;
-// 			while(str[i] && str[i] != quote)
-// 				i++;
-// 			if(str[i] != '\0')
-// 			{
-// 				printf("index = %d\n", index);
-// 				printf("index2 = %d\n", i );
-// 				ft_remove_2_chars(str, index, i);
-// 				in_quote = 0;
-// 				quote = '\0';
-// 				printf("quote = [%c]\n", quote);
-// 				printf("%shere is the string after removing = [%s]%s\n", GREEN, str, RESET);
-// 			}
-// 			if (str[i] == '\0')
-// 				break;
-// 		}
-// 		else if (str[i] == '\'' && (quote == '\0' || quote != '\"'))
-// 		{
-// 			in_quote = 1;
-// 			quote = '\'';
-// 			index = i;
-// 			i++;
-// 			while(str[i] && str[i] != quote)
-// 				i++;
-// 			if(str[i] != '\0')
-// 			{
-// 				printf("index = %d\n", index);
-// 				printf("index2 = %d\n", i );
-// 				ft_remove_2_chars(str, index, i);
-// 				in_quote = 0;
-// 				quote = '\0';
-// 				printf("quote = [%c]\n", quote);
-// 				printf("%shere is the string after removing = [%s]%s\n", GREEN, str, RESET);
-// 			}
-// 			if (str[i] == '\0')
-// 				break;
-// 		}
-// 		printf("i = %d\n", i);
-// 		i++;
-// 	}
-// 	printf("\n");
-// }
-
-
-
-
 
 void	delete_quotes_from_files(t_minishell *minishell)
 {
@@ -297,6 +222,7 @@ int count_char(char *str, char c)
 	}
 	return count;
 }
+
 void	delete_quotes_from_args(t_minishell *minishell)
 {
 	t_minishell	*temp;
@@ -314,15 +240,15 @@ void	delete_quotes_from_args(t_minishell *minishell)
 				delete_quotes_from_string(temp->args[i]);
 				i++;
 			}
+			if (temp->command)
+			{
+				free(temp->command);
+				temp->command = NULL;
+			}
+			if (temp->args[0])
+				temp->command = ft_strdup(temp->args[0]);
 			temp = temp->next;
 		}
-		if (minishell->command)
-		{
-			free(minishell->command);
-			minishell->command = NULL;
-		}
-		if (minishell->args[0])
-			minishell->command = ft_strdup(minishell->args[0]);
 	}
 }
 

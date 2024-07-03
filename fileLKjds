@@ -1,20 +1,21 @@
+Makefile
 a
 builtin
+environment.c
+environment.o
 environment_2.c
 environment_2.o
 environment_3.c
 environment_3.o
-environment.c
-environment.o
 execution
-''file''''''
 file
 file'
+fileLKjds
 lib
+lksdflj'
 ls -la
 main.c
 main.o
-Makefile
 minishell
 minishell.h
 oufile

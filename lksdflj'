@@ -1,0 +1,26 @@
+Makefile
+a
+builtin
+environment.c
+environment.o
+environment_2.c
+environment_2.o
+environment_3.c
+environment_3.o
+execution
+file
+file'
+fileLKjds
+lib
+lksdflj'
+ls -la
+main.c
+main.o
+minishell
+minishell.h
+oufile
+parsing_dir
+readline.supp
+script.sh
+signals.c
+signals.o
