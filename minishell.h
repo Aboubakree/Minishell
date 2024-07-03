@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   minishell.h                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: akrid <akrid@student.42.fr>                +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
-/*   Updated: 2024/06/30 18:16:36 by akrid            ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   minishell.h                                        :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2024/04/26 17:01:35 by akrid         #+#    #+#                 */
+/*   Updated: 2024/07/02 18:42:57 by rtamouss      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -311,18 +311,19 @@ void							print_args(t_minishell *temp);
 void							free_at_exit(void);
 void							free_heredocs(t_file_redirection *files);
 void							free_minishell(t_minishell *minishell);
+int check_charset(char *charset, char c);
 void							free_files(t_file_redirection *files);
 void							free_environment(t_environment *env);
 void							initialize_value_split2(int *j, char *quote,
 									int *in_quote);
 void							ft_skip2(int *i, int in_quote, const char *s,
-									char c);
+									char *charset);
 char							**ft_split2_helper(char **res, char const *s,
-									char c, int i);
-char							**ft_split2(char const *s, char c);
+									char *charset, int i);
+char							**ft_split2(char const *s, char *charset);
 char							**ft_free(char **strs);
 void							free_tokens(t_token *tokens);
-int								ft_count_words(char const *str, char sep);
+int								ft_count_words(char const *str, char *charset);
 void							free_args(char **args);
 void							init_expand_string(int *i,
 									int *in_single_quotes,

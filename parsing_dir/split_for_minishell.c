@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   split_for_minishell.c                              :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/06/28 21:34:24 by rtamouss          #+#    #+#             */
-/*   Updated: 2024/06/29 19:26:19 by rtamouss         ###   ########.fr       */
+/*                                                        ::::::::            */
+/*   split_for_minishell.c                              :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2024/06/28 21:34:24 by rtamouss      #+#    #+#                 */
+/*   Updated: 2024/07/02 18:41:13 by rtamouss      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,13 +19,27 @@ void	initialize_value_split2(int *j, char *quote, int *in_quote)
 	*in_quote = 0;
 }
 
-void	ft_skip2(int *i, int in_quote, const char *s, char c)
+void	ft_skip2(int *i, int in_quote, const char *s, char *charset)
 {
-	if (in_quote == 0 && s[*i] == c)
+	if (in_quote == 0 && check_charset(charset, s[*i]))
 		(*i)++;
 }
 
-int	ft_count_words(char const *str, char sep)
+int check_charset(char *charset, char c)
+{
+	int i;
+
+	i = 0;
+	while(charset[i])
+	{
+		if (charset[i] == c)
+			return (1);
+		i++;
+	}
+	return (0);
+}
+
+int	ft_count_words(char const *str, char *charset)
 {
 	int	count;
 	int	i;
@@ -34,19 +48,19 @@ int	ft_count_words(char const *str, char sep)
 	i = 0;
 	while (str[i])
 	{
-		while (str[i] && (str[i] == sep))
+		while (str[i] && check_charset(charset, str[i]) == 1)
 			i++;
-		if (str[i] && !(str[i] == sep))
+		if (str[i] && !(check_charset(charset, str[i]) == 1))
 		{
 			count++;
-			while (str[i] && !(str[i] == sep))
+			while (str[i] && !(check_charset(charset, str[i]) == 1))
 				i++;
 		}
 	}
 	return (count);
 }
 
-char	**ft_split2_helper(char **res, char const *s, char c, int i)
+char	**ft_split2_helper(char **res, char const *s, char *charset, int i)
 {
 	int		start;
 	char	quote;
@@ -58,10 +72,10 @@ char	**ft_split2_helper(char **res, char const *s, char c, int i)
 	while (s[i])
 	{
 		update_quote_state(&in_quote, &quote, s[i]);
-		ft_skip2(&i, in_quote, s, c);
+		ft_skip2(&i, in_quote, s, charset);
 		start = i;
 		i--;
-		while (s[++i] && (s[i] != c || in_quote == 1))
+		while (s[++i] && (check_charset(charset, s[i]) == 0 || in_quote == 1))
 			update_quote_state(&in_quote, &quote, s[i]);
 		if (i <= start)
 			continue ;
@@ -75,7 +89,7 @@ char	**ft_split2_helper(char **res, char const *s, char c, int i)
 	return (res);
 }
 
-char	**ft_split2(char const *s, char c)
+char	**ft_split2(char const *s, char *charset)
 {
 	char	**res;
 	int		i;
@@ -83,11 +97,12 @@ char	**ft_split2(char const *s, char c)
 	i = 0;
 	if (!s)
 		return (NULL);
-	res = (char **)malloc((ft_count_words(s, c) + 1) * sizeof(char *));
+	res = (char **)malloc((ft_count_words(s, charset) + 1) * sizeof(char *));
 	if (!res)
 		return (NULL);
-	res = ft_split2_helper(res, s, c, i);
+	res = ft_split2_helper(res, s, charset, i);
 	if (!res)
 		return (ft_free(res));
 	return (res);
 }
+
