@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   minishell.h                                        :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2024/04/26 17:01:35 by akrid         #+#    #+#                 */
-/*   Updated: 2024/07/02 18:42:57 by rtamouss      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   minishell.h                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/04/26 17:01:35 by akrid             #+#    #+#             */
+/*   Updated: 2024/07/03 22:05:06 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,8 +51,7 @@ typedef enum e_type_of_token
 	T_REDIRECTION_IN,
 	T_REDIRECTION_OUT,
 	T_REDIRECTION_APPEND,
-	T_HERDOC,
-	T_ENV_VARIABLE
+	T_HERDOC
 }								t_type_of_token;
 
 typedef struct s_token
@@ -311,7 +310,7 @@ void							print_args(t_minishell *temp);
 void							free_at_exit(void);
 void							free_heredocs(t_file_redirection *files);
 void							free_minishell(t_minishell *minishell);
-int check_charset(char *charset, char c);
+int								check_charset(char *charset, char c);
 void							free_files(t_file_redirection *files);
 void							free_environment(t_environment *env);
 void							initialize_value_split2(int *j, char *quote,
@@ -345,7 +344,6 @@ int								ambiguouse_redirect(char *old);
 int								ft_remove_char(char *str, int index);
 void							delete_quotes_from_string(char *str);
 t_token							*expand(t_token *tokens);
-;
 void							delete_quotes_from_files(
 									t_minishell *minishell);
 void							delete_quotes_from_args(t_minishell *minishell);
@@ -391,5 +389,11 @@ void							print_heredocs(t_file_redirection *files);
 void							collecter_init(t_minishell **minishell,
 									t_environment **env, t_token **tokens);
 int								not_alpha_numeric(char c);
+void							delete_quotes_helper1(int *in_single_quote,
+									char *str, int *k, int *j);
+void							delete_quotes_helper2(int *in_double_quote,
+									char *str, int *k, int *j);
+int								check_charset(char *charset, char c);
+int								check_if_dollars(char *str);
 
 #endif

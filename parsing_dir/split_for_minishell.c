@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
-/*                                                        ::::::::            */
-/*   split_for_minishell.c                              :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: rtamouss <rtamouss@student.42.fr>            +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2024/06/28 21:34:24 by rtamouss      #+#    #+#                 */
-/*   Updated: 2024/07/02 18:41:13 by rtamouss      ########   odam.nl         */
+/*                                                        :::      ::::::::   */
+/*   split_for_minishell.c                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: rtamouss <rtamouss@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/28 21:34:24 by rtamouss          #+#    #+#             */
+/*   Updated: 2024/07/03 22:03:42 by rtamouss         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,20 +23,6 @@ void	ft_skip2(int *i, int in_quote, const char *s, char *charset)
 {
 	if (in_quote == 0 && check_charset(charset, s[*i]))
 		(*i)++;
-}
-
-int check_charset(char *charset, char c)
-{
-	int i;
-
-	i = 0;
-	while(charset[i])
-	{
-		if (charset[i] == c)
-			return (1);
-		i++;
-	}
-	return (0);
 }
 
 int	ft_count_words(char const *str, char *charset)
@@ -105,4 +91,3 @@ char	**ft_split2(char const *s, char *charset)
 		return (ft_free(res));
 	return (res);
 }
-
